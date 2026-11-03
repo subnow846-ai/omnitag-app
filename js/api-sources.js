@@ -235,17 +235,22 @@ class ApiSourceManager {
       return targetUrl;
     }
 
-    // If served from an HTTP/HTTPS server (localhost, LAN, or Cloudflare tunnel),
-    // route through our built-in server proxy at /api/proxy
-    const hasServer = window.location.protocol.startsWith("http");
+    // If served from local server or Cloudflare tunnel, use /api/proxy
+    const hasLocalServer = window.location.protocol.startsWith("http") && 
+      (window.location.hostname === "localhost" || 
+       window.location.hostname === "127.0.0.1" || 
+       window.location.hostname.includes("trycloudflare.com") ||
+       window.location.hostname.startsWith("192.168."));
 
-    if (mode === "local" || (mode === "auto" && hasServer)) {
+    if (mode === "local" || (mode === "auto" && hasLocalServer)) {
       return `${window.location.origin}/api/proxy?url=${encodeURIComponent(targetUrl)}`;
     }
 
-    if (mode === "corsproxy" || mode === "allorigins" || (mode === "auto" && !hasServer)) {
-      return `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`;
+    if (mode === "custom" && source.customProxyUrl) {
+      return source.customProxyUrl.replace("{url}", encodeURIComponent(targetUrl));
     }
+
+    return targetUrl;
 
     if (mode === "custom" && source.customProxyUrl) {
       return source.customProxyUrl.replace("{url}", encodeURIComponent(targetUrl));
