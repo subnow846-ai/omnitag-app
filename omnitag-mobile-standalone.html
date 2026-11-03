@@ -1,0 +1,1312 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#0d1117">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>OmniTag Mobile</title>
+  
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='25' fill='%23388bfd'/><text x='50%' y='55%' dominant-baseline='middle' text-anchor='middle' fill='white' font-size='56' font-weight='bold'>O</text></svg>">
+
+  <style>
+/* --- INLINED MOBILE CSS --- */
+:root {
+  --m-bg: #0d1117;
+  --m-surface: #161b22;
+  --m-surface-elevated: #21262d;
+  --m-border: #30363d;
+  --m-text: #f0f6fc;
+  --m-text-sub: #8b949e;
+  --m-accent: #388bfd;
+  --m-accent-glow: rgba(56, 139, 253, 0.2);
+  --m-danger: #f85149;
+  --m-success: #3fb950;
+  
+  --cat-artist: #f47067;
+  --cat-character: #56d364;
+  --cat-copyright: #e3b341;
+  --cat-general: #58a6ff;
+
+  --nav-height: 60px;
+  --header-height: 54px;
+  --font-system: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+[data-theme="light"] {
+  --m-bg: #f8fafc;
+  --m-surface: #ffffff;
+  --m-surface-elevated: #f1f5f9;
+  --m-border: #e2e8f0;
+  --m-text: #0f172a;
+  --m-text-sub: #64748b;
+  --m-accent: #2563eb;
+  --m-accent-glow: rgba(37, 99, 235, 0.15);
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  font-family: var(--font-system);
+  background-color: var(--m-bg);
+  color: var(--m-text);
+  margin: 0;
+  padding: 0;
+  height: 100vh;
+  overflow: hidden;
+  user-select: none;
+}
+
+.mobile-app-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  height: 100dvh;
+  position: relative;
+  background-color: var(--m-bg);
+  max-width: 480px;
+  margin: 0 auto;
+  box-shadow: 0 0 40px rgba(0, 0, 0, 0.5);
+  border-left: 1px solid var(--m-border);
+  border-right: 1px solid var(--m-border);
+}
+
+.mobile-header {
+  height: var(--header-height);
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: var(--m-surface);
+  border-bottom: 1px solid var(--m-border);
+  flex-shrink: 0;
+  z-index: 20;
+}
+
+.header-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.brand-badge {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #388bfd, #a371f7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-weight: 800;
+  font-size: 15px;
+}
+
+.brand-name {
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mobile-source-chip {
+  background: var(--m-surface-elevated);
+  border: 1px solid var(--m-border);
+  color: var(--m-text);
+  padding: 5px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+
+.dot-online {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--m-success);
+}
+
+.header-icon-btn {
+  background: transparent;
+  border: none;
+  color: var(--m-text);
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.install-banner {
+  background: linear-gradient(90deg, #1f6feb, #8a63d2);
+  color: #fff;
+  padding: 8px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+  font-weight: 500;
+  flex-shrink: 0;
+}
+
+.install-banner-btn {
+  background: #fff;
+  color: #0f172a;
+  border: none;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.mobile-search-section {
+  padding: 10px 14px 6px 14px;
+  background: var(--m-surface);
+  border-bottom: 1px solid var(--m-border);
+  position: relative;
+  flex-shrink: 0;
+  z-index: 15;
+}
+
+.mobile-search-bar {
+  background: var(--m-surface-elevated);
+  border: 1px solid var(--m-border);
+  border-radius: 24px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  padding: 0 8px 0 14px;
+}
+
+.mobile-search-bar:focus-within {
+  border-color: var(--m-accent);
+}
+
+.mobile-search-bar input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-size: 14px;
+  color: var(--m-text);
+  margin: 0 8px;
+  font-family: inherit;
+}
+
+.mobile-search-bar .search-icon {
+  color: var(--m-text-sub);
+}
+
+.clear-btn {
+  background: transparent;
+  border: none;
+  color: var(--m-text-sub);
+  font-size: 18px;
+  padding: 0 6px;
+  cursor: pointer;
+}
+
+.submit-btn {
+  background: var(--m-accent);
+  border: none;
+  color: #fff;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.mobile-autocomplete-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 14px;
+  right: 14px;
+  background: var(--m-surface);
+  border: 1px solid var(--m-border);
+  border-radius: 12px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.6);
+  max-height: 240px;
+  overflow-y: auto;
+  z-index: 50;
+  display: none;
+}
+
+.autocomplete-item {
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--m-border);
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.autocomplete-item:last-child {
+  border-bottom: none;
+}
+
+.autocomplete-item:active {
+  background: var(--m-surface-elevated);
+}
+
+.horizontal-filter-scroll {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 10px 0 4px 0;
+  scrollbar-width: none;
+}
+
+.horizontal-filter-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.filter-pill {
+  background: var(--m-surface-elevated);
+  border: 1px solid var(--m-border);
+  color: var(--m-text-sub);
+  padding: 5px 12px;
+  border-radius: 16px;
+  font-size: 12px;
+  white-space: nowrap;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.filter-pill.active {
+  background: var(--m-accent);
+  border-color: var(--m-accent);
+  color: #fff;
+  font-weight: 600;
+}
+
+.mobile-scroll-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.feed-status-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+  color: var(--m-text-sub);
+  margin-bottom: 10px;
+  padding: 0 4px;
+}
+
+.text-action-btn {
+  background: transparent;
+  border: none;
+  color: var(--m-accent);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.mobile-gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.mobile-card {
+  background: var(--m-surface);
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid var(--m-border);
+  position: relative;
+  aspect-ratio: 0.82;
+  cursor: pointer;
+}
+
+.mobile-card:active {
+  transform: scale(0.98);
+}
+
+.mobile-card img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.card-badge {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  font-size: 9px;
+  font-weight: 700;
+  padding: 2px 5px;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.7);
+  color: #fff;
+}
+
+.card-fav-star {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  background: rgba(0, 0, 0, 0.6);
+  border: none;
+  color: #fff;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.card-fav-star.active {
+  color: var(--m-danger);
+}
+
+.mobile-bottom-nav {
+  height: var(--nav-height);
+  background: var(--m-surface);
+  border-top: 1px solid var(--m-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  flex-shrink: 0;
+  padding-bottom: env(safe-area-inset-bottom);
+  z-index: 20;
+}
+
+.nav-tab {
+  background: transparent;
+  border: none;
+  color: var(--m-text-sub);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  flex: 1;
+}
+
+.nav-tab.active {
+  color: var(--m-accent);
+  font-weight: 600;
+}
+
+.mobile-viewer {
+  position: fixed;
+  inset: 0;
+  background: #000;
+  z-index: 100;
+  display: none;
+  flex-direction: column;
+}
+
+.viewer-top-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.7), transparent);
+  z-index: 10;
+}
+
+.viewer-circle-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.viewer-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.viewer-stage {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-bottom: 90px;
+}
+
+.viewer-stage img, .viewer-stage video {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.viewer-info-sheet {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--m-surface);
+  border-top-left-radius: 20px;
+  border-top-right-radius: 20px;
+  padding: 12px 18px 24px 18px;
+  border-top: 1px solid var(--m-border);
+  box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.5);
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.sheet-drag-handle {
+  width: 36px;
+  height: 4px;
+  background: var(--m-border);
+  border-radius: 2px;
+  margin: 0 auto 12px auto;
+}
+
+.sheet-actions {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.sheet-action-btn {
+  flex: 1;
+  background: var(--m-surface-elevated);
+  border: 1px solid var(--m-border);
+  color: var(--m-text);
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.sheet-action-btn.primary {
+  background: var(--m-accent);
+  border-color: var(--m-accent);
+  color: #fff;
+}
+
+.sheet-meta-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--m-text-sub);
+  margin-bottom: 12px;
+}
+
+.mobile-tags-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.mobile-tag-chip {
+  background: var(--m-surface-elevated);
+  border: 1px solid var(--m-border);
+  color: var(--m-text);
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.bottom-sheet-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 120;
+  display: none;
+  align-items: flex-end;
+}
+
+.sheet-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+}
+
+.sheet-panel {
+  position: relative;
+  background: var(--m-surface);
+  border-top-left-radius: 20px;
+  border-top-right-radius: 20px;
+  width: 100%;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  padding: 16px 18px 24px 18px;
+  box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.5);
+}
+
+.sheet-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.sheet-close-btn {
+  background: transparent;
+  border: none;
+  color: var(--m-text-sub);
+  font-size: 22px;
+  cursor: pointer;
+}
+
+.sheet-sources-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  overflow-y: auto;
+  margin-bottom: 14px;
+}
+
+.sheet-source-card {
+  background: var(--m-surface-elevated);
+  border: 1px solid var(--m-border);
+  padding: 12px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+}
+
+.sheet-source-card.active {
+  border-color: var(--m-accent);
+  background: var(--m-accent-glow);
+}
+
+.mobile-toast {
+  position: fixed;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%) translateY(30px);
+  background: var(--m-surface-elevated);
+  border: 1px solid var(--m-border);
+  color: var(--m-text);
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 12px;
+  opacity: 0;
+  transition: all 0.25s ease;
+  pointer-events: none;
+  z-index: 200;
+}
+
+.mobile-toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+.mobile-pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  margin: 18px 0;
+}
+  </style>
+</head>
+<body>
+
+  <div class="mobile-app-container">
+    
+    <!-- Install to phone prompt banner -->
+    <div id="install-banner" class="install-banner">
+      <span>📲 Install OmniTag on your Phone</span>
+      <button id="install-btn" class="install-banner-btn">Install</button>
+    </div>
+
+    <!-- Top Header -->
+    <header class="mobile-header">
+      <div class="header-brand">
+        <div class="brand-badge">O</div>
+        <span class="brand-name">OmniTag</span>
+      </div>
+
+      <div class="header-actions">
+        <button id="mobile-source-chip" class="mobile-source-chip" title="Switch API">
+          <span class="dot-online"></span>
+          <span id="active-source-name">Safebooru</span>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
+        </button>
+
+        <button id="mobile-theme-btn" class="header-icon-btn" title="Toggle Theme">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"></circle></svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Search Section -->
+    <div class="mobile-search-section">
+      <div class="mobile-search-bar">
+        <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+        <input 
+          id="mobile-search-input" 
+          type="text" 
+          placeholder="Search tags (e.g. 1girl, cat)..." 
+          autocomplete="off"
+          autocapitalize="none"
+          spellcheck="false"
+        >
+        <button id="mobile-clear-btn" class="clear-btn" style="display: none;">&times;</button>
+        <button id="mobile-search-btn" class="submit-btn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+            <polyline points="9 18 15 12 9 6"></polyline>
+          </svg>
+        </button>
+      </div>
+
+      <div id="mobile-autocomplete" class="mobile-autocomplete-dropdown"></div>
+
+      <div class="horizontal-filter-scroll">
+        <button class="filter-pill active" data-filter="all">All</button>
+        <button class="filter-pill" data-rating="s">Safe Only</button>
+        <button class="filter-pill" data-media="video">Videos / GIFs</button>
+        <button class="filter-pill" data-media="image">Images</button>
+        <button class="filter-pill" data-aspect="tall">Portrait</button>
+        <button class="filter-pill" data-aspect="wide">Landscape</button>
+        <button class="filter-pill" data-sort="score">★ Top Score</button>
+      </div>
+    </div>
+
+    <!-- Feed -->
+    <main class="mobile-scroll-body">
+      <div class="feed-status-bar">
+        <span id="feed-results-info">Ready to search</span>
+        <button id="feed-refresh-btn" class="text-action-btn">Refresh</button>
+      </div>
+
+      <div id="mobile-grid" class="mobile-gallery-grid"></div>
+      <div id="mobile-pagination" class="mobile-pagination"></div>
+    </main>
+
+    <!-- Bottom Nav -->
+    <nav class="mobile-bottom-nav">
+      <button class="nav-tab active" data-tab="search">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+        <span>Search</span>
+      </button>
+
+      <button class="nav-tab" data-tab="explore">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+        </svg>
+        <span>Trending</span>
+      </button>
+
+      <button class="nav-tab" data-tab="saved">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+        </svg>
+        <span>Saved</span>
+      </button>
+
+      <button class="nav-tab" data-tab="sources">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="3"></circle>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+        </svg>
+        <span>APIs</span>
+      </button>
+    </nav>
+
+    <!-- Viewer Modal -->
+    <div id="mobile-viewer-modal" class="mobile-viewer">
+      <div class="viewer-top-bar">
+        <button id="viewer-close-btn" class="viewer-circle-btn">&times;</button>
+        <div class="viewer-title">Post View</div>
+        <button id="viewer-fav-btn" class="viewer-circle-btn">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+          </svg>
+        </button>
+      </div>
+
+      <div id="viewer-media-stage" class="viewer-stage"></div>
+
+      <div id="viewer-info-sheet" class="viewer-info-sheet">
+        <div class="sheet-drag-handle"></div>
+        <div class="sheet-actions">
+          <button id="viewer-download-btn" class="sheet-action-btn primary">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="7 10 12 15 17 10"></polyline>
+              <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+            Download
+          </button>
+          <button id="viewer-copy-btn" class="sheet-action-btn">Copy Link</button>
+          <a id="viewer-source-btn" class="sheet-action-btn" target="_blank" rel="noopener">Source ↗</a>
+        </div>
+
+        <div class="sheet-meta-row" id="viewer-meta-row"></div>
+        
+        <div class="sheet-tags-section">
+          <h5>Tags (Tap to Search)</h5>
+          <div id="viewer-tags-chips" class="mobile-tags-wrap"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sources Bottom Sheet -->
+    <div id="mobile-sources-sheet" class="bottom-sheet-modal">
+      <div class="sheet-overlay"></div>
+      <div class="sheet-panel">
+        <div class="sheet-header">
+          <h4>Switch API Source</h4>
+          <button id="close-sources-sheet-btn" class="sheet-close-btn">&times;</button>
+        </div>
+        <div id="mobile-sources-list" class="sheet-sources-list"></div>
+        <div class="sheet-footer">
+          <button id="mobile-add-source-btn" class="sheet-action-btn primary" style="width: 100%;">+ Add Custom API Source</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="mobile-toast" class="mobile-toast"></div>
+
+  </div>
+
+  <!-- Inline Core Scripts -->
+  <script>
+/* --- INLINED API SOURCES ENGINE --- */
+const DEFAULT_SOURCES = [
+  {
+    id: "safebooru",
+    name: "Safebooru",
+    type: "gelbooru_dapi",
+    baseUrl: "https://safebooru.org",
+    postsUrl: "https://safebooru.org/index.php?page=dapi&s=post&q=index&json=1&limit={limit}&pid={page}&tags={tags}",
+    tagsUrl: "https://safebooru.org/autocomplete.php?q={query}",
+    thumbTemplate: "https://safebooru.org/thumbnails/{directory}/thumbnail_{image}",
+    sampleTemplate: "https://safebooru.org/samples/{directory}/sample_{image}",
+    fileTemplate: "https://safebooru.org/images/{directory}/{image}",
+    proxyMode: "corsproxy", // Default to public CORS proxy for standalone mobile
+    customProxyUrl: "",
+    isPreset: true,
+    description: "Anime art (Safe)"
+  },
+  {
+    id: "danbooru",
+    name: "Danbooru (Safe)",
+    type: "danbooru_v2",
+    baseUrl: "https://danbooru.donmai.us",
+    postsUrl: "https://danbooru.donmai.us/posts.json?limit={limit}&page={page}&tags=rating:g+{tags}",
+    tagsUrl: "https://danbooru.donmai.us/autocomplete.json?search[query]={query}&search[type]=tag_query&version=1&limit=12",
+    proxyMode: "corsproxy",
+    customProxyUrl: "",
+    isPreset: true,
+    description: "Danbooru Safe posts"
+  },
+  {
+    id: "yande",
+    name: "Yande.re (Safe)",
+    type: "moebooru",
+    baseUrl: "https://yande.re",
+    postsUrl: "https://yande.re/post.json?limit={limit}&page={page}&tags=rating:s+{tags}",
+    tagsUrl: "https://yande.re/tag.json?name={query}&order=count&limit=12",
+    proxyMode: "corsproxy",
+    customProxyUrl: "",
+    isPreset: true,
+    description: "Anime wallpapers"
+  }
+];
+
+class ApiSourceManager {
+  constructor() {
+    this.storageKey = "omnitag_sources_v1";
+    this.activeKey = "omnitag_active_source_id";
+    this.sources = this.loadSources();
+    this.activeId = localStorage.getItem(this.activeKey) || "safebooru";
+    if (!this.getSource(this.activeId)) this.activeId = this.sources[0]?.id || "safebooru";
+  }
+
+  loadSources() {
+    try {
+      const saved = localStorage.getItem(this.storageKey);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch (e) {}
+    return JSON.parse(JSON.stringify(DEFAULT_SOURCES));
+  }
+
+  saveSources(sources) {
+    this.sources = sources;
+    localStorage.setItem(this.storageKey, JSON.stringify(sources));
+  }
+
+  getSources() { return this.sources; }
+  getSource(id) { return this.sources.find(s => s.id === id) || null; }
+  getActiveSource() { return this.getSource(this.activeId) || this.sources[0]; }
+
+  setActiveSource(id) {
+    if (this.getSource(id)) {
+      this.activeId = id;
+      localStorage.setItem(this.activeKey, id);
+      return true;
+    }
+    return false;
+  }
+
+  saveSource(sourceData) {
+    const existingIndex = this.sources.findIndex(s => s.id === sourceData.id);
+    if (existingIndex >= 0) {
+      this.sources[existingIndex] = { ...this.sources[existingIndex], ...sourceData };
+    } else {
+      if (!sourceData.id) sourceData.id = "custom_" + Date.now().toString(36);
+      this.sources.push(sourceData);
+    }
+    this.saveSources(this.sources);
+    return sourceData;
+  }
+
+  resolveUrl(targetUrl, source) {
+    if (!targetUrl) return "";
+    const mode = source.proxyMode || "auto";
+    if (mode === "direct") return targetUrl;
+    
+    // If served over HTTP/HTTPS from a server, use built-in /api/proxy
+    if (window.location.protocol.startsWith("http")) {
+      return `${window.location.origin}/api/proxy?url=${encodeURIComponent(targetUrl)}`;
+    }
+    
+    // Offline / file:// fallback
+    return `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`;
+  }
+
+  async fetchTags(query) {
+    const source = this.getActiveSource();
+    if (!source || !query || !query.trim()) return [];
+    const cleanQuery = query.trim().toLowerCase();
+    let url = (source.tagsUrl || "").replace("{query}", encodeURIComponent(cleanQuery));
+    if (!url) url = `${source.baseUrl}/autocomplete.php?q=${encodeURIComponent(cleanQuery)}`;
+    
+    try {
+      const resp = await fetch(this.resolveUrl(url, source));
+      if (!resp.ok) throw new Error("HTTP " + resp.status);
+      const data = await resp.json();
+      return this.normalizeTags(data);
+    } catch (e) {
+      return [];
+    }
+  }
+
+  normalizeTags(raw) {
+    if (!Array.isArray(raw)) return [];
+    return raw.slice(0, 15).map(item => {
+      if (typeof item === "string") return { name: item, label: item, count: null, category: "general" };
+      const name = item.value || item.name || item.tag || "";
+      let count = item.post_count || item.count || null;
+      let label = item.label || name;
+      if (!count && label.includes("(") && label.endsWith(")")) {
+        const m = label.match(/\((\d+)\)$/);
+        if (m) count = parseInt(m[1], 10);
+      }
+      return { name, label: name, count, category: "general" };
+    }).filter(t => t.name);
+  }
+
+  async fetchPosts(tags = "", page = 0, limit = 24) {
+    const source = this.getActiveSource();
+    let url = (source.postsUrl || `${source.baseUrl}/index.php?page=dapi&s=post&q=index&json=1&limit={limit}&pid={page}&tags={tags}`)
+      .replace("{limit}", limit.toString())
+      .replace("{page}", page.toString())
+      .replace("{tags}", encodeURIComponent((tags || "").trim()));
+
+    const resp = await fetch(this.resolveUrl(url, source));
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    const data = await resp.json();
+    return this.normalizePosts(data, source);
+  }
+
+  normalizePosts(raw, source) {
+    let list = Array.isArray(raw) ? raw : (raw?.post || raw?.posts || []);
+    return list.map(item => {
+      let id = item.id || item.post_id || Math.random().toString(36).substr(2, 7);
+      let width = parseInt(item.width || item.image_width || 0, 10);
+      let height = parseInt(item.height || item.image_height || 0, 10);
+      let score = parseInt(item.score || 0, 10);
+      let rating = item.rating || "general";
+
+      let rawTags = item.tags || item.tag_string || "";
+      let tagList = Array.isArray(rawTags) ? rawTags : String(rawTags).trim().split(/\s+/).filter(Boolean);
+
+      let fileUrl = item.file_url || "";
+      let sampleUrl = item.sample_url || item.large_file_url || fileUrl;
+      let previewUrl = item.preview_url || item.preview_file_url || sampleUrl;
+
+      if ((!fileUrl || !fileUrl.startsWith("http")) && item.directory && item.image) {
+        previewUrl = `https://safebooru.org/thumbnails/${item.directory}/thumbnail_${item.image}`;
+        sampleUrl = `https://safebooru.org/samples/${item.directory}/sample_${item.image}`;
+        fileUrl = `https://safebooru.org/images/${item.directory}/${item.image}`;
+      }
+
+      const ext = (fileUrl || sampleUrl).split('?')[0].split('.').pop().toLowerCase();
+      const isVideo = ["mp4", "webm"].includes(ext);
+
+      return {
+        id,
+        tags: tagList,
+        previewUrl,
+        sampleUrl: sampleUrl || previewUrl,
+        fileUrl: fileUrl || sampleUrl,
+        width,
+        height,
+        aspectRatio: width && height ? width / height : 1,
+        score,
+        rating,
+        ext,
+        isVideo,
+        isGif: ext === "gif",
+        sourceSite: source.name,
+        sourceId: source.id,
+        postPageUrl: `${source.baseUrl}/index.php?page=post&s=view&id=${id}`
+      };
+    });
+  }
+}
+
+window.apiSourceManager = new ApiSourceManager();
+
+/* --- AUTOCOMPLETE --- */
+class TagAutocomplete {
+  constructor(input, dropdown, onSelect) {
+    this.input = input;
+    this.dropdown = dropdown;
+    this.onSelect = onSelect;
+    this.debounceTimer = null;
+    this.tokenStartIndex = 0;
+
+    this.input.addEventListener("input", () => this.handleInput());
+    document.addEventListener("click", (e) => {
+      if (!this.input.contains(e.target) && !this.dropdown.contains(e.target)) {
+        this.dropdown.style.display = "none";
+      }
+    });
+  }
+
+  handleInput() {
+    clearTimeout(this.debounceTimer);
+    const val = this.input.value;
+    const cursorPos = this.input.selectionStart || val.length;
+    const beforeCursor = val.slice(0, cursorPos);
+    const lastSpace = Math.max(beforeCursor.lastIndexOf(" "), beforeCursor.lastIndexOf("+"));
+    const start = lastSpace + 1;
+    let token = beforeCursor.slice(start);
+
+    if (!token || token.length < 2) {
+      this.dropdown.style.display = "none";
+      return;
+    }
+
+    this.tokenStartIndex = start;
+    this.debounceTimer = setTimeout(async () => {
+      const list = await window.apiSourceManager.fetchTags(token);
+      if (!list || list.length === 0) {
+        this.dropdown.style.display = "none";
+        return;
+      }
+      this.dropdown.innerHTML = "";
+      list.forEach(item => {
+        const row = document.createElement("div");
+        row.className = "autocomplete-item";
+        row.innerHTML = `<span>${item.name}</span>${item.count ? `<span style="color: var(--m-text-sub); font-size: 11px;">${item.count}</span>` : ''}`;
+        row.addEventListener("click", () => {
+          const newVal = val.slice(0, this.tokenStartIndex) + item.name + " " + val.slice(cursorPos);
+          this.input.value = newVal;
+          this.dropdown.style.display = "none";
+          this.input.focus();
+          if (this.onSelect) this.onSelect(item);
+        });
+        this.dropdown.appendChild(row);
+      });
+      this.dropdown.style.display = "block";
+    }, 180);
+  }
+}
+
+/* --- MOBILE CONTROLLER --- */
+class MobileAppController {
+  constructor() {
+    this.sourceManager = window.apiSourceManager;
+    this.posts = [];
+    this.filteredPosts = [];
+    this.currentPage = 0;
+    this.currentQuery = "";
+    this.favorites = JSON.parse(localStorage.getItem("omnitag_favorites") || "[]");
+    this.activeFilter = { rating: "all", media: "all", aspect: "all", sort: "default" };
+
+    this.init();
+  }
+
+  init() {
+    this.input = document.getElementById("mobile-search-input");
+    this.grid = document.getElementById("mobile-grid");
+    this.paginationEl = document.getElementById("mobile-pagination");
+    this.statusEl = document.getElementById("feed-results-info");
+    this.sourceChip = document.getElementById("mobile-source-chip");
+    this.activeName = document.getElementById("active-source-name");
+    this.toast = document.getElementById("mobile-toast");
+
+    // Viewer
+    this.viewer = document.getElementById("mobile-viewer-modal");
+    this.viewerStage = document.getElementById("viewer-media-stage");
+
+    new TagAutocomplete(this.input, document.getElementById("mobile-autocomplete"), () => {
+      this.search(this.input.value);
+    });
+
+    // PWA Install prompt handling
+    let deferredPrompt;
+    const installBanner = document.getElementById("install-banner");
+    const installBtn = document.getElementById("install-btn");
+
+    window.addEventListener("beforeinstallprompt", (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      installBanner.style.display = "flex";
+    });
+
+    installBtn.addEventListener("click", async () => {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        if (outcome === "accepted") installBanner.style.display = "none";
+        deferredPrompt = null;
+      } else {
+        alert("To install on iOS Safari: Tap Share [↑] -> 'Add to Home Screen'.\nTo install on Android: Tap Chrome Menu (⋮) -> 'Install App'.");
+      }
+    });
+
+    this.bind();
+    this.search("", 0);
+  }
+
+  bind() {
+    document.getElementById("mobile-search-btn").addEventListener("click", () => this.search(this.input.value));
+    this.input.addEventListener("keydown", (e) => { if (e.key === "Enter") this.search(this.input.value); });
+
+    document.querySelectorAll(".filter-pill").forEach(pill => {
+      pill.addEventListener("click", () => {
+        document.querySelectorAll(".filter-pill").forEach(p => p.classList.remove("active"));
+        pill.classList.add("active");
+        this.activeFilter.rating = pill.dataset.rating || "all";
+        this.activeFilter.media = pill.dataset.media || "all";
+        this.activeFilter.aspect = pill.dataset.aspect || "all";
+        this.activeFilter.sort = pill.dataset.sort || "default";
+        this.render();
+      });
+    });
+
+    document.querySelectorAll(".nav-tab").forEach(tab => {
+      tab.addEventListener("click", () => {
+        document.querySelectorAll(".nav-tab").forEach(t => t.classList.remove("active"));
+        tab.classList.add("active");
+        if (tab.dataset.tab === "search") this.search(this.input.value);
+        else if (tab.dataset.tab === "explore") { this.input.value = "landscape"; this.search("landscape"); }
+        else if (tab.dataset.tab === "saved") this.showSaved();
+        else if (tab.dataset.tab === "sources") this.openSourcesSheet();
+      });
+    });
+
+    this.sourceChip.addEventListener("click", () => this.openSourcesSheet());
+    document.getElementById("close-sources-sheet-btn").addEventListener("click", () => {
+      document.getElementById("mobile-sources-sheet").style.display = "none";
+    });
+
+    document.getElementById("viewer-close-btn").addEventListener("click", () => {
+      this.viewer.style.display = "none";
+      this.viewerStage.innerHTML = "";
+    });
+
+    document.getElementById("feed-refresh-btn").addEventListener("click", () => this.search(this.currentQuery, this.currentPage));
+  }
+
+  async search(q = "", page = 0) {
+    this.currentQuery = q.trim();
+    this.currentPage = page;
+    this.statusEl.textContent = "Loading...";
+    this.grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 40px; color: var(--m-text-sub);">Loading posts...</div>';
+
+    try {
+      this.posts = await this.sourceManager.fetchPosts(this.currentQuery, page, 24);
+      this.render();
+    } catch (e) {
+      this.statusEl.textContent = "Error loading";
+      this.grid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 30px; color: var(--m-danger);">${e.message}</div>`;
+    }
+  }
+
+  render() {
+    let list = [...this.posts];
+    if (this.activeFilter.rating === "s") list = list.filter(p => (p.rating || "").startsWith("s") || p.rating === "general");
+    if (this.activeFilter.media === "video") list = list.filter(p => p.isVideo || p.isGif);
+    if (this.activeFilter.media === "image") list = list.filter(p => !p.isVideo && !p.isGif);
+    if (this.activeFilter.aspect === "tall") list = list.filter(p => p.aspectRatio < 0.9);
+    if (this.activeFilter.aspect === "wide") list = list.filter(p => p.aspectRatio > 1.1);
+    if (this.activeFilter.sort === "score") list.sort((a, b) => b.score - a.score);
+
+    this.filteredPosts = list;
+    this.grid.innerHTML = "";
+    this.statusEl.textContent = `${list.length} posts (Page ${this.currentPage + 1})`;
+
+    list.forEach((post, i) => {
+      const card = document.createElement("div");
+      card.className = "mobile-card";
+      card.innerHTML = `<img src="${post.previewUrl}" alt="Post ${post.id}" loading="lazy"/>`;
+      card.addEventListener("click", () => this.openViewer(post));
+      this.grid.appendChild(card);
+    });
+
+    this.paginationEl.innerHTML = `
+      <button class="sheet-action-btn" id="prev-pg" ${this.currentPage <= 0 ? "disabled" : ""}>&larr; Prev</button>
+      <span style="font-size: 13px; font-weight: 600;">Page ${this.currentPage + 1}</span>
+      <button class="sheet-action-btn" id="next-pg">Next &rarr;</button>
+    `;
+    const prev = document.getElementById("prev-pg");
+    const next = document.getElementById("next-pg");
+    if (prev) prev.onclick = () => { if (this.currentPage > 0) this.search(this.currentQuery, this.currentPage - 1); };
+    if (next) next.onclick = () => this.search(this.currentQuery, this.currentPage + 1);
+  }
+
+  openViewer(post) {
+    this.viewer.style.display = "flex";
+    this.viewerStage.innerHTML = "";
+
+    if (post.isVideo) {
+      const v = document.createElement("video");
+      v.src = post.fileUrl;
+      v.controls = true;
+      v.autoplay = true;
+      v.loop = true;
+      v.style.maxWidth = "100%";
+      this.viewerStage.appendChild(v);
+    } else {
+      const img = document.createElement("img");
+      img.src = post.sampleUrl || post.fileUrl;
+      this.viewerStage.appendChild(img);
+    }
+
+    document.getElementById("viewer-meta-row").innerHTML = `<span>#${post.id}</span><span>${post.width}×${post.height}</span><span>★ ${post.score}</span>`;
+    document.getElementById("viewer-source-btn").href = post.postPageUrl || post.fileUrl;
+    document.getElementById("viewer-copy-btn").onclick = () => {
+      navigator.clipboard.writeText(post.fileUrl);
+      this.toastMsg("Copied link!");
+    };
+    document.getElementById("viewer-download-btn").onclick = () => {
+      const a = document.createElement("a");
+      a.href = post.fileUrl;
+      a.download = `omnitag_${post.id}.${post.ext}`;
+      a.target = "_blank";
+      a.click();
+    };
+
+    const tagsWrap = document.getElementById("viewer-tags-chips");
+    tagsWrap.innerHTML = "";
+    (post.tags || []).slice(0, 25).forEach(t => {
+      const c = document.createElement("button");
+      c.className = "mobile-tag-chip";
+      c.textContent = t.replace(/_/g, " ");
+      c.onclick = () => {
+        this.viewer.style.display = "none";
+        this.input.value = t;
+        this.search(t);
+      };
+      tagsWrap.appendChild(c);
+    });
+  }
+
+  openSourcesSheet() {
+    const list = document.getElementById("mobile-sources-list");
+    list.innerHTML = "";
+    this.sourceManager.getSources().forEach(src => {
+      const div = document.createElement("div");
+      div.className = `sheet-source-card ${src.id === this.sourceManager.getActiveSource()?.id ? "active" : ""}`;
+      div.innerHTML = `<div><div style="font-weight:600;">${src.name}</div><div style="font-size:11px;color:var(--m-text-sub);">${src.baseUrl}</div></div><span>SELECT</span>`;
+      div.onclick = () => {
+        this.sourceManager.setActiveSource(src.id);
+        this.activeName.textContent = src.name;
+        document.getElementById("mobile-sources-sheet").style.display = "none";
+        this.toastMsg(`Switched to ${src.name}`);
+        this.search(this.currentQuery, 0);
+      };
+      list.appendChild(div);
+    });
+    document.getElementById("mobile-sources-sheet").style.display = "flex";
+  }
+
+  showSaved() {
+    this.filteredPosts = this.favorites;
+    this.statusEl.textContent = `${this.favorites.length} saved`;
+    this.grid.innerHTML = "";
+    this.favorites.forEach(post => {
+      const card = document.createElement("div");
+      card.className = "mobile-card";
+      card.innerHTML = `<img src="${post.previewUrl}" alt="Post ${post.id}"/>`;
+      card.onclick = () => this.openViewer(post);
+      this.grid.appendChild(card);
+    });
+    this.paginationEl.innerHTML = "";
+  }
+
+  toastMsg(msg) {
+    this.toast.textContent = msg;
+    this.toast.className = "mobile-toast show";
+    setTimeout(() => { this.toast.className = "mobile-toast"; }, 2000);
+  }
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  new MobileAppController();
+});
+  </script>
+</body>
+</html>

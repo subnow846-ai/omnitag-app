@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#0d1117">
+  <meta name="description" content="OmniTag - Fast, modern tag-based image search engine with switchable API sources">
+  <title>OmniTag - Universal Tag Search Engine</title>
+  
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="css/style.css">
+  
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23388bfd'/><text x='50%' y='55%' dominant-baseline='middle' text-anchor='middle' fill='white' font-size='56' font-weight='bold'>O</text></svg>">
+</head>
+<body>
+
+  <!-- ==========================================
+       Global Header
+       ========================================== -->
+  <header class="app-header">
+    <div class="header-left">
+      <div class="logo-wrapper logo-action" title="Return to Home">
+        <div class="logo-icon">O</div>
+        <span class="logo-text">OmniTag</span>
+      </div>
+    </div>
+
+    <div class="header-right">
+      <!-- Active API indicator pill (Header) -->
+      <div class="source-selector-pill">
+        <button id="open-sources-btn" class="source-pill-btn" title="API Sources & Endpoints">
+          <span class="source-dot"></span>
+          <span id="active-source-badge">Safebooru</span>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
+        </button>
+      </div>
+
+      <!-- Favorites Drawer Toggle -->
+      <button id="open-fav-btn" class="icon-btn" title="Saved Bookmarks">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+        </svg>
+        <span id="fav-badge-count" class="badge-counter">0</span>
+      </button>
+
+      <!-- Theme Toggle (Dark / Light) -->
+      <button id="theme-toggle-btn" class="icon-btn" title="Toggle Theme">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"></circle></svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- ==========================================
+       Google-Style Centered Hero (Home View)
+       ========================================== -->
+  <main id="hero-section" class="hero-container">
+    <div class="hero-brand">
+      <h1 class="hero-logo">OmniTag</h1>
+      <p class="hero-tagline">Universal tag-based media search engine with switchable booru APIs</p>
+    </div>
+
+    <!-- Main Search Box -->
+    <div class="search-box-wrapper">
+      <div class="search-input-box">
+        <svg class="search-icon-svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+        
+        <input 
+          id="hero-search-input" 
+          type="text" 
+          class="search-input" 
+          placeholder="Search tags (e.g. 1girl blue_eyes, -tag to exclude)..." 
+          autocomplete="off"
+          spellcheck="false"
+        >
+
+        <!-- Source Switcher Dropdown in Hero -->
+        <div class="source-selector-pill">
+          <button id="hero-source-btn" class="source-pill-btn" type="button" title="Switch API Source">
+            <span class="source-dot"></span>
+            <span id="hero-source-name">Safebooru</span>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+          </button>
+          <div id="quick-sources-dropdown" class="sources-dropdown-menu"></div>
+        </div>
+
+        <button id="hero-search-btn" class="search-submit-btn" title="Search">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+            <polyline points="12 5 19 12 12 19"></polyline>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Real-time Tag Autocomplete Dropdown -->
+      <div id="hero-autocomplete" class="autocomplete-dropdown"></div>
+    </div>
+
+    <!-- Search History & Quick Tags -->
+    <div class="hero-history">
+      <span class="history-label">Quick tags:</span>
+      <div id="hero-history-tags" style="display: contents;"></div>
+    </div>
+  </main>
+
+  <!-- ==========================================
+       Sticky Top Bar (Results View)
+       ========================================== -->
+  <div id="top-bar" class="top-bar">
+    <div class="top-bar-left">
+      <div class="logo-wrapper logo-action" title="Back to Home">
+        <div class="logo-icon" style="width: 32px; height: 32px; font-size: 16px;">O</div>
+      </div>
+
+      <div class="top-search-wrapper">
+        <div class="search-input-box top-search-box">
+          <svg class="search-icon-svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          
+          <input 
+            id="top-search-input" 
+            type="text" 
+            class="search-input" 
+            placeholder="Search tags..." 
+            autocomplete="off"
+            spellcheck="false"
+          >
+
+          <div class="source-selector-pill">
+            <button id="top-source-btn" class="source-pill-btn" type="button" title="Switch API Source">
+              <span class="source-dot"></span>
+              <span id="top-source-name">Safebooru</span>
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </button>
+            <div id="quick-sources-dropdown-top" class="sources-dropdown-menu"></div>
+          </div>
+
+          <button id="top-search-btn" class="search-submit-btn" style="width: 32px; height: 32px;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+              <polyline points="12 5 19 12 12 19"></polyline>
+            </svg>
+          </button>
+        </div>
+
+        <!-- Top Autocomplete Dropdown -->
+        <div id="top-autocomplete" class="autocomplete-dropdown"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       Results Section & Grid
+       ========================================== -->
+  <section id="results-section" class="results-section">
+    <!-- Filters & Sorting Bar -->
+    <div class="filters-bar">
+      <div id="results-count" class="results-meta">Searching...</div>
+
+      <div class="filters-controls">
+        <select id="filter-rating" class="filter-select" title="Filter Rating">
+          <option value="all">All Ratings</option>
+          <option value="s">Safe Only</option>
+          <option value="q">Questionable</option>
+          <option value="e">Explicit</option>
+        </select>
+
+        <select id="filter-media" class="filter-select" title="Filter Media Type">
+          <option value="all">All Media</option>
+          <option value="image">Images Only</option>
+          <option value="video">Videos / GIFs</option>
+        </select>
+
+        <select id="filter-aspect" class="filter-select" title="Filter Aspect Ratio">
+          <option value="all">Any Aspect</option>
+          <option value="wide">Landscape</option>
+          <option value="tall">Portrait</option>
+          <option value="square">Square</option>
+        </select>
+
+        <select id="filter-sort" class="filter-select" title="Sort Order">
+          <option value="default">Default Order</option>
+          <option value="score">Highest Score</option>
+          <option value="id">Latest ID</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Gallery Grid -->
+    <div id="gallery-grid" class="gallery-grid"></div>
+
+    <!-- Pagination Controls -->
+    <div id="pagination-container" class="pagination-container"></div>
+  </section>
+
+  <!-- ==========================================
+       Lightbox / Detail Modal
+       ========================================== -->
+  <div id="lightbox-modal" class="lightbox-modal">
+    <div class="lightbox-content-box">
+      <!-- Media Main Stage -->
+      <div class="lightbox-main-view">
+        <button id="lightbox-prev-btn" class="lightbox-nav-btn prev" title="Previous (Left Arrow)">&#10094;</button>
+        <div id="lightbox-media-container" class="lightbox-media-container"></div>
+        <button id="lightbox-next-btn" class="lightbox-nav-btn next" title="Next (Right Arrow)">&#10095;</button>
+      </div>
+
+      <!-- Detail Sidebar -->
+      <div class="lightbox-sidebar">
+        <div class="lightbox-sidebar-header">
+          <h3>Post Details</h3>
+          <button id="lightbox-close-btn" class="icon-btn" title="Close (Esc)">&times;</button>
+        </div>
+
+        <div class="lightbox-sidebar-body">
+          <!-- Action Buttons -->
+          <div class="lightbox-actions-grid">
+            <button id="lightbox-fav-btn" class="btn-secondary" title="Bookmark">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+              </svg>
+              <span>Favorite</span>
+            </button>
+            <button id="lightbox-download-btn" class="btn-primary" title="Download Full Resolution">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+              </svg>
+              <span>Download</span>
+            </button>
+            <button id="lightbox-copy-btn" class="btn-secondary" title="Copy Direct URL">Copy URL</button>
+            <a id="lightbox-original-btn" class="btn-secondary" target="_blank" rel="noopener">Open Source ↗</a>
+          </div>
+
+          <!-- Metadata -->
+          <table id="lightbox-info-table" class="info-table"></table>
+
+          <!-- Categorized Tags -->
+          <div>
+            <h4 style="font-size: 13px; font-weight: 700; margin-bottom: 10px; color: var(--text-secondary);">TAGS (Click to search)</h4>
+            <div id="lightbox-tags-container"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       API Sources & Endpoints Manager Modal
+       ========================================== -->
+  <div id="sources-modal" class="modal-overlay">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 id="sources-modal-title">API Sources Manager</h3>
+        <button id="close-sources-btn" class="icon-btn">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <!-- List of Sources -->
+        <div id="sources-list-container" class="sources-list-container"></div>
+
+        <!-- Add / Edit Source Form -->
+        <div id="source-form-section" style="display: none;">
+          <h4 id="source-form-title" style="margin-bottom: 16px;">Add New API Source</h4>
+          <form id="source-edit-form">
+            <input type="hidden" id="source-form-id">
+
+            <div class="form-group">
+              <label>Source Name</label>
+              <input type="text" id="source-form-name" class="form-input" placeholder="e.g. My Custom Booru" required>
+            </div>
+
+            <div class="form-group">
+              <label>API Protocol / Type</label>
+              <select id="source-form-type" class="form-select">
+                <option value="gelbooru_dapi">Gelbooru / Safebooru DAPI (XML / JSON)</option>
+                <option value="danbooru_v2">Danbooru 2.x API (JSON)</option>
+                <option value="moebooru">Moebooru API (Yande.re, Konachan)</option>
+              </select>
+              <div class="form-hint">Selecting a type auto-configures compatible post and tag endpoints.</div>
+            </div>
+
+            <div class="form-group">
+              <label>Base URL</label>
+              <input type="url" id="source-form-base" class="form-input" placeholder="https://example.com" required>
+            </div>
+
+            <div class="form-group">
+              <label>Custom Posts URL Template (Optional)</label>
+              <input type="text" id="source-form-posts" class="form-input" placeholder="Leave blank to use engine defaults">
+              <div class="form-hint">Variables: <code>{tags}</code>, <code>{page}</code>, <code>{limit}</code></div>
+            </div>
+
+            <div class="form-group">
+              <label>Custom Tag Autocomplete URL (Optional)</label>
+              <input type="text" id="source-form-tags" class="form-input" placeholder="Leave blank to use engine defaults">
+              <div class="form-hint">Variable: <code>{query}</code></div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group" style="flex: 1;">
+                <label>API Key (Optional)</label>
+                <input type="text" id="source-form-apikey" class="form-input" placeholder="Required for Rule34 / Gelbooru" autocomplete="off" spellcheck="false">
+              </div>
+              <div class="form-group" style="flex: 1;">
+                <label>User ID (Optional)</label>
+                <input type="text" id="source-form-userid" class="form-input" placeholder="Numeric user ID" autocomplete="off" spellcheck="false">
+              </div>
+            </div>
+            <div class="form-hint" style="margin: -6px 0 14px;">Used for <code>{api_key}</code> and <code>{user_id}</code> in the URL templates. Stored only in this browser. Keep Proxy Mode on Auto so the key isn't sent through a public CORS proxy.</div>
+
+            <div class="form-row">
+              <div class="form-group" style="flex: 1;">
+                <label>Proxy Mode</label>
+                <select id="source-form-proxy" class="form-select">
+                  <option value="auto">Auto (Local server proxy / Built-in)</option>
+                  <option value="direct">Direct (No Proxy)</option>
+                  <option value="corsproxy">Public CORS Proxy (corsproxy.io)</option>
+                  <option value="allorigins">AllOrigins Proxy</option>
+                  <option value="custom">Custom Proxy</option>
+                </select>
+              </div>
+              <div class="form-group" style="flex: 1;">
+                <label>Custom Proxy URL (if Custom)</label>
+                <input type="text" id="source-form-custom-proxy" class="form-input" placeholder="https://myproxy.com/?url={url}">
+              </div>
+            </div>
+
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+              <button type="submit" class="btn-primary" style="flex: 1;">Save Source</button>
+              <button type="button" id="cancel-source-edit" class="btn-secondary" style="flex: 1;">Cancel</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <div>
+          <button id="add-source-btn" class="btn-primary btn-sm">+ Add Custom API</button>
+          <button id="reset-sources-btn" class="btn-secondary btn-sm">Reset Defaults</button>
+        </div>
+        <div>
+          <button id="export-sources-btn" class="btn-secondary btn-sm" title="Backup sources as JSON">Export JSON</button>
+          <label class="btn-secondary btn-sm" style="cursor: pointer; display: inline-block;">
+            Import JSON
+            <input type="file" id="import-sources-file" accept=".json" style="display: none;">
+          </label>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       Favorites / Bookmarks Drawer
+       ========================================== -->
+  <aside id="favorites-drawer" class="drawer">
+    <div class="drawer-header">
+      <h3>Saved Bookmarks</h3>
+      <button id="close-fav-btn" class="icon-btn">&times;</button>
+    </div>
+    <div class="drawer-body">
+      <div id="favorites-grid" class="favorites-grid"></div>
+    </div>
+  </aside>
+
+  <!-- Scripts -->
+  <script src="js/api-sources.js"></script>
+  <script src="js/autocomplete.js"></script>
+  <script src="js/app.js"></script>
+
+  <!-- PWA Service Worker Registration -->
+  <script>
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("sw.js").catch(e => console.log("SW registration skipped:", e));
+      });
+    }
+  </script>
+</body>
+</html>
