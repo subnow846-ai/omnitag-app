@@ -24,7 +24,7 @@ const DEFAULT_SOURCES = [
     name: "Danbooru (Safe)",
     type: "danbooru_v2",
     baseUrl: "https://danbooru.donmai.us",
-    postsUrl: "https://danbooru.donmai.us/posts.json?limit={limit}&page={page}&tags=rating:g+{tags}",
+    postsUrl: "https://danbooru.donmai.us/posts.json?limit={limit}&page={page}&tags={tags}",
     tagsUrl: "https://danbooru.donmai.us/autocomplete.json?search[query]={query}&search[type]=tag_query&version=1&limit=12",
     thumbTemplate: "",
     sampleTemplate: "",
@@ -68,7 +68,7 @@ const DEFAULT_SOURCES = [
 
 // Bump this whenever new presets are added to DEFAULT_SOURCES so that
 // existing installs (which already have a saved list) receive them once.
-const PRESET_VERSION = 3;
+const PRESET_VERSION = 4;
 
 class ApiSourceManager {
   constructor() {
@@ -341,10 +341,23 @@ class ApiSourceManager {
       url = `${source.baseUrl}/index.php?page=dapi&s=post&q=index&json=1&limit={limit}&pid={page}&tags={tags}`;
     }
 
+    // Danbooru and Moebooru use 1-indexed pages (page 1, 2, 3...)
+    // Gelbooru/Safebooru DAPI uses 0-indexed pid (0, 1, 2...)
+    let pageParam = page;
+    if (source.type === "danbooru_v2" || source.type === "moebooru") {
+      pageParam = Math.max(1, page + 1);
+    }
+
+    // Danbooru safe rating filter
+    let finalTags = cleanTags;
+    if (source.id === "danbooru" || source.type === "danbooru_v2") {
+      finalTags = cleanTags ? `rating:g ${cleanTags}` : "rating:g";
+    }
+
     url = url
       .replace("{limit}", limit.toString())
-      .replace("{page}", page.toString())
-      .replace("{tags}", encodeURIComponent(cleanTags));
+      .replace("{page}", pageParam.toString())
+      .replace("{tags}", encodeURIComponent(finalTags));
 
     url = this.applyAuth(url, source);
 
