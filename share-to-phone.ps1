@@ -1,75 +1,21 @@
-# OmniTag Instant Phone Sharing & Live Tunnel
+# OmniTag Phone QR Code & Sharing Launcher
 param(
-    [int]$Port = 8080
+    [switch]$UseLocalTunnel
 )
 
-$Host.UI.RawUI.WindowTitle = "OmniTag Phone Sharing Tunnel"
+$Host.UI.RawUI.WindowTitle = "OmniTag 24/7 Phone Installer"
 
-$cfPath = "C:\Program Files (x86)\cloudflared\cloudflared.exe"
-if (-not (Test-Path $cfPath)) {
-    Write-Host "[!] cloudflared was not found at $cfPath" -ForegroundColor Red
-    pause
-    exit 1
-}
+$githubUrl = "https://subnow846-ai.github.io/omnitag-app/mobile.html"
+$qrCodeApiUrl = "https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=10&data=" + [System.Uri]::EscapeDataString($githubUrl)
 
-# 1. Start local server if not already running on port 8080
-$serverRunning = $false
-try {
-    $tcp = New-Object System.Net.Sockets.TcpClient
-    $tcp.Connect("127.0.0.1", $Port)
-    $tcp.Close()
-    $serverRunning = $true
-} catch {
-    $serverRunning = $false
-}
-
-if (-not $serverRunning) {
-    Write-Host "[*] Starting OmniTag local server..." -ForegroundColor Cyan
-    Start-Process powershell -ArgumentList "-ExecutionPolicy Bypass -NoProfile -WindowStyle Hidden -File `"$PSScriptRoot\server.ps1`" -Port $Port -NoBrowser"
-    Start-Sleep -Seconds 2
-}
-
-# 2. Launch Cloudflare Tunnel
-Write-Host "[*] Establishing secure public tunnel for your phone..." -ForegroundColor Cyan
-
-$psi = New-Object System.Diagnostics.ProcessStartInfo
-$psi.FileName = $cfPath
-$psi.Arguments = "tunnel --url http://localhost:$Port --http-host-header localhost"
-$psi.UseShellExecute = $false
-$psi.RedirectStandardError = $true
-$psi.CreateNoWindow = $true
-
-$proc = [System.Diagnostics.Process]::Start($psi)
-
-$publicUrl = ""
-$stopwatch = [System.Diagnostics.Stopwatch]::StartNew()
-
-while (-not $proc.HasExited -and $stopwatch.ElapsedMilliseconds -lt 20000) {
-    $line = $proc.StandardError.ReadLine()
-    if ($line -match "https://[a-zA-Z0-9-]+\.trycloudflare\.com") {
-        $publicUrl = $matches[0]
-        break
-    }
-}
-
-if (-not $publicUrl) {
-    Write-Host "[!] Could not capture public tunnel URL. Check internet connection." -ForegroundColor Red
-    $proc.Kill()
-    pause
-    exit 1
-}
-
-$phoneUrl = "$publicUrl/mobile.html"
-$qrCodeApiUrl = "https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=10&data=" + [System.Uri]::EscapeDataString($phoneUrl)
-
-# 3. Create a clean QR visualizer HTML page
+# Create a clean QR visualizer HTML page
 $qrPagePath = Join-Path $PSScriptRoot "qr_share.html"
 $qrHtml = @"
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Scan to Install OmniTag on Phone</title>
+  <title>OmniTag 24/7 Phone Installation</title>
   <style>
     body {
       background: #0d1117;
@@ -78,29 +24,41 @@ $qrHtml = @"
       display: flex;
       align-items: center;
       justify-content: center;
-      height: 100vh;
+      min-height: 100vh;
       margin: 0;
+      padding: 20px;
+      box-sizing: border-box;
     }
     .card {
       background: #161b22;
       border: 1px solid #30363d;
       border-radius: 20px;
-      padding: 36px;
+      padding: 32px;
       text-align: center;
-      max-width: 440px;
+      max-width: 460px;
       box-shadow: 0 16px 40px rgba(0,0,0,0.6);
     }
-    h2 { margin-top: 0; color: #58a6ff; font-size: 24px; }
-    p { color: #8b949e; font-size: 14px; line-height: 1.5; }
+    .pill {
+      background: rgba(63, 185, 80, 0.2);
+      color: #3fb950;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 4px 12px;
+      border-radius: 20px;
+      display: inline-block;
+      margin-bottom: 12px;
+    }
+    h2 { margin: 6px 0 10px 0; color: #58a6ff; font-size: 24px; }
+    p { color: #8b949e; font-size: 14px; line-height: 1.5; margin: 0 0 16px 0; }
     .qr-box {
       background: #ffffff;
       padding: 16px;
       border-radius: 16px;
       display: inline-block;
-      margin: 20px 0;
+      margin: 10px 0 18px 0;
       box-shadow: 0 4px 14px rgba(0,0,0,0.3);
     }
-    .qr-box img { display: block; width: 260px; height: 260px; }
+    .qr-box img { display: block; width: 250px; height: 250px; }
     .url-box {
       background: #21262d;
       border: 1px solid #30363d;
@@ -125,20 +83,21 @@ $qrHtml = @"
 </head>
 <body>
   <div class="card">
-    <h2>📱 Scan to Install on Phone</h2>
-    <p>Point your smartphone camera at the QR code below:</p>
+    <span class="pill">● 24/7 PERMANENT CLOUD HOSTED</span>
+    <h2>📱 Install OmniTag on Your Phone</h2>
+    <p>This link is hosted 24/7 on GitHub Cloud. It will continue working permanently even when your PC is turned off.</p>
     
     <div class="qr-box">
       <img src="$qrCodeApiUrl" alt="OmniTag QR Code">
     </div>
 
-    <div class="url-box">$phoneUrl</div>
+    <div class="url-box">$githubUrl</div>
 
     <div class="steps">
       <ol>
         <li>Scan the QR code with your iPhone or Android camera.</li>
-        <li>Tap the notification to open the link in Safari or Chrome.</li>
-        <li>Tap <strong>"Install App"</strong> on the banner to download it to your home screen!</li>
+        <li>Tap the link to open in Safari or Chrome.</li>
+        <li>Tap <strong>"Install App"</strong> on the banner to add it to your home screen!</li>
       </ol>
     </div>
   </div>
@@ -148,31 +107,19 @@ $qrHtml = @"
 
 [System.IO.File]::WriteAllText($qrPagePath, $qrHtml)
 
-# 4. Display in console
 Clear-Host
 Write-Host "==========================================================" -ForegroundColor Cyan
-Write-Host "         OmniTag Live Phone Sharing & Installation        " -ForegroundColor Yellow
+Write-Host "         OmniTag 24/7 Phone Installation Launcher         " -ForegroundColor Yellow
 Write-Host "==========================================================" -ForegroundColor Cyan
 Write-Host ""
-Write-Host "  [OK] Public Secure Tunnel is ACTIVE!" -ForegroundColor Green
+Write-Host "  [OK] Permanent 24/7 Cloud URL:" -ForegroundColor Green
+Write-Host "  $githubUrl" -ForegroundColor White
 Write-Host ""
-Write-Host "  Direct Link for Phone: " -NoNewline -ForegroundColor White
-Write-Host "$phoneUrl" -ForegroundColor Green
+Write-Host "  * Opening QR Code scanner on your PC screen..." -ForegroundColor Cyan
+Write-Host "  * Scan it with your phone camera to install!" -ForegroundColor White
+Write-Host "  * Works even when your PC is turned off." -ForegroundColor Green
 Write-Host ""
-Write-Host "  1. Opening QR Code scanner page on your PC screen..." -ForegroundColor Cyan
-Write-Host "  2. Just scan the QR code with your phone camera!" -ForegroundColor White
-Write-Host ""
-Write-Host "  Keep this window open while using the app on your phone." -ForegroundColor Gray
-Write-Host "  Press Ctrl+C to stop sharing." -ForegroundColor Gray
 Write-Host "==========================================================" -ForegroundColor Cyan
 
-# Open QR page in default browser on PC
 Start-Process $qrPagePath
-
-try {
-    while (-not $proc.HasExited) {
-        Start-Sleep -Seconds 1
-    }
-} finally {
-    try { $proc.Kill() } catch {}
-}
+Start-Sleep -Seconds 3
