@@ -14,6 +14,17 @@
 </head>
 <body>
 
+  <!-- Local File Protocol Notice (Shown if opened as file://) -->
+  <div id="file-protocol-warning" style="display: none; background: #d29922; color: #0d1117; padding: 12px 24px; font-weight: 600; font-size: 13px; text-align: center; line-height: 1.5;">
+    ⚠️ You are viewing this page directly as a local file (<code>file://</code>). Web browsers block live image queries from local file links. 
+    Please double-click <strong>start.bat</strong> or <strong>launch-app-mode.bat</strong> to run it on your PC, or open the online version at <a href="https://subnow846-ai.github.io/omnitag-app/" style="color: #0d1117; text-decoration: underline; font-weight: bold;">https://subnow846-ai.github.io/omnitag-app/</a>.
+  </div>
+  <script>
+    if (window.location.protocol === "file:") {
+      document.getElementById("file-protocol-warning").style.display = "block";
+    }
+  </script>
+
   <!-- ==========================================
        Global Header
        ========================================== -->

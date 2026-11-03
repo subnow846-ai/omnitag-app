@@ -82,6 +82,12 @@ class ApiSourceManager {
     const defaultId = isGitHubPages ? "danbooru" : "safebooru";
     this.activeId = localStorage.getItem(this.activeKey) || defaultId;
     
+    // On GitHub Pages, ensure active source allows CORS (Danbooru) so it doesn't fail
+    if (isGitHubPages && this.activeId === "safebooru") {
+      this.activeId = "danbooru";
+      localStorage.setItem(this.activeKey, "danbooru");
+    }
+    
     // Ensure active source exists
     if (!this.getSource(this.activeId)) {
       this.activeId = defaultId;

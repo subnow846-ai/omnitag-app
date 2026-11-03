@@ -43,6 +43,9 @@ class OmniTagApp {
     if (queryParam) {
       this.searchInput.value = queryParam;
       this.executeSearch(queryParam);
+    } else {
+      // Auto-load feed on PC so users immediately see content
+      this.executeSearch("", 0);
     }
   }
 
@@ -230,17 +233,35 @@ class OmniTagApp {
     this.themeToggleBtn.addEventListener("click", () => this.toggleTheme());
 
     // Search submissions
-    this.heroSearchBtn.addEventListener("click", () => this.executeSearch(this.heroSearchInput.value));
+    this.heroSearchBtn.addEventListener("click", () => {
+      this.heroAC.hide();
+      this.executeSearch(this.heroSearchInput.value);
+    });
     this.heroSearchInput.addEventListener("keydown", (e) => {
-      if (e.key === "Enter" && this.heroAutocompleteEl.style.display === "none") {
-        this.executeSearch(this.heroSearchInput.value);
+      if (e.key === "Enter") {
+        if (this.heroAC && this.heroAC.selectedIndex >= 0) {
+          // Handled by autocomplete selection
+        } else {
+          e.preventDefault();
+          if (this.heroAC) this.heroAC.hide();
+          this.executeSearch(this.heroSearchInput.value);
+        }
       }
     });
 
-    this.topSearchBtn.addEventListener("click", () => this.executeSearch(this.topSearchInput.value));
+    this.topSearchBtn.addEventListener("click", () => {
+      this.topAC.hide();
+      this.executeSearch(this.topSearchInput.value);
+    });
     this.topSearchInput.addEventListener("keydown", (e) => {
-      if (e.key === "Enter" && this.topAutocompleteEl.style.display === "none") {
-        this.executeSearch(this.topSearchInput.value);
+      if (e.key === "Enter") {
+        if (this.topAC && this.topAC.selectedIndex >= 0) {
+          // Handled by autocomplete selection
+        } else {
+          e.preventDefault();
+          if (this.topAC) this.topAC.hide();
+          this.executeSearch(this.topSearchInput.value);
+        }
       }
     });
 
