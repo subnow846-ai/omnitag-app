@@ -563,14 +563,26 @@ class OmniTagApp {
   }
 
   renderError(message) {
+    const isGhPages = window.location.hostname.includes("github.io");
+    let ghHint = "";
+    if (isGhPages) {
+      ghHint = `<p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 14px;">
+        ${this.sourceManager.getActiveSource().name} does not allow direct cross-origin requests from GitHub Pages without a proxy.<br>
+        <strong>Danbooru</strong> natively supports cross-origin requests and works 24/7 on GitHub Pages.
+      </p>
+      <div style="margin-bottom: 14px;">
+        <button class="btn-primary" onclick="app.switchSource('danbooru')">Switch to Danbooru (Works 24/7)</button>
+      </div>`;
+    }
+
     this.galleryGrid.innerHTML = `
       <div class="empty-state error-state">
         <div class="empty-icon">⚠️</div>
         <h3>Failed to fetch from ${this.sourceManager.getActiveSource().name}</h3>
         <p class="error-msg">${this.escapeHtml(message)}</p>
-        <p>This can occur if the site is temporarily down, blocking CORS, or requires a proxy.</p>
+        ${ghHint}
         <div class="empty-actions">
-          <button class="btn-primary" onclick="app.executeSearch(app.currentQuery, app.currentPage)">Retry</button>
+          <button class="btn-secondary" onclick="app.executeSearch(app.currentQuery, app.currentPage)">Retry</button>
           <button class="btn-secondary" onclick="app.openSourcesModal()">Configure API / Proxy</button>
         </div>
       </div>

@@ -63,25 +63,6 @@ const DEFAULT_SOURCES = [
     customProxyUrl: "",
     isPreset: true,
     description: "Anime wallpapers & illustrations"
-  },
-  {
-    id: "rule34",
-    name: "Rule34",
-    type: "gelbooru_dapi",
-    baseUrl: "https://rule34.xxx",
-    postsUrl: "https://api.rule34.xxx/index.php?page=dapi&s=post&q=index&json=1&limit={limit}&pid={page}&tags={tags}&api_key={api_key}&user_id={user_id}",
-    tagsUrl: "https://api.rule34.xxx/autocomplete.php?q={query}",
-    thumbTemplate: "",
-    sampleTemplate: "",
-    fileTemplate: "",
-    proxyMode: "auto",
-    customProxyUrl: "",
-    requiresAuth: true,
-    apiKey: "7a0b65a1738a6f15d267a301f4f8a5fb07bc44bb7fbd6fd0f2826454ae711d4c42b9ae610c99c607e5bf55dfb94b23d913592e4fd2fb907f3197f8fa3d57f677",
-    userId: "7003718",
-    authHelp: "Get a free key at rule34.xxx > My Account > Options > API Access Credentials.",
-    isPreset: true,
-    description: "Rule34.xxx (18+, explicit content, no safe filter)"
   }
 ];
 
@@ -95,11 +76,15 @@ class ApiSourceManager {
     this.activeKey = "omnitag_active_source_id";
     this.presetVersionKey = "omnitag_preset_version";
     this.sources = this.loadSources();
-    this.activeId = localStorage.getItem(this.activeKey) || "safebooru";
+    
+    // On GitHub Pages, Danbooru is the default because it has full native CORS support
+    const isGitHubPages = typeof window !== "undefined" && window.location.hostname.includes("github.io");
+    const defaultId = isGitHubPages ? "danbooru" : "safebooru";
+    this.activeId = localStorage.getItem(this.activeKey) || defaultId;
     
     // Ensure active source exists
     if (!this.getSource(this.activeId)) {
-      this.activeId = this.sources[0]?.id || "safebooru";
+      this.activeId = defaultId;
     }
   }
 
@@ -245,12 +230,6 @@ class ApiSourceManager {
     if (mode === "local" || (mode === "auto" && hasLocalServer)) {
       return `${window.location.origin}/api/proxy?url=${encodeURIComponent(targetUrl)}`;
     }
-
-    if (mode === "custom" && source.customProxyUrl) {
-      return source.customProxyUrl.replace("{url}", encodeURIComponent(targetUrl));
-    }
-
-    return targetUrl;
 
     if (mode === "custom" && source.customProxyUrl) {
       return source.customProxyUrl.replace("{url}", encodeURIComponent(targetUrl));

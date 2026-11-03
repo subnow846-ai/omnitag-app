@@ -280,6 +280,14 @@ class OmniTagMobileApp {
     }
   }
 
+  switchSource(id) {
+    if (this.sourceManager.setActiveSource(id)) {
+      this.updateSourceBadge();
+      this.showToast(`Switched to ${this.sourceManager.getActiveSource().name}`);
+      this.executeSearch(this.currentQuery, 0);
+    }
+  }
+
   async executeSearch(query = "", page = 0) {
     this.currentQuery = query.trim();
     this.currentPage = page;
@@ -294,10 +302,21 @@ class OmniTagMobileApp {
       this.applyFiltersAndRender();
     } catch (err) {
       this.resultsInfoEl.textContent = "Error loading";
+      let errMsg = err.message || "Failed to load posts";
+      let isCors = errMsg.includes("Failed to fetch") || errMsg.includes("NetworkError") || errMsg.includes("CORS");
+      
+      let suggestion = "";
+      if (isCors && window.location.hostname.includes("github.io")) {
+        errMsg = `${this.sourceManager.getActiveSource().name} blocks direct requests from GitHub Pages due to browser CORS policies.`;
+        suggestion = `<p style="font-size: 12px; color: var(--m-text-sub); margin-bottom: 12px;">Danbooru supports direct requests and works 24/7 on GitHub Pages.</p>
+        <button class="sheet-action-btn primary" onclick="mobileApp.switchSource('danbooru')" style="margin-bottom: 8px;">Switch to Danbooru (Works 24/7)</button>`;
+      }
+
       this.grid.innerHTML = `
         <div style="grid-column: 1/-1; text-align: center; padding: 30px;">
-          <p style="color: var(--m-danger); margin-bottom: 10px;">${this.escapeHtml(err.message)}</p>
-          <button class="sheet-action-btn primary" onclick="mobileApp.executeSearch(mobileApp.currentQuery, mobileApp.currentPage)">Retry</button>
+          <p style="color: var(--m-danger); margin-bottom: 10px; font-size: 13px; line-height: 1.5;">${this.escapeHtml(errMsg)}</p>
+          ${suggestion}
+          <button class="sheet-action-btn" onclick="mobileApp.executeSearch(mobileApp.currentQuery, mobileApp.currentPage)">Retry</button>
         </div>
       `;
     }
