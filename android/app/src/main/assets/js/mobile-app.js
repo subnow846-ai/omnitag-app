@@ -782,7 +782,7 @@ class OmniTagMobileApp {
     slide.innerHTML = `
       <div class="tiktok-media-stage">
         ${isVideo ? `
-          <div class="tiktok-video-wrapper" style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; position: relative;">
+          <div class="tiktok-video-wrapper">
             <video 
               src="${mediaSrc}" 
               class="tiktok-media-el tiktok-video-el" 
@@ -797,6 +797,22 @@ class OmniTagMobileApp {
               onerror="if (this.parentElement) this.parentElement.style.display='none'; if (this.parentElement && this.parentElement.nextElementSibling) this.parentElement.nextElementSibling.style.display='flex';">
             </video>
             <div class="tiktok-video-badge">▶ VIDEO</div>
+            <button type="button" class="tiktok-fit-toggle-btn" title="Toggle Fit / Fill Screen">⛶ Fit</button>
+            <button type="button" class="tiktok-mute-toggle-btn" title="Toggle Sound">🔇</button>
+            <div class="tiktok-play-pause-icon">▶</div>
+          </div>
+          <!-- TikTok-Style Interactive Progress Line at the Bottom -->
+          <div class="tiktok-scrubber-container">
+            <div class="tiktok-scrubber-track">
+              <div class="tiktok-scrubber-buffered"></div>
+              <div class="tiktok-scrubber-fill"></div>
+              <div class="tiktok-scrubber-thumb"></div>
+            </div>
+          </div>
+          <div class="tiktok-scrub-indicator" style="display: none;">
+            <span class="scrub-time-current">0:00</span>
+            <span class="scrub-time-sep">/</span>
+            <span class="scrub-time-total">0:00</span>
           </div>
           <div class="tiktok-fallback-box" style="display: none;">
             <div class="tiktok-fallback-icon">🎬</div>
@@ -808,22 +824,17 @@ class OmniTagMobileApp {
             </div>
           </div>
         ` : `
-          <img 
-            src="${mediaSrc}" 
-            alt="Post #${post.id}" 
-            class="tiktok-media-el" 
-            loading="lazy" 
-            referrerpolicy="no-referrer"
-            onerror="
-              if (!this.dataset.step && '${fallbackSrc}' && this.src !== '${fallbackSrc}') {
-                this.dataset.step = '1';
-                this.src = '${fallbackSrc}';
-                return;
-              }
-              this.style.display = 'none';
-              if (this.nextElementSibling) this.nextElementSibling.style.display = 'flex';
-            "
-          >
+          <div class="tiktok-photo-wrapper">
+            <img 
+              src="${mediaSrc}" 
+              alt="Post #${post.id}" 
+              class="tiktok-media-el" 
+              loading="lazy" 
+              referrerpolicy="no-referrer"
+              onerror="this.style.display='none'; if (this.nextElementSibling) this.nextElementSibling.style.display='flex';"
+            >
+            <button type="button" class="tiktok-fit-toggle-btn photo-fit" title="Toggle Fit / Fill Screen">⛶ Fit</button>
+          </div>
           <div class="tiktok-fallback-box" style="display: none;">
             <div class="tiktok-fallback-icon">🖼️</div>
             <div class="tiktok-fallback-title">Preview Restricted on Web</div>
@@ -959,6 +970,155 @@ class OmniTagMobileApp {
       });
     }
 
+    // Video controls: TikTok-Style Interactive Progress Line & Touch Scrubber
+    if (isVideo) {
+      const video = slide.querySelector("video");
+      const scrubberContainer = slide.querySelector(".tiktok-scrubber-container");
+      const trackEl = slide.querySelector(".tiktok-scrubber-track");
+      const fillEl = slide.querySelector(".tiktok-scrubber-fill");
+      const bufferedEl = slide.querySelector(".tiktok-scrubber-buffered");
+      const thumbEl = slide.querySelector(".tiktok-scrubber-thumb");
+      const scrubIndicator = slide.querySelector(".tiktok-scrub-indicator");
+      const scrubCurrent = slide.querySelector(".scrub-time-current");
+      const scrubTotal = slide.querySelector(".scrub-time-total");
+      const muteBtn = slide.querySelector(".tiktok-mute-toggle-btn");
+      const fitBtn = slide.querySelector(".tiktok-fit-toggle-btn");
+
+      const formatTime = (sec) => {
+        if (isNaN(sec) || sec < 0) return "0:00";
+        const m = Math.floor(sec / 60);
+        const s = Math.floor(sec % 60);
+        return `${m}:${s < 10 ? '0' : ''}${s}`;
+      };
+
+      if (video && scrubberContainer && fillEl && thumbEl && trackEl) {
+        let isScrubbing = false;
+        let wasPlayingBefore = false;
+
+        // Video playback progress fills the bar
+        video.addEventListener("timeupdate", () => {
+          if (isScrubbing) return;
+          const dur = video.duration || 0;
+          if (dur > 0) {
+            const pct = (video.currentTime / dur) * 100;
+            fillEl.style.width = `${pct}%`;
+            thumbEl.style.left = `${pct}%`;
+          }
+        });
+
+        // Network buffering display
+        video.addEventListener("progress", () => {
+          const dur = video.duration || 0;
+          if (dur > 0 && video.buffered.length > 0) {
+            const bufEnd = video.buffered.end(video.buffered.length - 1);
+            const bufPct = Math.min(100, (bufEnd / dur) * 100);
+            if (bufferedEl) bufferedEl.style.width = `${bufPct}%`;
+          }
+        });
+
+        // Seeking calculation
+        const handleSeek = (clientX) => {
+          const rect = trackEl.getBoundingClientRect();
+          const ratio = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+          const dur = video.duration || 0;
+          const seekTime = ratio * dur;
+
+          fillEl.style.width = `${ratio * 100}%`;
+          thumbEl.style.left = `${ratio * 100}%`;
+
+          if (dur > 0) {
+            video.currentTime = seekTime;
+          }
+
+          if (scrubIndicator && scrubCurrent && scrubTotal) {
+            scrubIndicator.style.display = "flex";
+            scrubCurrent.textContent = formatTime(seekTime);
+            scrubTotal.textContent = formatTime(dur);
+          }
+        };
+
+        // Pointer down (touch or mouse click on progress line)
+        scrubberContainer.addEventListener("pointerdown", (e) => {
+          e.stopPropagation();
+          isScrubbing = true;
+          try { scrubberContainer.setPointerCapture(e.pointerId); } catch (_) {}
+          scrubberContainer.classList.add("scrubbing");
+          wasPlayingBefore = !video.paused;
+          video.pause();
+          handleSeek(e.clientX);
+        });
+
+        // Pointer move (dragging finger forward or backward across the line)
+        scrubberContainer.addEventListener("pointermove", (e) => {
+          if (!isScrubbing) return;
+          e.stopPropagation();
+          handleSeek(e.clientX);
+        });
+
+        const stopScrubbing = (e) => {
+          if (!isScrubbing) return;
+          e.stopPropagation();
+          isScrubbing = false;
+          try { scrubberContainer.releasePointerCapture(e.pointerId); } catch (_) {}
+          scrubberContainer.classList.remove("scrubbing");
+
+          setTimeout(() => {
+            if (!isScrubbing && scrubIndicator) {
+              scrubIndicator.style.display = "none";
+            }
+          }, 350);
+
+          if (wasPlayingBefore) {
+            video.play().catch(() => {});
+          }
+        };
+
+        scrubberContainer.addEventListener("pointerup", stopScrubbing);
+        scrubberContainer.addEventListener("pointercancel", stopScrubbing);
+      }
+
+      // Audio Mute / Unmute Toggle
+      if (muteBtn && video) {
+        if (window.omniTagAudioEnabled) {
+          video.muted = false;
+          muteBtn.textContent = "🔊";
+          muteBtn.classList.add("unmuted");
+        }
+        muteBtn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          video.muted = !video.muted;
+          window.omniTagAudioEnabled = !video.muted;
+          muteBtn.textContent = video.muted ? "🔇" : "🔊";
+          muteBtn.classList.toggle("unmuted", !video.muted);
+          this.showToast(video.muted ? "Audio Muted" : "Audio On");
+        });
+      }
+
+      // Fit / Fill Toggle for Video
+      if (fitBtn && video) {
+        fitBtn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          const isCover = video.style.objectFit === "cover";
+          video.style.objectFit = isCover ? "contain" : "cover";
+          fitBtn.textContent = isCover ? "⛶ Fit" : "⛶ Fill";
+          this.showToast(isCover ? "Fit to screen" : "Fill screen");
+        });
+      }
+    } else {
+      // Photo Fit / Fill Toggle
+      const photoFitBtn = slide.querySelector(".tiktok-fit-toggle-btn.photo-fit");
+      const photoImg = slide.querySelector("img.tiktok-media-el");
+      if (photoFitBtn && photoImg) {
+        photoFitBtn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          const isCover = photoImg.style.objectFit === "cover";
+          photoImg.style.objectFit = isCover ? "contain" : "cover";
+          photoFitBtn.textContent = isCover ? "⛶ Fit" : "⛶ Fill";
+          this.showToast(isCover ? "Fit to screen" : "Fill screen");
+        });
+      }
+    }
+
     slide.querySelectorAll(".tiktok-tag-pill").forEach(chip => {
       chip.addEventListener("click", (e) => {
         e.stopPropagation();
@@ -966,12 +1126,15 @@ class OmniTagMobileApp {
       });
     });
 
-    // Double tap heart burst gesture
+    // Double tap heart burst & single tap play/pause gesture
     let lastTap = 0;
     const burst = slide.querySelector(".tiktok-heart-burst");
     const stage = slide.querySelector(".tiktok-media-stage");
 
-    stage.addEventListener("click", () => {
+    stage.addEventListener("click", (e) => {
+      if (e.target.closest(".tiktok-scrubber-container") || e.target.closest(".tiktok-fit-toggle-btn") || e.target.closest(".tiktok-mute-toggle-btn") || e.target.closest(".tiktok-fallback-box")) {
+        return;
+      }
       const now = Date.now();
       if (now - lastTap < 320) {
         burst.classList.add("pop");
@@ -982,9 +1145,23 @@ class OmniTagMobileApp {
         }
       } else if (isVideo) {
         const video = slide.querySelector("video");
+        const playPauseIcon = slide.querySelector(".tiktok-play-pause-icon");
         if (video) {
-          if (video.paused) video.play();
-          else video.pause();
+          if (video.paused) {
+            video.play().catch(() => {});
+            if (playPauseIcon) {
+              playPauseIcon.textContent = "▶";
+              playPauseIcon.classList.add("flash");
+              setTimeout(() => playPauseIcon.classList.remove("flash"), 450);
+            }
+          } else {
+            video.pause();
+            if (playPauseIcon) {
+              playPauseIcon.textContent = "⏸";
+              playPauseIcon.classList.add("flash");
+              setTimeout(() => playPauseIcon.classList.remove("flash"), 450);
+            }
+          }
         }
       }
       lastTap = now;
@@ -2094,9 +2271,10 @@ class OmniTagMobileApp {
   updateAccountUI() {
     if (!this.activeAccount) return;
     const nameStr = `#${this.activeAccount.id} ${this.activeAccount.name}`;
+    const compactFeedStr = `#${this.activeAccount.id}`;
 
     if (this.feedAccountAvatar) this.feedAccountAvatar.textContent = this.activeAccount.avatar;
-    if (this.feedAccountLabel) this.feedAccountLabel.textContent = nameStr;
+    if (this.feedAccountLabel) this.feedAccountLabel.textContent = compactFeedStr;
     if (this.headerAccountAvatar) this.headerAccountAvatar.textContent = this.activeAccount.avatar;
     if (this.headerAccountLabel) this.headerAccountLabel.textContent = nameStr;
 
