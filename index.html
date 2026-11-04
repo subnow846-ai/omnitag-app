@@ -3,9 +3,21 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="referrer" content="no-referrer">
   <meta name="theme-color" content="#0d1117">
   <meta name="description" content="OmniTag - Fast, modern tag-based image search engine with switchable API sources">
   <title>OmniTag - Universal Tag Search Engine</title>
+
+  <script>
+    // Automatic mobile detection & seamless routing to Mobile Web App
+    (function() {
+      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768;
+      const forceDesktop = sessionStorage.getItem("omnitag_force_desktop") === "1" || location.search.includes("desktop=1");
+      if (isMobile && !forceDesktop) {
+        window.location.replace("mobile.html" + window.location.search);
+      }
+    })();
+  </script>
   
   <link rel="manifest" href="manifest.json">
   <link rel="stylesheet" href="css/style.css">
@@ -37,6 +49,12 @@
     </div>
 
     <div class="header-right">
+      <!-- Switch to Mobile Web Version Button -->
+      <a href="mobile.html" class="mobile-switch-btn" title="Open Mobile TikTok Feed & App View">
+        <span>📱</span>
+        <span>Mobile App</span>
+      </a>
+
       <!-- Active API indicator pill (Header) -->
       <div class="source-selector-pill">
         <button id="open-sources-btn" class="source-pill-btn" title="API Sources & Endpoints">

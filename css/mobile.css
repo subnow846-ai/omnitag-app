@@ -1,4 +1,4 @@
-﻿/* ==========================================================================
+/* ==========================================================================
    OmniTag Mobile - Native App UI Stylesheet
    Designed for smartphone viewport, touch gestures, and bottom navigation
    ========================================================================== */
@@ -136,6 +136,25 @@ body.with-install-banner .mobile-feed-view {
 
 .install-banner-btn:active {
   transform: scale(0.95);
+}
+
+.install-dismiss-btn {
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 4px;
+}
+
+.desktop-link-btn {
+  color: var(--m-text-sub);
+  text-decoration: none;
+}
+
+.desktop-link-btn:hover {
+  color: var(--m-text);
 }
 
 /* Header */
@@ -968,7 +987,7 @@ body.with-install-banner .mobile-feed-view {
   left: 0;
   right: 0;
   bottom: calc(var(--nav-height) + env(safe-area-inset-bottom, 0px));
-  background: #000;
+  background: radial-gradient(circle at 50% 20%, #161b22 0%, #000 100%);
   overflow: hidden;
   z-index: 10;
 }
@@ -1693,4 +1712,34 @@ body.with-install-banner .mobile-feed-view {
   border-color: var(--m-accent);
   background: rgba(56, 139, 253, 0.2);
   transform: scale(1.1);
+}
+
+/* ==========================================================================
+   Desktop Browser Preview Frame (Displays when viewed on wide screens)
+   ========================================================================== */
+@media (min-width: 769px) {
+  body {
+    background: radial-gradient(circle at 50% 25%, #1c2128 0%, #0d1117 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+  }
+
+  .mobile-app-container {
+    position: relative;
+    height: 92vh;
+    max-height: 890px;
+    width: 430px;
+    border-radius: 38px;
+    border: 3px solid rgba(255, 255, 255, 0.16);
+    box-shadow: 0 25px 70px rgba(0, 0, 0, 0.85), 0 0 0 1px rgba(255, 255, 255, 0.06);
+    overflow: hidden;
+  }
+
+  .mobile-bottom-nav {
+    border-bottom-left-radius: 35px;
+    border-bottom-right-radius: 35px;
+  }
 }

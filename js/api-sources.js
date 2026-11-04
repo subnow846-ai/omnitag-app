@@ -433,19 +433,34 @@ class ApiSourceManager {
       resp = await fetch(fetchUrl, {
         headers: { Accept: "application/json, text/plain, */*" }
       });
+      if (!resp.ok && (resp.status === 403 || resp.status === 0)) {
+        throw new Error(`HTTP ${resp.status}`);
+      }
     } catch (netErr) {
-      // In web browsers/GitHub Pages, direct fetch can fail with CORS. Try public CORS proxy fallback
-      if (!fetchUrl.includes("corsproxy.io") && !fetchUrl.includes("allorigins.win")) {
+      // In web browsers/GitHub Pages, direct fetch can fail with CORS. Try reliable proxy fallback chain
+      const proxyFallbacks = [
+        `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+        `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`,
+        `https://corsproxy.io/?url=${encodeURIComponent(url)}`
+      ];
+
+      let lastError = netErr;
+      for (const pUrl of proxyFallbacks) {
         try {
-          const fallbackUrl = `https://corsproxy.io/?url=${encodeURIComponent(url)}`;
-          resp = await fetch(fallbackUrl, {
+          const pResp = await fetch(pUrl, {
             headers: { Accept: "application/json, text/plain, */*" }
           });
-        } catch (_) {
-          throw netErr;
+          if (pResp && pResp.ok) {
+            resp = pResp;
+            lastError = null;
+            break;
+          }
+        } catch (e) {
+          lastError = e;
         }
-      } else {
-        throw netErr;
+      }
+      if (lastError && !resp) {
+        throw lastError;
       }
     }
 

@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="referrer" content="no-referrer">
   <meta name="theme-color" content="#121820">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -24,13 +25,16 @@
   <!-- Mobile App Wrapper -->
   <div class="mobile-app-container">
     
-    <!-- Install to phone banner (Automatically hidden in APK) -->
-    <div id="install-banner" class="install-banner">
+    <!-- Install to phone banner (Shown only on web mobile browsers) -->
+    <div id="install-banner" class="install-banner" style="display: none;">
       <div style="display: flex; align-items: center; gap: 8px;">
         <span style="font-size: 16px;">📲</span>
         <span>Install OmniTag App</span>
       </div>
-      <button id="install-btn" class="install-banner-btn">Install</button>
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <button id="install-btn" class="install-banner-btn">Install</button>
+        <button id="dismiss-install-banner-btn" class="install-dismiss-btn" title="Dismiss">&times;</button>
+      </div>
     </div>
 
     <!-- ==========================================
@@ -61,6 +65,11 @@
           <button id="mobile-theme-btn" class="header-icon-btn" title="Toggle Theme">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"></circle></svg>
           </button>
+
+          <!-- Switch to Desktop Web Version -->
+          <a href="index.html?desktop=1" id="mobile-to-desktop-btn" class="header-icon-btn desktop-link-btn" title="Open Desktop Web Version">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
+          </a>
         </div>
       </header>
 
@@ -147,6 +156,10 @@
             <span id="feed-active-source-name">Safebooru</span>
             <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
           </button>
+          <!-- Switch to Desktop Web Version -->
+          <a href="index.html?desktop=1" id="feed-to-desktop-btn" class="feed-glass-btn" title="Open Desktop Web Version" style="padding: 6px 9px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
+          </a>
         </div>
       </div>
 

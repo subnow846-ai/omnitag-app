@@ -1,8 +1,9 @@
 {
-  "name": "OmniTag Media Search",
+  "name": "OmniTag Media",
   "short_name": "OmniTag",
-  "description": "Universal tag-based media search engine with switchable booru APIs",
+  "description": "Universal tag-based media search engine & TikTok-style vertical infinite feed",
   "start_url": "./index.html",
+  "scope": "./",
   "display": "standalone",
   "background_color": "#0d1117",
   "theme_color": "#0d1117",

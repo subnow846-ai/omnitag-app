@@ -1,11 +1,14 @@
-const CACHE_NAME = "omnitag-cache-v3";
+const CACHE_NAME = "omnitag-cache-v4";
 const STATIC_ASSETS = [
   "./",
   "./index.html",
+  "./mobile.html",
   "./css/style.css",
+  "./css/mobile.css",
   "./js/api-sources.js",
   "./js/autocomplete.js",
   "./js/app.js",
+  "./js/mobile-app.js",
   "./manifest.json",
   "./assets/icon.svg"
 ];

@@ -163,6 +163,27 @@ body {
   display: none;
 }
 
+.mobile-switch-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: linear-gradient(135deg, #1f6feb, #8a63d2);
+  color: #fff;
+  text-decoration: none;
+  padding: 8px 14px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 700;
+  box-shadow: 0 2px 8px rgba(31, 111, 235, 0.35);
+  transition: all 0.2s ease;
+}
+
+.mobile-switch-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(31, 111, 235, 0.55);
+  color: #fff;
+}
+
 /* ==========================================================================
    Google-Style Hero Section (Home View)
    ========================================================================== */
@@ -406,6 +427,27 @@ body {
   overflow-y: auto;
   z-index: 100;
   display: none;
+}
+
+.mobile-switch-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: linear-gradient(135deg, #1f6feb, #8a63d2);
+  color: #fff;
+  text-decoration: none;
+  padding: 8px 14px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 700;
+  box-shadow: 0 2px 8px rgba(31, 111, 235, 0.35);
+  transition: all 0.2s ease;
+}
+
+.mobile-switch-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(31, 111, 235, 0.55);
+  color: #fff;
 }
 
 .autocomplete-item {
