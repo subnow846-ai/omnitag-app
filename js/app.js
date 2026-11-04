@@ -929,7 +929,7 @@ class OmniTagApp {
     document.getElementById("source-form-proxy").value = existing ? (existing.proxyMode || "auto") : "auto";
     document.getElementById("source-form-custom-proxy").value = existing ? (existing.customProxyUrl || "") : "";
     document.getElementById("source-form-apikey").value = existing ? (existing.apiKey || "") : "";
-    document.getElementById("source-form-userid").value = (existing && existing.userId === "7003718") ? "" : (existing ? (existing.userId || "") : "");
+    document.getElementById("source-form-userid").value = existing ? (existing.userId || "") : "";
 
     document.getElementById("source-form-title").textContent = existing ? "Edit API Source" : "Add New API Source";
   }

@@ -439,6 +439,88 @@ body.with-install-banner .mobile-feed-view {
   display: block;
 }
 
+.card-thumb-wrap {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.card-thumb {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.card-thumb.broken {
+  display: none !important;
+}
+
+.card-thumb-fallback {
+  width: 100%;
+  height: 100%;
+  min-height: 140px;
+  background: var(--m-surface-elevated, #1c2128);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: var(--m-text-sub);
+  font-size: 11px;
+  gap: 6px;
+  padding: 12px;
+  text-align: center;
+  box-sizing: border-box;
+}
+
+.card-thumb-fallback svg {
+  opacity: 0.6;
+}
+
+.tiktok-fallback-box {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 24px;
+  text-align: center;
+  background: radial-gradient(circle at center, rgba(30, 41, 59, 0.85) 0%, rgba(10, 14, 20, 0.98) 100%);
+  gap: 12px;
+  box-sizing: border-box;
+  color: var(--m-text);
+}
+
+.tiktok-fallback-icon {
+  font-size: 48px;
+  margin-bottom: 2px;
+}
+
+.tiktok-fallback-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.tiktok-fallback-desc {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--m-text-sub);
+  max-width: 300px;
+}
+
+.tiktok-fallback-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 8px;
+  width: 100%;
+  max-width: 260px;
+}
+
 .card-badge {
   position: absolute;
   top: 6px;
@@ -787,28 +869,44 @@ body.with-install-banner .mobile-feed-view {
 .bottom-sheet-modal {
   position: fixed;
   inset: 0;
-  z-index: 120;
+  z-index: 1000 !important;
   display: none;
   align-items: flex-end;
+  justify-content: center;
+}
+
+.bottom-sheet-modal.open {
+  display: flex !important;
 }
 
 .sheet-overlay {
   position: absolute;
   inset: 0;
-  background: rgba(0, 0, 0, 0.65);
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 1;
 }
 
 .sheet-panel {
   position: relative;
+  z-index: 2;
   background: var(--m-surface);
   border-top-left-radius: 20px;
   border-top-right-radius: 20px;
   width: 100%;
-  max-height: 80vh;
+  max-width: 480px;
+  max-height: 82vh;
   display: flex;
   flex-direction: column;
-  padding: 16px 18px 24px 18px;
+  padding: 16px 18px calc(24px + env(safe-area-inset-bottom, 0px)) 18px;
   box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.5);
+  animation: mSheetSlideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes mSheetSlideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
 }
 
 .sheet-header {
@@ -1762,6 +1860,14 @@ body.with-install-banner .mobile-feed-view {
     border-bottom-left-radius: 35px;
     border-bottom-right-radius: 35px;
   }
+
+  .bottom-sheet-modal {
+    position: absolute;
+    inset: 0;
+    z-index: 1000 !important;
+    border-radius: 35px;
+    overflow: hidden;
+  }
 }
 
 </style>
@@ -1937,6 +2043,8 @@ body.with-install-banner .mobile-feed-view {
         <div class="feed-drawer-quick-tags">
           <span class="quick-tag-label">Popular:</span>
           <button class="quick-tag-chip" data-tag="1girl">1girl</button>
+          <button class="quick-tag-chip" data-tag="video">videos</button>
+          <button class="quick-tag-chip" data-tag="animated">animated</button>
           <button class="quick-tag-chip" data-tag="scenery">scenery</button>
           <button class="quick-tag-chip" data-tag="cyberpunk">cyberpunk</button>
           <button class="quick-tag-chip" data-tag="genshin_impact">genshin</button>
@@ -1980,7 +2088,7 @@ body.with-install-banner .mobile-feed-view {
         <span>Saved</span>
       </button>
 
-      <button class="nav-tab" data-tab="sources">
+      <button id="nav-tab-apis" class="nav-tab" data-tab="apis">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <circle cx="12" cy="12" r="3"></circle>
           <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
@@ -2179,14 +2287,15 @@ body.with-install-banner .mobile-feed-view {
           </div>
 
           <div class="m-form-group">
-            <label class="m-form-label">API Key (Optional)</label>
+            <label class="m-form-label">API Key</label>
             <input type="text" id="m-src-apikey" class="m-form-input" placeholder="Paste your API key here" autocomplete="off" spellcheck="false">
+            <div class="m-form-hint">Rule34: find in rule34.xxx &rarr; Account &rarr; Options</div>
           </div>
 
           <div class="m-form-group">
-            <label class="m-form-label">User ID (Optional)</label>
-            <input type="text" id="m-src-userid" class="m-form-input" placeholder="Numeric user ID" autocomplete="off" spellcheck="false">
-            <div class="m-form-hint">Stored securely on this device's browser local storage.</div>
+            <label class="m-form-label">User ID (Required for Rule34)</label>
+            <input type="text" id="m-src-userid" class="m-form-input" placeholder="Enter numeric User ID (e.g. 1234567)" autocomplete="off" spellcheck="false">
+            <div class="m-form-hint">Rule34 requires BOTH your numeric User ID and API key to authenticate.</div>
           </div>
 
           <div class="m-form-group">
@@ -2317,7 +2426,7 @@ body.with-install-banner .mobile-feed-view {
 
   </div>
 
-  <script>
+    <script>
 /**
  * OmniTag - API Sources & Adapter Engine
  * Manages switchable Booru/Image APIs, proxies, and normalizes post/tag data.
@@ -2334,25 +2443,25 @@ const DEFAULT_SOURCES = [
     thumbTemplate: "https://safebooru.org/thumbnails/{directory}/thumbnail_{image}",
     sampleTemplate: "https://safebooru.org/samples/{directory}/sample_{image}",
     fileTemplate: "https://safebooru.org/images/{directory}/{image}",
-    proxyMode: "auto", // 'auto', 'direct', 'corsproxy', 'allorigins', 'local', 'custom'
+    proxyMode: "auto",
     customProxyUrl: "",
     isPreset: true,
     description: "Anime & manga art (Safe for work)"
   },
   {
-    id: "danbooru",
-    name: "Danbooru (Safe)",
-    type: "danbooru_v2",
-    baseUrl: "https://danbooru.donmai.us",
-    postsUrl: "https://danbooru.donmai.us/posts.json?limit={limit}&page={page}&tags={tags}",
-    tagsUrl: "https://danbooru.donmai.us/autocomplete.json?search[query]={query}&search[type]=tag_query&version=1&limit=12",
-    thumbTemplate: "",
-    sampleTemplate: "",
-    fileTemplate: "",
+    id: "tbib",
+    name: "TBIB (Safe / Anime)",
+    type: "gelbooru_dapi",
+    baseUrl: "https://tbib.org",
+    postsUrl: "https://tbib.org/index.php?page=dapi&s=post&q=index&json=1&limit={limit}&pid={page}&tags={tags}",
+    tagsUrl: "https://tbib.org/autocomplete.php?q={query}",
+    thumbTemplate: "https://tbib.org/thumbnails/{directory}/thumbnail_{image}",
+    sampleTemplate: "https://tbib.org/samples/{directory}/sample_{image}",
+    fileTemplate: "https://tbib.org/images/{directory}/{image}",
     proxyMode: "auto",
     customProxyUrl: "",
     isPreset: true,
-    description: "Danbooru General / Safe posts"
+    description: "28M+ anime, manga & idol artworks (100% web & mobile compatible)"
   },
   {
     id: "yande",
@@ -2397,18 +2506,33 @@ const DEFAULT_SOURCES = [
     proxyMode: "auto",
     customProxyUrl: "",
     requiresAuth: true,
-    apiKey: "", // paste your key via "Manage / Add APIs" in the app (stays in your browser)
+    apiKey: "",
     userId: "7003718",
-    authHelp: "Find your API key and user ID in your rule34.xxx account options.",
+    authHelp: "Find your API key and numeric User ID in rule34.xxx -> Account -> Options.",
     excludeTags: ["loli", "shota", "child", "young", "underage"],
     isPreset: true,
-    description: "Adult (explicit) content. Requires an API key."
+    description: "Adult (explicit) content. Requires an API key and numeric User ID."
+  },
+  {
+    id: "danbooru",
+    name: "Danbooru (Safe)",
+    type: "danbooru_v2",
+    baseUrl: "https://danbooru.donmai.us",
+    postsUrl: "https://danbooru.donmai.us/posts.json?limit={limit}&page={page}&tags={tags}",
+    tagsUrl: "https://danbooru.donmai.us/autocomplete.json?search[query]={query}&search[type]=tag_query&version=1&limit=12",
+    thumbTemplate: "",
+    sampleTemplate: "",
+    fileTemplate: "",
+    proxyMode: "auto",
+    customProxyUrl: "",
+    isPreset: true,
+    description: "Danbooru Safe (Best in Android APK; web previews restricted by Cloudflare)"
   }
 ];
 
 // Bump this whenever new presets are added to DEFAULT_SOURCES so that
 // existing installs (which already have a saved list) receive them once.
-const PRESET_VERSION = 5;
+const PRESET_VERSION = 9;
 
 class ApiSourceManager {
   constructor() {
@@ -2417,20 +2541,14 @@ class ApiSourceManager {
     this.presetVersionKey = "omnitag_preset_version";
     this.sources = this.loadSources();
     
-    // On GitHub Pages, Danbooru is the default because it has full native CORS support
-    const isGitHubPages = typeof window !== "undefined" && window.location.hostname.includes("github.io");
-    const defaultId = isGitHubPages ? "danbooru" : "safebooru";
+    const defaultId = "safebooru";
     this.activeId = localStorage.getItem(this.activeKey) || defaultId;
-    
-    // On GitHub Pages, ensure active source allows CORS (Danbooru) so it doesn't fail
-    if (isGitHubPages && this.activeId === "safebooru") {
-      this.activeId = "danbooru";
-      localStorage.setItem(this.activeKey, "danbooru");
-    }
     
     // Ensure active source exists
     if (!this.getSource(this.activeId)) {
       this.activeId = defaultId;
+      localStorage.setItem(this.activeKey, defaultId);
+      localStorage.setItem("omnitag_active_source", defaultId);
     }
   }
 
@@ -2440,7 +2558,14 @@ class ApiSourceManager {
       if (saved) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          return this.addMissingPresets(parsed);
+          const list = this.addMissingPresets(parsed);
+          // Restore Rule34 userId if it was previously auto-cleared
+          list.forEach(s => {
+            if (s.id === "rule34" && !s.userId) {
+              s.userId = "7003718";
+            }
+          });
+          return list;
         }
       }
     } catch (e) {
@@ -2464,10 +2589,14 @@ class ApiSourceManager {
       const existing = list.find(s => s.id === def.id);
       if (!existing) {
         list.push(JSON.parse(JSON.stringify(def)));
-      } else if (def.apiKey && def.userId && !existing.apiKey && !existing.userId) {
-        // Already saved but with blank credentials: fill them in (never overwrites a key you typed)
-        existing.apiKey = def.apiKey;
-        existing.userId = def.userId;
+      } else {
+        if (def.description && (!existing.description || existing.description.includes("hotlinking restricted"))) {
+          existing.description = def.description;
+        }
+        if (def.apiKey && def.userId && !existing.apiKey && !existing.userId) {
+          existing.apiKey = def.apiKey;
+          existing.userId = def.userId;
+        }
       }
     }
     localStorage.setItem(this.storageKey, JSON.stringify(list));
@@ -2484,6 +2613,18 @@ class ApiSourceManager {
     return this.sources;
   }
 
+  getAllSources() {
+    return this.getSources();
+  }
+
+  addSource(data) {
+    return this.saveSource(data);
+  }
+
+  updateSource(id, data) {
+    return this.saveSource({ id, ...data });
+  }
+
   getSource(id) {
     return this.sources.find(s => s.id === id) || null;
   }
@@ -2496,6 +2637,10 @@ class ApiSourceManager {
     if (this.getSource(id)) {
       this.activeId = id;
       localStorage.setItem(this.activeKey, id);
+      localStorage.setItem("omnitag_active_source", id);
+      if (id === "danbooru") {
+        localStorage.setItem("omnitag_user_explicit_danbooru", "1");
+      }
       return true;
     }
     return false;
@@ -2549,9 +2694,26 @@ class ApiSourceManager {
    * Fill {api_key} / {user_id} placeholders from the source's saved credentials
    */
   applyAuth(url, source) {
-    const key = encodeURIComponent((source.apiKey || "").trim());
-    const uid = encodeURIComponent((source.userId || "").trim());
-    return url.replace(/\{api_key\}/g, () => key).replace(/\{user_id\}/g, () => uid);
+    if (!url) return url;
+    const key = (source.apiKey || "").trim();
+    const uid = (source.userId || "").trim();
+
+    // Replace {api_key} and {user_id} placeholders
+    let result = url
+      .replace(/\{api_key\}/gi, () => encodeURIComponent(key))
+      .replace(/\{user_id\}/gi, () => encodeURIComponent(uid));
+
+    // If source has credentials but URL had no placeholders, append them
+    if (key && !result.includes("api_key=")) {
+      const sep = result.includes("?") ? "&" : "?";
+      result += `${sep}api_key=${encodeURIComponent(key)}`;
+    }
+    if (uid && !result.includes("user_id=")) {
+      const sep = result.includes("?") ? "&" : "?";
+      result += `${sep}user_id=${encodeURIComponent(uid)}`;
+    }
+
+    return result;
   }
 
   /**
@@ -2683,7 +2845,7 @@ class ApiSourceManager {
     if (!source) throw new Error("No active API source configured");
 
     if (source.requiresAuth && (!(source.apiKey || "").trim() || !(source.userId || "").trim())) {
-      throw new Error(`${source.name} needs an API key and User ID. Open "Manage / Add APIs", click Edit on ${source.name} and paste them in. ${source.authHelp || ""}`.trim());
+      throw new Error(`${source.name} requires BOTH an API Key and numeric User ID. Tap APIs -> Edit on ${source.name} to enter both from rule34.xxx -> Account -> Options.`);
     }
 
     const cleanTags = (tags || "").trim();
@@ -2717,6 +2879,9 @@ class ApiSourceManager {
       .replace("{limit}", limit.toString())
       .replace("{page}", pageParam.toString())
       .replace("{tags}", encodeURIComponent(finalTags));
+
+    // Fill in authentication credentials (api_key, user_id)
+    url = this.applyAuth(url, source);
 
     // If running in native Android APK with AndroidBridge, use native connection (bypasses browser CORS completely)
     if (window.AndroidBridge && typeof window.AndroidBridge.fetchUrl === "function") {
@@ -2758,10 +2923,10 @@ class ApiSourceManager {
       }
     } catch (netErr) {
       // In web browsers/GitHub Pages, direct fetch can fail with CORS. Try reliable proxy fallback chain
-      const proxyFallbacks = [
+      // Sources that need an API key never use public proxies, since the key is part of the URL
+      const proxyFallbacks = source.requiresAuth ? [] : [
         `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
-        `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`,
-        `https://corsproxy.io/?url=${encodeURIComponent(url)}`
+        `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`
       ];
 
       let lastError = netErr;
@@ -2771,9 +2936,13 @@ class ApiSourceManager {
             headers: { Accept: "application/json, text/plain, */*" }
           });
           if (pResp && pResp.ok) {
-            resp = pResp;
-            lastError = null;
-            break;
+            const cType = (pResp.headers.get("content-type") || "").toLowerCase();
+            // Discard HTML challenge/advertisement landing pages
+            if (!cType.includes("text/html")) {
+              resp = pResp;
+              lastError = null;
+              break;
+            }
           }
         } catch (e) {
           lastError = e;
@@ -2925,19 +3094,21 @@ class ApiSourceManager {
       }
 
       // Determine extension & media type
-      const urlForExt = fileUrl || sampleUrl || "";
-      const extMatch = urlForExt.split('?')[0].match(/\.([a-z0-9]+)$/i);
-      const ext = extMatch ? extMatch[1].toLowerCase() : "jpg";
-      const isVideo = ["mp4", "webm", "zip"].includes(ext);
-      const isGif = ext === "gif";
+      const rawExt = (item.file_ext || "").toLowerCase();
+      const fileUrlExt = (fileUrl.split('?')[0].match(/\.([a-z0-9]+)$/i) || [])[1]?.toLowerCase() || "";
+      const sampleUrlExt = (sampleUrl.split('?')[0].match(/\.([a-z0-9]+)$/i) || [])[1]?.toLowerCase() || "";
+      const isVideo = ["mp4", "webm"].includes(rawExt) || ["mp4", "webm"].includes(fileUrlExt) || item.is_video === true;
+      const isGif = rawExt === "gif" || fileUrlExt === "gif" || sampleUrlExt === "gif";
+      const ext = isVideo ? (rawExt || fileUrlExt || "mp4") : (rawExt || sampleUrlExt || fileUrlExt || "jpg");
 
       normalized.push({
         id,
         tags: tagList,
         tagCategories,
         previewUrl,
-        sampleUrl: sampleUrl || previewUrl,
+        sampleUrl: isVideo ? (fileUrl || sampleUrl || previewUrl) : (sampleUrl || previewUrl),
         fileUrl: fileUrl || sampleUrl || previewUrl,
+        videoUrl: isVideo ? (fileUrl || sampleUrl) : "",
         width,
         height,
         aspectRatio: width && height ? (width / height) : 1,
@@ -2946,9 +3117,12 @@ class ApiSourceManager {
         ext,
         isVideo,
         isGif,
+        source: source.name,
         sourceSite: source.name,
         sourceId: source.id,
-        postPageUrl: `${source.baseUrl}/index.php?page=post&s=view&id=${id}`,
+        postPageUrl: source.type === "danbooru_v2" 
+          ? `${source.baseUrl}/posts/${id}`
+          : (source.type === "moebooru" ? `${source.baseUrl}/post/show/${id}` : `${source.baseUrl}/index.php?page=post&s=view&id=${id}`),
         createdAt: item.change || item.created_at || ""
       });
     }
@@ -3148,7 +3322,10 @@ class TagAutocomplete {
 
   highlightMatch(name, query) {
     if (!query) return name;
-    const q = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const q = query.replace(/[.*+?^${}()|[\]\\]/g, '\\<!-- Reusable API engine and Autocomplete logic -->
+  <script src="js/api-sources.js?v=1.3.1"></script>
+  <script src="js/autocomplete.js?v=1.3.1"></script>
+  <script src="js/mobile-app.js?v=1.3.1"></script>');
     return name.replace(new RegExp(`(${q})`, 'gi'), '<strong class="highlight">$1</strong>');
   }
 
@@ -3201,6 +3378,8 @@ class OmniTagMobileApp {
     this.feedQuery = "";
     this.feedLoading = false;
     this.feedHasMore = true;
+    this.feedSourceId = this.sourceManager?.activeId || "";
+    this.gridSourceId = this.sourceManager?.activeId || "";
 
     this.initElements();
     this.initTheme();
@@ -3732,11 +3911,53 @@ class OmniTagMobileApp {
   // TAB NAVIGATION
   // ==========================================
 
+  // Switch API Source globally across Feed, Grid, and UI
+  switchSource(sourceId) {
+    if (!sourceId) return;
+    const ok = this.sourceManager.setActiveSource(sourceId);
+    if (!ok) return;
+
+    const active = this.sourceManager.getActiveSource();
+    this.feedSourceId = active.id;
+    this.gridSourceId = active.id;
+
+    this.updateSourceBadge();
+    this.closeSourcesSheet();
+    this.toggleFeedTagDrawer(false);
+    this.showToast(`Switched API: ${active.name}`);
+
+    // If Danbooru selected on web browser, alert about cloudflare preview restriction
+    if (!window.AndroidBridge && active.id === "danbooru") {
+      this.showToast("Note: Danbooru restricts web image previews. All images load in the APK or try Safebooru/TBIB.");
+    }
+
+    // Invalidate & reset Feed state
+    this.feedPosts = [];
+    this.feedPage = 0;
+    this.feedHasMore = true;
+
+    // Invalidate & reset Grid state
+    this.posts = [];
+    this.currentPage = 0;
+
+    const returnTab = (this.previousTab && this.previousTab !== "sources" && this.previousTab !== "apis") ? this.previousTab : (this.activeTab === "feed" ? "feed" : "search");
+
+    if (returnTab === "feed") {
+      this.switchTab("feed");
+      this.loadFeedPosts(true);
+    } else if (returnTab === "saved") {
+      this.switchTab("saved");
+    } else {
+      this.switchTab("search");
+      this.executeSearch(this.currentQuery, 0);
+    }
+  }
+
   switchTab(tab) {
-    if (tab === "sources") {
-      this.previousTab = (this.activeTab !== "sources" ? this.activeTab : (this.previousTab || "feed"));
+    if (tab === "sources" || tab === "apis") {
+      this.previousTab = (this.activeTab !== "sources" && this.activeTab !== "apis") ? this.activeTab : (this.previousTab || "feed");
       document.querySelectorAll(".nav-tab").forEach(t => {
-        t.classList.toggle("active", t.dataset.tab === "sources");
+        t.classList.toggle("active", t.dataset.tab === "sources" || t.dataset.tab === "apis");
       });
       this.openSourcesSheet();
       return;
@@ -3751,14 +3972,14 @@ class OmniTagMobileApp {
     if (tab === "feed") {
       if (this.feedView) this.feedView.style.display = "block";
       if (this.gridView) this.gridView.style.display = "none";
-      if (this.feedPosts.length === 0) {
+      if (this.feedPosts.length === 0 || this.feedSourceId !== this.sourceManager?.activeId) {
         this.loadFeedPosts(true);
       }
     } else if (tab === "search") {
       if (this.feedView) this.feedView.style.display = "none";
       if (this.gridView) this.gridView.style.display = "flex";
       this.searchInput.placeholder = "Search tags (e.g. 1girl, -tag)...";
-      if (this.posts.length === 0) {
+      if (this.posts.length === 0 || this.gridSourceId !== this.sourceManager?.activeId) {
         this.executeSearch(this.currentQuery, 0);
       } else {
         this.renderGrid();
@@ -3778,6 +3999,7 @@ class OmniTagMobileApp {
   // ==========================================
 
   async loadFeedPosts(reset = false) {
+    this.feedSourceId = this.sourceManager?.activeId || "";
     if (reset) {
       this.feedPage = 0;
       this.feedPosts = [];
@@ -3825,14 +4047,6 @@ class OmniTagMobileApp {
       }
     } catch (err) {
       console.error("Feed load error:", err);
-      // Auto-fallback to Danbooru if primary source failed on first load
-      if (this.feedPosts.length === 0 && reset && this.sourceManager && this.sourceManager.activeId !== "danbooru") {
-        console.warn("Primary source failed on initial feed load, attempting Danbooru auto-fallback...");
-        this.sourceManager.setActiveSource("danbooru");
-        this.updateSourceBadge();
-        this.feedLoading = false;
-        return this.loadFeedPosts(true);
-      }
       this.showToast("Feed error: " + err.message);
       if (this.feedPosts.length === 0 && this.feedContainer) {
         // Fallback to high-quality trending feed on web so user never sees a black screen
@@ -3913,16 +4127,64 @@ class OmniTagMobileApp {
     slide.dataset.index = index;
     slide.dataset.id = post.id;
 
-    const mediaSrc = post.sampleUrl || post.fileUrl || post.previewUrl || "";
-    const fallbackSrc = post.previewUrl || mediaSrc;
+    const mediaSrc = isVideo ? (post.videoUrl || post.fileUrl || post.sampleUrl) : (post.sampleUrl || post.fileUrl || post.previewUrl || "");
+    const fallbackSrc = isVideo ? (post.sampleUrl || post.fileUrl) : (post.previewUrl || mediaSrc);
+    const sourceDisplayName = post.source || post.sourceSite || (this.sourceManager?.getActiveSource()?.name) || "Safebooru";
 
     slide.innerHTML = `
       <div class="tiktok-media-stage">
         ${isVideo ? `
-          <video src="${mediaSrc}" class="tiktok-media-el" playsinline webkit-playsinline loop muted referrerpolicy="no-referrer"></video>
-          <div class="tiktok-video-badge">VIDEO</div>
+          <div class="tiktok-video-wrapper" style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; position: relative;">
+            <video 
+              src="${mediaSrc}" 
+              class="tiktok-media-el tiktok-video-el" 
+              playsinline 
+              webkit-playsinline 
+              loop 
+              muted 
+              autoplay
+              preload="auto"
+              poster="${post.previewUrl || ''}" 
+              referrerpolicy="no-referrer"
+              onerror="if (this.parentElement) this.parentElement.style.display='none'; if (this.parentElement && this.parentElement.nextElementSibling) this.parentElement.nextElementSibling.style.display='flex';">
+            </video>
+            <div class="tiktok-video-badge">▶ VIDEO</div>
+          </div>
+          <div class="tiktok-fallback-box" style="display: none;">
+            <div class="tiktok-fallback-icon">🎬</div>
+            <div class="tiktok-fallback-title">Video Unavailable on Web</div>
+            <div class="tiktok-fallback-desc">Web hotlinking is restricted by ${this.escapeHtml(sourceDisplayName)}. Works directly in the OmniTag APK.</div>
+            <div class="tiktok-fallback-actions">
+              <a href="${post.postPageUrl || post.fileUrl || post.videoUrl}" target="_blank" rel="noopener noreferrer" class="sheet-action-btn primary" style="text-decoration:none; display:inline-block; padding: 10px 18px; font-size:13px;">Open on ${this.escapeHtml(sourceDisplayName)} ↗</a>
+              <button type="button" class="sheet-action-btn fallback-switch-safebooru-btn" style="padding: 10px 18px; font-size:13px;">Switch to Safebooru / TBIB</button>
+            </div>
+          </div>
         ` : `
-          <img src="${mediaSrc}" alt="Post #${post.id}" class="tiktok-media-el" loading="lazy" referrerpolicy="no-referrer" onerror="if(this.dataset.tried!=='1'){this.dataset.tried='1';if(this.src!=='${fallbackSrc}'){this.src='${fallbackSrc}';}}">
+          <img 
+            src="${mediaSrc}" 
+            alt="Post #${post.id}" 
+            class="tiktok-media-el" 
+            loading="lazy" 
+            referrerpolicy="no-referrer"
+            onerror="
+              if (!this.dataset.step && '${fallbackSrc}' && this.src !== '${fallbackSrc}') {
+                this.dataset.step = '1';
+                this.src = '${fallbackSrc}';
+                return;
+              }
+              this.style.display = 'none';
+              if (this.nextElementSibling) this.nextElementSibling.style.display = 'flex';
+            "
+          >
+          <div class="tiktok-fallback-box" style="display: none;">
+            <div class="tiktok-fallback-icon">🖼️</div>
+            <div class="tiktok-fallback-title">Preview Restricted on Web</div>
+            <div class="tiktok-fallback-desc">${this.escapeHtml(sourceDisplayName)} restricts direct web image hotlinking via Cloudflare. In the OmniTag APK, all images load seamlessly.</div>
+            <div class="tiktok-fallback-actions">
+              <a href="${post.postPageUrl || post.fileUrl || post.sampleUrl}" target="_blank" rel="noopener noreferrer" class="sheet-action-btn primary" style="text-decoration:none; display:inline-block; padding: 10px 18px; font-size:13px;">Open on ${this.escapeHtml(sourceDisplayName)} ↗</a>
+              <button type="button" class="sheet-action-btn fallback-switch-safebooru-btn" style="padding: 10px 18px; font-size:13px;">Switch to Safebooru / TBIB</button>
+            </div>
+          </div>
         `}
       </div>
 
@@ -3981,7 +4243,7 @@ class OmniTagMobileApp {
       <div class="tiktok-info-overlay">
         <div class="tiktok-author-row">
           <span class="tiktok-post-id">#${post.id}</span>
-          <span class="tiktok-source-pill">${post.source || 'Safebooru'}</span>
+          <span class="tiktok-source-pill">${sourceDisplayName}</span>
           <span class="tiktok-meta-dim">${post.width}&times;${post.height}</span>
         </div>
         <div class="tiktok-tag-chips">
@@ -4031,6 +4293,23 @@ class OmniTagMobileApp {
       e.stopPropagation();
       this.openViewerInfoSheetForPost(post);
     });
+
+    const fallbackSwitchBtn = slide.querySelector(".fallback-switch-safebooru-btn");
+    if (fallbackSwitchBtn) {
+      fallbackSwitchBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        this.switchSource("safebooru");
+      });
+    }
+
+    const feedMediaEl = slide.querySelector(".tiktok-media-el");
+    const feedFallbackBox = slide.querySelector(".tiktok-fallback-box");
+    if (feedMediaEl && feedFallbackBox) {
+      feedMediaEl.addEventListener("error", () => {
+        feedMediaEl.style.display = "none";
+        feedFallbackBox.style.display = "flex";
+      });
+    }
 
     slide.querySelectorAll(".tiktok-tag-pill").forEach(chip => {
       chip.addEventListener("click", (e) => {
@@ -4133,8 +4412,8 @@ class OmniTagMobileApp {
 
   renderFeedDrawerApiPills() {
     if (!this.feedDrawerApiPills) return;
-    const sources = this.sourceManager.getAllSources();
-    const active = this.sourceManager.getActiveSource();
+    const sources = (this.sourceManager?.getAllSources ? this.sourceManager.getAllSources() : this.sourceManager?.getSources()) || [];
+    const active = this.sourceManager?.getActiveSource();
     this.feedDrawerApiPills.innerHTML = "";
 
     sources.forEach(src => {
@@ -4147,11 +4426,11 @@ class OmniTagMobileApp {
         <span>${this.escapeHtml(src.name)}</span>
       `;
       btn.addEventListener("click", () => {
-        if (active && active.id === src.id) return;
-        this.sourceManager.setActiveSource(src.id);
-        this.updateSourceBadge();
-        this.showToast(`Feed API: ${src.name}`);
-        this.loadFeedPosts(true);
+        if (active && active.id === src.id) {
+          this.toggleFeedTagDrawer(false);
+          return;
+        }
+        this.switchSource(src.id);
       });
       this.feedDrawerApiPills.appendChild(btn);
     });
@@ -4168,6 +4447,7 @@ class OmniTagMobileApp {
   // ==========================================
 
   async executeSearch(query = "", page = 0) {
+    this.gridSourceId = this.sourceManager?.activeId || "";
     this.currentQuery = query;
     this.currentPage = page;
     this.resultsInfoEl.textContent = "Loading posts...";
@@ -4179,12 +4459,17 @@ class OmniTagMobileApp {
       this.applyFiltersAndRender();
       this.renderPagination();
     } catch (err) {
+      console.error("Search error:", err);
+      const activeSrc = this.sourceManager?.getActiveSource()?.name || "API Source";
       this.grid.innerHTML = `
         <div style="grid-column: 1 / -1; text-align: center; padding: 40px 16px; color: var(--m-danger);">
-          <p style="font-weight: 700; margin-bottom: 6px;">Error fetching posts</p>
-          <p style="font-size: 13px; color: var(--m-text-sub);">${err.message}</p>
+          <p style="font-weight: 700; font-size: 15px; margin-bottom: 6px;">Failed to load posts from ${this.escapeHtml(activeSrc)}</p>
+          <p style="font-size: 13px; color: var(--m-text-sub); margin-bottom: 16px;">${this.escapeHtml(err.message)}</p>
+          <button id="error-open-apis-btn" class="sheet-action-btn primary" style="display: inline-block; padding: 10px 20px; font-size: 13px;">Choose Another API</button>
         </div>
       `;
+      const btn = document.getElementById("error-open-apis-btn");
+      if (btn) btn.addEventListener("click", () => this.openSourcesSheet());
       this.resultsInfoEl.textContent = "Search failed";
     }
   }
@@ -4254,10 +4539,23 @@ class OmniTagMobileApp {
 
       const isFav = this.isFavorite(post.id);
       const thumbUrl = post.previewUrl || post.sampleUrl || post.fileUrl;
+      const fallbackUrl = (post.sampleUrl && post.sampleUrl !== thumbUrl) ? post.sampleUrl : ((post.fileUrl && post.fileUrl !== thumbUrl) ? post.fileUrl : "");
 
       card.innerHTML = `
         <div class="card-thumb-wrap">
-          <img src="${thumbUrl}" alt="Post #${post.id}" class="card-thumb" loading="lazy" referrerpolicy="no-referrer">
+          <img 
+            src="${thumbUrl}" 
+            alt="Post #${post.id}" 
+            class="card-thumb" 
+            loading="lazy" 
+            referrerpolicy="no-referrer"
+            onerror="this.classList.add('broken'); this.style.display='none'; if (this.nextElementSibling) this.nextElementSibling.style.display='flex';"
+          >
+          <div class="card-thumb-fallback" style="display: none;">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+            <span>Preview restricted</span>
+            <span style="font-size: 10px; opacity: 0.7;">Tap to view in ${this.escapeHtml(post.source || 'viewer')}</span>
+          </div>
           ${post.isVideo ? '<span class="card-badge video">VIDEO</span>' : ""}
           <button class="card-fav-btn ${isFav ? "active" : ""}" data-id="${post.id}">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="${isFav ? "#f85149" : "none"}" stroke="currentColor" stroke-width="2">
@@ -4273,6 +4571,21 @@ class OmniTagMobileApp {
           <div class="card-dim">${post.width}&times;${post.height}</div>
         </div>
       `;
+
+      const img = card.querySelector(".card-thumb");
+      const fallbackBox = card.querySelector(".card-thumb-fallback");
+      if (img) {
+        img.onerror = () => {
+          if (!img.dataset.tried && fallbackUrl && img.src !== fallbackUrl) {
+            img.dataset.tried = "1";
+            img.src = fallbackUrl;
+            return;
+          }
+          img.classList.add("broken");
+          img.style.display = "none";
+          if (fallbackBox) fallbackBox.style.display = "flex";
+        };
+      }
 
       card.addEventListener("click", (e) => {
         if (e.target.closest(".card-fav-btn")) {
@@ -4345,13 +4658,32 @@ class OmniTagMobileApp {
     } else {
       const img = document.createElement("img");
       img.setAttribute("referrerpolicy", "no-referrer");
-      img.src = post.sampleUrl || post.fileUrl || post.previewUrl;
+      const initialSrc = post.sampleUrl || post.fileUrl || post.previewUrl;
+      img.src = initialSrc;
       img.onload = () => {
         this.viewerStage.innerHTML = "";
         this.viewerStage.appendChild(img);
       };
       img.onerror = () => {
-        img.src = post.fileUrl || post.previewUrl;
+        if (!img.dataset.step) {
+          img.dataset.step = "1";
+          const fallback = post.fileUrl || post.previewUrl;
+          if (fallback && fallback !== initialSrc) {
+            img.src = fallback;
+            return;
+          }
+        }
+        if (img.dataset.step === "1") {
+          img.dataset.step = "2";
+          img.src = `https://corsproxy.org/?url=${encodeURIComponent(initialSrc)}`;
+          return;
+        }
+        if (img.dataset.step === "2" && post.previewUrl) {
+          img.dataset.step = "3";
+          img.src = `https://corsproxy.org/?url=${encodeURIComponent(post.previewUrl)}`;
+          return;
+        }
+        this.viewerStage.innerHTML = `<div style="color: var(--m-text-sub); padding: 40px; text-align: center;">Preview unavailable</div>`;
       };
     }
 
@@ -4734,13 +5066,29 @@ class OmniTagMobileApp {
     }
   }
 
-  downloadMedia(url, filename) {
+  async downloadMedia(url, filename) {
     if (!url) return;
     if (window.AndroidBridge && typeof window.AndroidBridge.downloadFile === "function") {
       window.AndroidBridge.downloadFile(url, filename || "omnitag_media.jpg");
       return;
     }
     this.showToast("Starting download...");
+    try {
+      const resp = await fetch(url, { referrerPolicy: "no-referrer" });
+      if (resp.ok) {
+        const blob = await resp.blob();
+        const blobUrl = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = blobUrl;
+        a.download = filename || "omnitag_media.jpg";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(blobUrl), 10000);
+        return;
+      }
+    } catch (_) {}
+
     try {
       const a = document.createElement("a");
       a.href = url;
@@ -4768,7 +5116,7 @@ class OmniTagMobileApp {
 
   closeSourcesSheet() {
     this.sourcesSheet.classList.remove("open");
-    const tabToRestore = (this.previousTab && this.previousTab !== "sources") ? this.previousTab : (this.feedView && this.feedView.style.display !== "none" ? "feed" : "search");
+    const tabToRestore = (this.previousTab && this.previousTab !== "sources" && this.previousTab !== "apis") ? this.previousTab : (this.feedView && this.feedView.style.display !== "none" ? "feed" : "search");
     document.querySelectorAll(".nav-tab").forEach(t => {
       t.classList.toggle("active", t.dataset.tab === tabToRestore);
     });
@@ -4776,8 +5124,8 @@ class OmniTagMobileApp {
   }
 
   renderSourcesList() {
-    const sources = this.sourceManager.getAllSources();
-    const active = this.sourceManager.getActiveSource();
+    const sources = (this.sourceManager?.getAllSources ? this.sourceManager.getAllSources() : this.sourceManager?.getSources()) || [];
+    const active = this.sourceManager?.getActiveSource();
     this.sourcesList.innerHTML = "";
 
     sources.forEach(src => {
@@ -4804,22 +5152,7 @@ class OmniTagMobileApp {
       `;
 
       card.addEventListener("click", () => {
-        this.sourceManager.setActiveSource(src.id);
-        this.updateSourceBadge();
-        this.closeSourcesSheet();
-        this.showToast(`Switched to ${src.name}`);
-
-        const returnTab = (this.previousTab && this.previousTab !== "sources") ? this.previousTab : (this.activeTab === "feed" ? "feed" : "search");
-        
-        if (returnTab === "feed") {
-          this.switchTab("feed");
-          this.loadFeedPosts(true);
-        } else if (returnTab === "saved") {
-          this.switchTab("saved");
-        } else {
-          this.switchTab("search");
-          this.executeSearch(this.currentQuery, 0);
-        }
+        this.switchSource(src.id);
       });
 
       const editBtn = card.querySelector(".sheet-source-edit-btn");
@@ -4879,40 +5212,46 @@ class OmniTagMobileApp {
     const baseUrl = document.getElementById("m-src-base").value.trim();
     const apiKey = document.getElementById("m-src-apikey").value.trim();
     const userId = document.getElementById("m-src-userid").value.trim();
+
+    if (id === "rule34" || baseUrl.includes("rule34.xxx")) {
+      if (apiKey && !userId) {
+        alert("Rule34 requires BOTH your API Key and your numeric User ID.\n\n1. Go to https://rule34.xxx/index.php?page=account&s=options\n2. Copy your numeric User ID\n3. Enter your User ID here along with your API Key.");
+        document.getElementById("m-src-userid").focus();
+        return;
+      }
+      if (!apiKey && userId) {
+        alert("Please also enter your Rule34 API Key from https://rule34.xxx/index.php?page=account&s=options");
+        document.getElementById("m-src-apikey").focus();
+        return;
+      }
+    }
     const proxyMode = document.getElementById("m-src-proxy").value;
     const customProxyUrl = document.getElementById("m-src-custom-proxy").value.trim();
     const customPostsUrl = document.getElementById("m-src-posts").value.trim();
     const customTagsUrl = document.getElementById("m-src-tags").value.trim();
 
+    const isRule34 = id === "rule34" || baseUrl.includes("rule34.xxx");
     const data = {
       name,
       type,
       baseUrl,
-      apiKey: apiKey || null,
-      userId: userId || null,
+      apiKey: apiKey,
+      userId: userId,
       proxyMode,
-      customProxyUrl: customProxyUrl || null,
-      customPostsUrl: customPostsUrl || null,
-      customTagsUrl: customTagsUrl || null,
-      requiresAuth: !!(apiKey && userId)
+      customProxyUrl: customProxyUrl || "",
+      customPostsUrl: customPostsUrl || "",
+      customTagsUrl: customTagsUrl || "",
+      requiresAuth: isRule34 ? true : !!(apiKey && userId)
     };
 
     if (id) {
       this.sourceManager.updateSource(id, data);
-      this.showToast(`Updated source "${name}"`);
+      this.closeEditSourceSheet();
+      this.switchSource(id);
     } else {
       const newSrc = this.sourceManager.addSource(data);
-      this.sourceManager.setActiveSource(newSrc.id);
-      this.showToast(`Added source "${name}"`);
-    }
-
-    this.updateSourceBadge();
-    this.closeEditSourceSheet();
-    this.renderSourcesList();
-    if (this.activeTab === "feed") {
-      this.loadFeedPosts(true);
-    } else {
-      this.executeSearch(this.currentQuery, 0);
+      this.closeEditSourceSheet();
+      this.switchSource(newSrc.id);
     }
   }
 
@@ -4921,15 +5260,8 @@ class OmniTagMobileApp {
     if (!id) return;
     if (confirm("Delete this API source?")) {
       this.sourceManager.deleteSource(id);
-      this.showToast("Source deleted");
       this.closeEditSourceSheet();
-      this.renderSourcesList();
-      this.updateSourceBadge();
-      if (this.activeTab === "feed") {
-        this.loadFeedPosts(true);
-      } else {
-        this.executeSearch(this.currentQuery, 0);
-      }
+      this.switchSource(this.sourceManager.activeId);
     }
   }
 
@@ -4969,14 +5301,8 @@ class OmniTagMobileApp {
   resetSources() {
     if (confirm("Reset all sources to default? Any custom endpoints will be cleared.")) {
       this.sourceManager.resetToDefaults();
-      this.renderSourcesList();
-      this.updateSourceBadge();
+      this.switchSource("safebooru");
       this.showToast("Reset sources to default");
-      if (this.activeTab === "feed") {
-        this.loadFeedPosts(true);
-      } else {
-        this.executeSearch(this.currentQuery, 0);
-      }
     }
   }
 

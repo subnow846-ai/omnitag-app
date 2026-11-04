@@ -17,8 +17,8 @@ $apiSourcesJs = [System.IO.File]::ReadAllText((Join-Path $root "js\api-sources.j
 $autocompleteJs = [System.IO.File]::ReadAllText((Join-Path $root "js\autocomplete.js"))
 $mobileAppJs = [System.IO.File]::ReadAllText((Join-Path $root "js\mobile-app.js"))
 
-# Replace <link rel="stylesheet" href="css/mobile.css"> with <style>...</style>
-$standalone = $mobileHtml.Replace('<link rel="stylesheet" href="css/mobile.css">', "<style>`n$mobileCss`n</style>")
+# Replace <link rel="stylesheet" href="css/mobile.css..."> with <style>...</style>
+$standalone = [System.Text.RegularExpressions.Regex]::Replace($mobileHtml, '<link rel="stylesheet" href="css/mobile\.css[^"]*">', "<style>`n$mobileCss`n</style>")
 
 # Replace the 3 external script tags with inlined script tags
 $scriptsBlock = @"
@@ -33,14 +33,8 @@ $mobileAppJs
   </script>
 "@
 
-$targetScripts = @"
-  <!-- Reusable API engine and Autocomplete logic -->
-  <script src="js/api-sources.js"></script>
-  <script src="js/autocomplete.js"></script>
-  <script src="js/mobile-app.js"></script>
-"@
-
-$standalone = $standalone.Replace($targetScripts, $scriptsBlock)
+$regexScripts = '<!-- Reusable API engine and Autocomplete logic -->[\s\S]*?<script src="js/mobile-app\.js[^"]*"></script>'
+$standalone = [System.Text.RegularExpressions.Regex]::Replace($standalone, $regexScripts, $scriptsBlock)
 [System.IO.File]::WriteAllText((Join-Path $root "omnitag-mobile-standalone.html"), $standalone)
 Write-Output "Built omnitag-mobile-standalone.html (Size: $($standalone.Length))"
 

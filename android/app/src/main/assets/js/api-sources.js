@@ -78,7 +78,7 @@ const DEFAULT_SOURCES = [
     customProxyUrl: "",
     requiresAuth: true,
     apiKey: "",
-    userId: "",
+    userId: "7003718",
     authHelp: "Find your API key and numeric User ID in rule34.xxx -> Account -> Options.",
     excludeTags: ["loli", "shota", "child", "young", "underage"],
     isPreset: true,
@@ -103,7 +103,7 @@ const DEFAULT_SOURCES = [
 
 // Bump this whenever new presets are added to DEFAULT_SOURCES so that
 // existing installs (which already have a saved list) receive them once.
-const PRESET_VERSION = 8;
+const PRESET_VERSION = 9;
 
 class ApiSourceManager {
   constructor() {
@@ -130,10 +130,10 @@ class ApiSourceManager {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) {
           const list = this.addMissingPresets(parsed);
-          // Clean up old invalid placeholder userId "7003718"
+          // Restore Rule34 userId if it was previously auto-cleared
           list.forEach(s => {
-            if (s.id === "rule34" && s.userId === "7003718") {
-              s.userId = "";
+            if (s.id === "rule34" && !s.userId) {
+              s.userId = "7003718";
             }
           });
           return list;
@@ -451,7 +451,8 @@ class ApiSourceManager {
       .replace("{page}", pageParam.toString())
       .replace("{tags}", encodeURIComponent(finalTags));
 
-    // Fill in authentication credentials (api_key, user_id)`r`n    url = this.applyAuth(url, source);
+    // Fill in authentication credentials (api_key, user_id)
+    url = this.applyAuth(url, source);
 
     // If running in native Android APK with AndroidBridge, use native connection (bypasses browser CORS completely)
     if (window.AndroidBridge && typeof window.AndroidBridge.fetchUrl === "function") {

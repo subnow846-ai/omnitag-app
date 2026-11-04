@@ -950,6 +950,15 @@ class OmniTagMobileApp {
       });
     }
 
+    const feedMediaEl = slide.querySelector(".tiktok-media-el");
+    const feedFallbackBox = slide.querySelector(".tiktok-fallback-box");
+    if (feedMediaEl && feedFallbackBox) {
+      feedMediaEl.addEventListener("error", () => {
+        feedMediaEl.style.display = "none";
+        feedFallbackBox.style.display = "flex";
+      });
+    }
+
     slide.querySelectorAll(".tiktok-tag-pill").forEach(chip => {
       chip.addEventListener("click", (e) => {
         e.stopPropagation();
@@ -1188,6 +1197,7 @@ class OmniTagMobileApp {
             class="card-thumb" 
             loading="lazy" 
             referrerpolicy="no-referrer"
+            onerror="this.classList.add('broken'); this.style.display='none'; if (this.nextElementSibling) this.nextElementSibling.style.display='flex';"
           >
           <div class="card-thumb-fallback" style="display: none;">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
@@ -1819,7 +1829,7 @@ class OmniTagMobileApp {
         document.getElementById("m-src-type").value = src.type || "gelbooru_dapi";
         document.getElementById("m-src-base").value = src.baseUrl || "";
         document.getElementById("m-src-apikey").value = src.apiKey || "";
-        document.getElementById("m-src-userid").value = (src.userId === "7003718") ? "" : (src.userId || "");
+        document.getElementById("m-src-userid").value = src.userId || "";
         document.getElementById("m-src-proxy").value = src.proxyMode || "auto";
         document.getElementById("m-src-custom-proxy").value = src.customProxyUrl || "";
         document.getElementById("m-src-posts").value = src.customPostsUrl || "";
@@ -1868,17 +1878,18 @@ class OmniTagMobileApp {
     const customPostsUrl = document.getElementById("m-src-posts").value.trim();
     const customTagsUrl = document.getElementById("m-src-tags").value.trim();
 
+    const isRule34 = id === "rule34" || baseUrl.includes("rule34.xxx");
     const data = {
       name,
       type,
       baseUrl,
-      apiKey: apiKey || null,
-      userId: userId || null,
+      apiKey: apiKey,
+      userId: userId,
       proxyMode,
-      customProxyUrl: customProxyUrl || null,
-      customPostsUrl: customPostsUrl || null,
-      customTagsUrl: customTagsUrl || null,
-      requiresAuth: !!(apiKey && userId)
+      customProxyUrl: customProxyUrl || "",
+      customPostsUrl: customPostsUrl || "",
+      customTagsUrl: customTagsUrl || "",
+      requiresAuth: isRule34 ? true : !!(apiKey && userId)
     };
 
     if (id) {

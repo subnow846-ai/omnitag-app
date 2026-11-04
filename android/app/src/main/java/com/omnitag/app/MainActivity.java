@@ -109,7 +109,7 @@ public class MainActivity extends Activity {
                             URL url = new URL(uri.toString());
                             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
                             conn.setRequestMethod("GET");
-                            conn.setRequestProperty("User-Agent", "OmniTagApp/1.3.0");
+                            conn.setRequestProperty("User-Agent", "OmniTagApp/1.3.1");
                             if (host.contains("donmai.us")) {
                                 conn.setRequestProperty("Referer", "https://danbooru.donmai.us/");
                             } else if (host.contains("rule34.xxx")) {
