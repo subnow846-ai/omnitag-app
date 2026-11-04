@@ -1752,7 +1752,7 @@ class OmniTagMobileApp {
         document.getElementById("m-src-type").value = src.type || "gelbooru_dapi";
         document.getElementById("m-src-base").value = src.baseUrl || "";
         document.getElementById("m-src-apikey").value = src.apiKey || "";
-        document.getElementById("m-src-userid").value = src.userId || "";
+        document.getElementById("m-src-userid").value = (src.userId === "7003718") ? "" : (src.userId || "");
         document.getElementById("m-src-proxy").value = src.proxyMode || "auto";
         document.getElementById("m-src-custom-proxy").value = src.customProxyUrl || "";
         document.getElementById("m-src-posts").value = src.customPostsUrl || "";
@@ -1783,6 +1783,19 @@ class OmniTagMobileApp {
     const baseUrl = document.getElementById("m-src-base").value.trim();
     const apiKey = document.getElementById("m-src-apikey").value.trim();
     const userId = document.getElementById("m-src-userid").value.trim();
+
+    if (id === "rule34" || baseUrl.includes("rule34.xxx")) {
+      if (apiKey && !userId) {
+        alert("Rule34 requires BOTH your API Key and your numeric User ID.\n\n1. Go to https://rule34.xxx/index.php?page=account&s=options\n2. Copy your numeric User ID\n3. Enter your User ID here along with your API Key.");
+        document.getElementById("m-src-userid").focus();
+        return;
+      }
+      if (!apiKey && userId) {
+        alert("Please also enter your Rule34 API Key from https://rule34.xxx/index.php?page=account&s=options");
+        document.getElementById("m-src-apikey").focus();
+        return;
+      }
+    }
     const proxyMode = document.getElementById("m-src-proxy").value;
     const customProxyUrl = document.getElementById("m-src-custom-proxy").value.trim();
     const customPostsUrl = document.getElementById("m-src-posts").value.trim();

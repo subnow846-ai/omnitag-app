@@ -929,7 +929,7 @@ class OmniTagApp {
     document.getElementById("source-form-proxy").value = existing ? (existing.proxyMode || "auto") : "auto";
     document.getElementById("source-form-custom-proxy").value = existing ? (existing.customProxyUrl || "") : "";
     document.getElementById("source-form-apikey").value = existing ? (existing.apiKey || "") : "";
-    document.getElementById("source-form-userid").value = existing ? (existing.userId || "") : "";
+    document.getElementById("source-form-userid").value = (existing && existing.userId === "7003718") ? "" : (existing ? (existing.userId || "") : "");
 
     document.getElementById("source-form-title").textContent = existing ? "Edit API Source" : "Add New API Source";
   }
@@ -973,6 +973,19 @@ class OmniTagApp {
     if (!name || !baseUrl) {
       alert("Source Name and Base URL are required.");
       return;
+    }
+
+    if (id === "rule34" || baseUrl.includes("rule34.xxx")) {
+      if (apiKey && !userId) {
+        alert("Rule34 requires BOTH your API Key and your numeric User ID.\n\n1. Go to https://rule34.xxx/index.php?page=account&s=options\n2. Copy your numeric User ID\n3. Enter your User ID here along with your API Key.");
+        document.getElementById("source-form-userid").focus();
+        return;
+      }
+      if (!apiKey && userId) {
+        alert("Please also enter your Rule34 API Key from https://rule34.xxx/index.php?page=account&s=options");
+        document.getElementById("source-form-apikey").focus();
+        return;
+      }
     }
 
     // Fill defaults if blank based on type

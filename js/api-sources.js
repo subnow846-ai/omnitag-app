@@ -63,11 +63,11 @@ const DEFAULT_SOURCES = [
     customProxyUrl: "",
     requiresAuth: true,
     apiKey: "",
-    userId: "7003718",
-    authHelp: "Find your API key and user ID in your rule34.xxx account options.",
+    userId: "",
+    authHelp: "Find your API key and numeric User ID in rule34.xxx -> Account -> Options.",
     excludeTags: ["loli", "shota", "child", "young", "underage"],
     isPreset: true,
-    description: "Adult (explicit) content. Requires an API key."
+    description: "Adult (explicit) content. Requires an API key and numeric User ID."
   },
   {
     id: "danbooru",
@@ -88,7 +88,7 @@ const DEFAULT_SOURCES = [
 
 // Bump this whenever new presets are added to DEFAULT_SOURCES so that
 // existing installs (which already have a saved list) receive them once.
-const PRESET_VERSION = 6;
+const PRESET_VERSION = 7;
 
 class ApiSourceManager {
   constructor() {
@@ -121,7 +121,14 @@ class ApiSourceManager {
       if (saved) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          return this.addMissingPresets(parsed);
+          const list = this.addMissingPresets(parsed);
+          // Clean up old invalid placeholder userId "7003718"
+          list.forEach(s => {
+            if (s.id === "rule34" && s.userId === "7003718") {
+              s.userId = "";
+            }
+          });
+          return list;
         }
       }
     } catch (e) {
@@ -246,9 +253,26 @@ class ApiSourceManager {
    * Fill {api_key} / {user_id} placeholders from the source's saved credentials
    */
   applyAuth(url, source) {
-    const key = encodeURIComponent((source.apiKey || "").trim());
-    const uid = encodeURIComponent((source.userId || "").trim());
-    return url.replace(/\{api_key\}/g, () => key).replace(/\{user_id\}/g, () => uid);
+    if (!url) return url;
+    const key = (source.apiKey || "").trim();
+    const uid = (source.userId || "").trim();
+
+    // Replace {api_key} and {user_id} placeholders
+    let result = url
+      .replace(/\{api_key\}/gi, () => encodeURIComponent(key))
+      .replace(/\{user_id\}/gi, () => encodeURIComponent(uid));
+
+    // If source has credentials but URL had no placeholders, append them
+    if (key && !result.includes("api_key=")) {
+      const sep = result.includes("?") ? "&" : "?";
+      result += `${sep}api_key=${encodeURIComponent(key)}`;
+    }
+    if (uid && !result.includes("user_id=")) {
+      const sep = result.includes("?") ? "&" : "?";
+      result += `${sep}user_id=${encodeURIComponent(uid)}`;
+    }
+
+    return result;
   }
 
   /**
@@ -380,7 +404,7 @@ class ApiSourceManager {
     if (!source) throw new Error("No active API source configured");
 
     if (source.requiresAuth && (!(source.apiKey || "").trim() || !(source.userId || "").trim())) {
-      throw new Error(`${source.name} needs an API key and User ID. Open "Manage / Add APIs", click Edit on ${source.name} and paste them in. ${source.authHelp || ""}`.trim());
+      throw new Error(`${source.name} requires BOTH an API Key and numeric User ID. Tap APIs -> Edit on ${source.name} to enter both from rule34.xxx -> Account -> Options.`);
     }
 
     const cleanTags = (tags || "").trim();
@@ -415,8 +439,7 @@ class ApiSourceManager {
       .replace("{page}", pageParam.toString())
       .replace("{tags}", encodeURIComponent(finalTags));
 
-    // Fill in {api_key} / {user_id} from the saved credentials
-    url = this.applyAuth(url, source);
+    // Fill in authentication credentials (api_key, user_id)`r`n    url = this.applyAuth(url, source);
 
     // If running in native Android APK with AndroidBridge, use native connection (bypasses browser CORS completely)
     if (window.AndroidBridge && typeof window.AndroidBridge.fetchUrl === "function") {

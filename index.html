@@ -333,12 +333,12 @@
 
             <div class="form-row">
               <div class="form-group" style="flex: 1;">
-                <label>API Key (Optional)</label>
-                <input type="text" id="source-form-apikey" class="form-input" placeholder="Required for Rule34 / Gelbooru" autocomplete="off" spellcheck="false">
+                <label>API Key (Required for Rule34)</label>
+                <input type="text" id="source-form-apikey" class="form-input" placeholder="Rule34 API Key" autocomplete="off" spellcheck="false">
               </div>
               <div class="form-group" style="flex: 1;">
-                <label>User ID (Optional)</label>
-                <input type="text" id="source-form-userid" class="form-input" placeholder="Numeric user ID" autocomplete="off" spellcheck="false">
+                <label>User ID (Required for Rule34)</label>
+                <input type="text" id="source-form-userid" class="form-input" placeholder="Numeric User ID (e.g. 1234567)" autocomplete="off" spellcheck="false">
               </div>
             </div>
             <div class="form-hint" style="margin: -6px 0 14px;">Used for <code>{api_key}</code> and <code>{user_id}</code> in the URL templates. Stored only in this browser. Keep Proxy Mode on Auto so the key isn't sent through a public CORS proxy.</div>

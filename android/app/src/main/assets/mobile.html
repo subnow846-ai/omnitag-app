@@ -17,7 +17,7 @@
   </script>
 
   <link rel="manifest" href="manifest.json">
-  <link rel="stylesheet" href="css/mobile.css?v=1.2.8">
+  <link rel="stylesheet" href="css/mobile.css?v=1.2.9">
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='25' fill='%23388bfd'/><text x='50%' y='55%' dominant-baseline='middle' text-anchor='middle' fill='white' font-size='56' font-weight='bold'>O</text></svg>">
 </head>
 <body>
@@ -432,14 +432,15 @@
           </div>
 
           <div class="m-form-group">
-            <label class="m-form-label">API Key (Optional)</label>
+            <label class="m-form-label">API Key</label>
             <input type="text" id="m-src-apikey" class="m-form-input" placeholder="Paste your API key here" autocomplete="off" spellcheck="false">
+            <div class="m-form-hint">Rule34: find in rule34.xxx &rarr; Account &rarr; Options</div>
           </div>
 
           <div class="m-form-group">
-            <label class="m-form-label">User ID (Optional)</label>
-            <input type="text" id="m-src-userid" class="m-form-input" placeholder="Numeric user ID" autocomplete="off" spellcheck="false">
-            <div class="m-form-hint">Stored securely on this device's browser local storage.</div>
+            <label class="m-form-label">User ID (Required for Rule34)</label>
+            <input type="text" id="m-src-userid" class="m-form-input" placeholder="Enter numeric User ID (e.g. 1234567)" autocomplete="off" spellcheck="false">
+            <div class="m-form-hint">Rule34 requires BOTH your numeric User ID and API key to authenticate.</div>
           </div>
 
           <div class="m-form-group">
@@ -571,9 +572,9 @@
   </div>
 
   <!-- Reusable API engine and Autocomplete logic -->
-  <script src="js/api-sources.js?v=1.2.8"></script>
-  <script src="js/autocomplete.js?v=1.2.8"></script>
-  <script src="js/mobile-app.js?v=1.2.8"></script>
+  <script src="js/api-sources.js?v=1.2.9"></script>
+  <script src="js/autocomplete.js?v=1.2.9"></script>
+  <script src="js/mobile-app.js?v=1.2.9"></script>
 
   <!-- PWA Service Worker Registration -->
   <script>
