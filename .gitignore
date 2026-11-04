@@ -1,5 +1,4 @@
 # Build & Packaging
-*.apk
 *.aab
 *.jks
 *.keystore
