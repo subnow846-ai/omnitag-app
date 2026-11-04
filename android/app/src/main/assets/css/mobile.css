@@ -589,6 +589,10 @@ body.with-install-banner .mobile-feed-view {
   font-weight: 600;
 }
 
+.nav-tab[data-tab="liked"].active {
+  color: #f85149;
+}
+
 /* Mobile Fullscreen Viewer */
 .mobile-viewer {
   position: fixed;
@@ -1977,9 +1981,147 @@ video.tiktok-media-el {
   font-weight: 600;
 }
 
-.account-stats-text {
-  font-size: 12px;
+.account-stats-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.account-stat-pill {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 8px;
+}
+
+.account-stat-pill.liked-stat {
+  background: rgba(248, 81, 73, 0.15);
+  color: #f85149;
+  border: 1px solid rgba(248, 81, 73, 0.3);
+}
+
+.account-stat-pill.saved-stat {
+  background: rgba(56, 139, 253, 0.15);
+  color: #388bfd;
+  border: 1px solid rgba(56, 139, 253, 0.3);
+}
+
+.account-nav-pills {
+  display: flex;
+  background: var(--m-surface-elevated);
+  border-radius: 12px;
+  padding: 3px;
+  gap: 3px;
+  margin-bottom: 6px;
+}
+
+.account-pill-btn {
+  flex: 1;
+  background: transparent;
+  border: none;
   color: var(--m-text-sub);
+  padding: 7px 10px;
+  border-radius: 9px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.account-pill-btn.active {
+  background: var(--m-surface);
+  color: var(--m-text);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+}
+
+.account-subview {
+  display: none;
+}
+
+.account-subview.active {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.algorithm-profile-box {
+  background: linear-gradient(135deg, rgba(30, 41, 59, 0.5) 0%, rgba(15, 23, 42, 0.7) 100%);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  border-radius: 14px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.algorithm-box-header {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.algorithm-box-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #c084fc;
+}
+
+.algorithm-box-desc {
+  font-size: 11px;
+  color: var(--m-text-sub);
+  line-height: 1.4;
+}
+
+.algorithm-tags-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 4px 0;
+}
+
+.algorithm-tag-chip {
+  background: rgba(139, 92, 246, 0.15);
+  border: 1px solid rgba(139, 92, 246, 0.4);
+  color: #e9d5ff;
+  padding: 3px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.algorithm-tag-chip .tag-pts {
+  font-size: 9px;
+  opacity: 0.7;
+  background: rgba(0, 0, 0, 0.3);
+  padding: 1px 4px;
+  border-radius: 6px;
+}
+
+.algorithm-empty-hint {
+  font-size: 11px;
+  color: var(--m-text-sub);
+  font-style: italic;
+}
+
+.algorithm-meta-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 10px;
+  color: var(--m-text-sub);
+  padding-top: 4px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.auth-box {
+  background: var(--m-surface);
+  border: 1px solid var(--m-border);
+  border-radius: 14px;
+  padding: 16px;
 }
 
 .account-section-title {

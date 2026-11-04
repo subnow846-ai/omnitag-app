@@ -68,7 +68,7 @@ public class MainActivity extends Activity {
         // Fast, smooth caching for mobile image feeds
         settings.setCacheMode(WebSettings.LOAD_DEFAULT);
         settings.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
-        settings.setUserAgentString(settings.getUserAgentString() + " OmniTagApp/1.2.3");
+        settings.setUserAgentString(settings.getUserAgentString() + " OmniTagApp/1.3.3");
 
         CookieManager.getInstance().setAcceptCookie(true);
         CookieManager.getInstance().setAcceptThirdPartyCookies(webView, true);

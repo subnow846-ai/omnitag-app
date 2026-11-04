@@ -609,6 +609,10 @@ body.with-install-banner .mobile-feed-view {
   font-weight: 600;
 }
 
+.nav-tab[data-tab="liked"].active {
+  color: #f85149;
+}
+
 /* Mobile Fullscreen Viewer */
 .mobile-viewer {
   position: fixed;
@@ -1997,9 +2001,147 @@ video.tiktok-media-el {
   font-weight: 600;
 }
 
-.account-stats-text {
-  font-size: 12px;
+.account-stats-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.account-stat-pill {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 8px;
+}
+
+.account-stat-pill.liked-stat {
+  background: rgba(248, 81, 73, 0.15);
+  color: #f85149;
+  border: 1px solid rgba(248, 81, 73, 0.3);
+}
+
+.account-stat-pill.saved-stat {
+  background: rgba(56, 139, 253, 0.15);
+  color: #388bfd;
+  border: 1px solid rgba(56, 139, 253, 0.3);
+}
+
+.account-nav-pills {
+  display: flex;
+  background: var(--m-surface-elevated);
+  border-radius: 12px;
+  padding: 3px;
+  gap: 3px;
+  margin-bottom: 6px;
+}
+
+.account-pill-btn {
+  flex: 1;
+  background: transparent;
+  border: none;
   color: var(--m-text-sub);
+  padding: 7px 10px;
+  border-radius: 9px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.account-pill-btn.active {
+  background: var(--m-surface);
+  color: var(--m-text);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+}
+
+.account-subview {
+  display: none;
+}
+
+.account-subview.active {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.algorithm-profile-box {
+  background: linear-gradient(135deg, rgba(30, 41, 59, 0.5) 0%, rgba(15, 23, 42, 0.7) 100%);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  border-radius: 14px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.algorithm-box-header {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.algorithm-box-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #c084fc;
+}
+
+.algorithm-box-desc {
+  font-size: 11px;
+  color: var(--m-text-sub);
+  line-height: 1.4;
+}
+
+.algorithm-tags-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 4px 0;
+}
+
+.algorithm-tag-chip {
+  background: rgba(139, 92, 246, 0.15);
+  border: 1px solid rgba(139, 92, 246, 0.4);
+  color: #e9d5ff;
+  padding: 3px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.algorithm-tag-chip .tag-pts {
+  font-size: 9px;
+  opacity: 0.7;
+  background: rgba(0, 0, 0, 0.3);
+  padding: 1px 4px;
+  border-radius: 6px;
+}
+
+.algorithm-empty-hint {
+  font-size: 11px;
+  color: var(--m-text-sub);
+  font-style: italic;
+}
+
+.algorithm-meta-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 10px;
+  color: var(--m-text-sub);
+  padding-top: 4px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.auth-box {
+  background: var(--m-surface);
+  border: 1px solid var(--m-border);
+  border-radius: 14px;
+  padding: 16px;
 }
 
 .account-section-title {
@@ -2365,6 +2507,13 @@ video.tiktok-media-el {
         <span>Grid</span>
       </button>
 
+      <button class="nav-tab" data-tab="liked">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+        </svg>
+        <span>Liked</span>
+      </button>
+
       <button class="nav-tab" data-tab="saved">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
@@ -2626,64 +2775,132 @@ video.tiktok-media-el {
       <div class="sheet-overlay"></div>
       <div class="sheet-panel" style="max-height: 88vh;">
         <div class="sheet-header">
-          <h4>đź‘¤ User Profiles &amp; Accounts</h4>
+          <h4>👤 User Account &amp; Taste Profile</h4>
           <button id="close-account-modal-btn" class="sheet-close-btn">&times;</button>
         </div>
 
-        <div style="overflow-y: auto; padding-right: 4px; flex: 1; display: flex; flex-direction: column; gap: 14px;">
-          <!-- Active Account Card -->
-          <div class="active-account-card">
-            <div class="account-avatar-large" id="current-account-avatar">&#128100;</div>
-            <div class="account-card-info">
-              <div class="account-name-row">
-                <span id="current-account-name" class="account-name-text">OmniUser</span>
-                <button id="edit-profile-btn" class="edit-profile-mini-btn" title="Edit Profile">&#9998;</button>
+        <!-- Subview Nav Pills -->
+        <div class="account-nav-pills">
+          <button id="acc-tab-profile" class="account-pill-btn active" data-subview="profile">Profile &amp; Taste</button>
+          <button id="acc-tab-login" class="account-pill-btn" data-subview="login">Log In</button>
+          <button id="acc-tab-register" class="account-pill-btn" data-subview="register">Create Account</button>
+        </div>
+
+        <div style="overflow-y: auto; padding-right: 4px; flex: 1;">
+          <!-- 1. Profile Subview -->
+          <div id="account-subview-profile" class="account-subview active">
+            <!-- Active Account Card -->
+            <div class="active-account-card">
+              <div class="account-avatar-large" id="current-account-avatar">👤</div>
+              <div class="account-card-info">
+                <div class="account-name-row">
+                  <span id="current-account-name" class="account-name-text">OmniUser</span>
+                  <button id="edit-profile-btn" class="edit-profile-mini-btn" title="Edit Profile">✏️</button>
+                </div>
+                <div class="account-badges-row">
+                  <span class="account-id-badge" id="current-account-id-badge">ID #1</span>
+                  <span class="account-handle-text" id="current-account-handle">@user1</span>
+                </div>
+                <div class="account-stats-row">
+                  <span class="account-stat-pill liked-stat" id="current-account-liked-stat">❤️ 0 Liked</span>
+                  <span class="account-stat-pill saved-stat" id="current-account-saved-stat">🔖 0 Saved</span>
+                </div>
               </div>
-              <div class="account-badges-row">
-                <span class="account-id-badge" id="current-account-id-badge">ID #1</span>
-                <span class="account-handle-text" id="current-account-handle">@user1</span>
+            </div>
+
+            <!-- Algorithm Profile Box -->
+            <div class="algorithm-profile-box">
+              <div class="algorithm-box-header">
+                <span style="font-size: 16px;">✨</span>
+                <span class="algorithm-box-title">For You Recommendation Engine</span>
               </div>
-              <div class="account-stats-text" id="current-account-stats">0 saved bookmarks</div>
+              <div class="algorithm-box-desc">
+                Learns dynamically from what you search (+2), videos/posts you watch (+1), and items you like (+5) or bookmark (+3).
+              </div>
+              <div class="algorithm-tags-container" id="algorithm-top-tags">
+                <span class="algorithm-empty-hint">Start searching, liking, and watching posts to build your recommendation profile!</span>
+              </div>
+              <div class="algorithm-meta-row">
+                <span id="algorithm-interactions-count">0 interactions recorded</span>
+                <button type="button" id="reset-algorithm-btn" class="text-action-btn" style="color: #ff7b72; font-size: 11px;">Reset Taste Profile</button>
+              </div>
+            </div>
+
+            <!-- Switch Profile Section -->
+            <div class="account-section-title">
+              <span>Saved Accounts on this Device</span>
+              <button id="acc-switch-to-register-btn" class="text-action-btn">+ New Account</button>
+            </div>
+
+            <div id="accounts-list-container" class="accounts-list-container">
+              <!-- Dynamic Account Cards rendered here -->
             </div>
           </div>
 
-          <!-- Account Switcher Section -->
-          <div class="account-section-title">
-            <span>Switch Profile</span>
-            <button id="create-account-btn" class="text-action-btn">+ New Account</button>
-          </div>
+          <!-- 2. Log In Subview -->
+          <div id="account-subview-login" class="account-subview">
+            <div class="auth-box">
+              <h5 style="color: var(--m-text); font-weight: 700; margin-bottom: 6px; font-size: 15px;">Log In to Account</h5>
+              <div style="font-size: 12px; color: var(--m-text-sub); margin-bottom: 12px; line-height: 1.4;">
+                Sign in with just your username. No Gmail or email required!
+              </div>
 
-          <div id="accounts-list-container" class="accounts-list-container">
-            <!-- Dynamic Account Cards rendered here -->
-          </div>
+              <div class="m-form-group">
+                <label class="m-form-label">Username</label>
+                <input type="text" id="login-username-input" class="m-form-input" placeholder="Enter username (e.g. OmniUser)" autocomplete="username">
+              </div>
 
-          <!-- Create Account Form Drawer (Hidden by default) -->
-          <div id="new-account-drawer" class="new-account-drawer hidden">
-            <h5 style="color: var(--m-text); font-weight: 700;">Create Unique Account</h5>
-            <div class="m-form-group">
-              <label class="m-form-label">Profile Name</label>
-              <input type="text" id="new-account-name-input" class="m-form-input" placeholder="e.g. Anime Fan">
-            </div>
-            <div class="m-form-group">
-              <label class="m-form-label">Choose Avatar</label>
-              <div class="avatar-picker-row">
-                <button type="button" class="avatar-option selected" data-avatar="&#128100;">&#128100;</button>
-                <button type="button" class="avatar-option" data-avatar="&#127775;">&#127775;</button>
-                <button type="button" class="avatar-option" data-avatar="&#129418;">&#129418;</button>
-                <button type="button" class="avatar-option" data-avatar="&#128049;">&#128049;</button>
-                <button type="button" class="avatar-option" data-avatar="&#127800;">&#127800;</button>
-                <button type="button" class="avatar-option" data-avatar="&#9889;">&#9889;</button>
-                <button type="button" class="avatar-option" data-avatar="&#127918;">&#127918;</button>
-                <button type="button" class="avatar-option" data-avatar="&#127912;">&#127912;</button>
-                <button type="button" class="avatar-option" data-avatar="&#128081;">&#128081;</button>
+              <div class="m-form-group">
+                <label class="m-form-label">Password <span style="font-size: 11px; color: var(--m-text-sub); font-weight: normal;">(Optional - leave blank if none)</span></label>
+                <input type="password" id="login-password-input" class="m-form-input" placeholder="Password (if set)" autocomplete="current-password">
+              </div>
+
+              <div style="margin-top: 14px; display: flex; flex-direction: column; gap: 8px;">
+                <button type="button" id="submit-login-btn" class="sheet-action-btn primary" style="padding: 12px; font-weight: 700;">Log In</button>
+                <button type="button" id="login-goto-register-btn" class="text-action-btn" style="text-align: center; margin-top: 6px; font-size: 12px;">Don't have an account? Create one now &rarr;</button>
               </div>
             </div>
-            <div style="font-size: 11px; color: var(--m-text-sub); margin-bottom: 8px;" id="new-account-id-hint">
-              This account will be assigned sequential unique ID #2.
-            </div>
-            <div style="display: flex; gap: 8px;">
-              <button type="button" id="confirm-create-account-btn" class="sheet-action-btn primary" style="flex: 1;">Create Account</button>
-              <button type="button" id="cancel-create-account-btn" class="sheet-action-btn" style="flex: 1;">Cancel</button>
+          </div>
+
+          <!-- 3. Register Subview -->
+          <div id="account-subview-register" class="account-subview">
+            <div class="auth-box">
+              <div style="background: rgba(56, 139, 253, 0.1); border: 1px solid rgba(56, 139, 253, 0.3); border-radius: 10px; padding: 10px; margin-bottom: 12px; font-size: 12px; color: #58a6ff; line-height: 1.4;">
+                ⚡ <strong>No Gmail or email required!</strong> Anyone can join with just a username you remember. An optional password can be set for extra privacy.
+              </div>
+
+              <h5 style="color: var(--m-text); font-weight: 700; margin-bottom: 6px; font-size: 15px;">Create New Account</h5>
+
+              <div class="m-form-group">
+                <label class="m-form-label">Username / Name</label>
+                <input type="text" id="register-username-input" class="m-form-input" placeholder="e.g. CoolArtist42" autocomplete="username">
+              </div>
+
+              <div class="m-form-group">
+                <label class="m-form-label">Password <span style="font-size: 11px; color: var(--m-text-sub); font-weight: normal;">(Optional - leave blank for 1-tap login)</span></label>
+                <input type="password" id="register-password-input" class="m-form-input" placeholder="Optional password" autocomplete="new-password">
+              </div>
+
+              <div class="m-form-group">
+                <label class="m-form-label">Choose Avatar Emoji</label>
+                <div class="avatar-picker-row" id="register-avatar-picker">
+                  <button type="button" class="avatar-option selected" data-avatar="👤">👤</button>
+                  <button type="button" class="avatar-option" data-avatar="🌟">🌟</button>
+                  <button type="button" class="avatar-option" data-avatar="🦊">🦊</button>
+                  <button type="button" class="avatar-option" data-avatar="🐱">🐱</button>
+                  <button type="button" class="avatar-option" data-avatar="🌸">🌸</button>
+                  <button type="button" class="avatar-option" data-avatar="⚡">⚡</button>
+                  <button type="button" class="avatar-option" data-avatar="🎮">🎮</button>
+                  <button type="button" class="avatar-option" data-avatar="🎨">🎨</button>
+                  <button type="button" class="avatar-option" data-avatar="👑">👑</button>
+                  <button type="button" class="avatar-option" data-avatar="🔥">🔥</button>
+                </div>
+              </div>
+
+              <div style="margin-top: 14px; display: flex; flex-direction: column; gap: 8px;">
+                <button type="button" id="submit-register-btn" class="sheet-action-btn primary" style="padding: 12px; font-weight: 700;">Create &amp; Sign In</button>
+                <button type="button" id="register-goto-login-btn" class="text-action-btn" style="text-align: center; margin-top: 6px; font-size: 12px;">Already have an account? Log In &rarr;</button>
+              </div>
             </div>
           </div>
         </div>
@@ -3607,9 +3824,9 @@ class TagAutocomplete {
   highlightMatch(name, query) {
     if (!query) return name;
     const q = query.replace(/[.*+?^${}()|[\]\\]/g, '\\<!-- Reusable API engine and Autocomplete logic -->
-  <script src="js/api-sources.js?v=1.3.2"></script>
-  <script src="js/autocomplete.js?v=1.3.2"></script>
-  <script src="js/mobile-app.js?v=1.3.2"></script>');
+  <script src="js/api-sources.js?v=1.3.3"></script>
+  <script src="js/autocomplete.js?v=1.3.3"></script>
+  <script src="js/mobile-app.js?v=1.3.3"></script>');
     return name.replace(new RegExp(`(${q})`, 'gi'), '<strong class="highlight">$1</strong>');
   }
 
@@ -3655,6 +3872,7 @@ class OmniTagMobileApp {
     this.activeSort = "default";
     this.viewerIndex = -1;
     this.favorites = this.loadFavorites();
+    this.likes = this.loadLikes();
 
     // TikTok Feed State
     this.feedPosts = [];
@@ -3742,6 +3960,27 @@ class OmniTagMobileApp {
     this.currentAccountIdBadge = document.getElementById("current-account-id-badge");
     this.currentAccountHandle = document.getElementById("current-account-handle");
     this.currentAccountStats = document.getElementById("current-account-stats");
+    this.currentAccountLikedStat = document.getElementById("current-account-liked-stat");
+    this.currentAccountSavedStat = document.getElementById("current-account-saved-stat");
+    this.algorithmTopTagsEl = document.getElementById("algorithm-top-tags");
+    this.algorithmInteractionsCountEl = document.getElementById("algorithm-interactions-count");
+    this.resetAlgorithmBtn = document.getElementById("reset-algorithm-btn");
+    this.accTabProfile = document.getElementById("acc-tab-profile");
+    this.accTabLogin = document.getElementById("acc-tab-login");
+    this.accTabRegister = document.getElementById("acc-tab-register");
+    this.subviewProfile = document.getElementById("account-subview-profile");
+    this.subviewLogin = document.getElementById("account-subview-login");
+    this.subviewRegister = document.getElementById("account-subview-register");
+    this.accSwitchToRegisterBtn = document.getElementById("acc-switch-to-register-btn");
+    this.loginUsernameInput = document.getElementById("login-username-input");
+    this.loginPasswordInput = document.getElementById("login-password-input");
+    this.submitLoginBtn = document.getElementById("submit-login-btn");
+    this.loginGotoRegisterBtn = document.getElementById("login-goto-register-btn");
+    this.registerUsernameInput = document.getElementById("register-username-input");
+    this.registerPasswordInput = document.getElementById("register-password-input");
+    this.registerAvatarPicker = document.getElementById("register-avatar-picker");
+    this.submitRegisterBtn = document.getElementById("submit-register-btn");
+    this.registerGotoLoginBtn = document.getElementById("register-goto-login-btn");
     this.editProfileBtn = document.getElementById("edit-profile-btn");
     this.createAccountBtn = document.getElementById("create-account-btn");
     this.accountsListContainer = document.getElementById("accounts-list-container");
@@ -3949,7 +4188,9 @@ class OmniTagMobileApp {
           this.searchInput,
           this.autocompleteEl,
           (item) => {
-            if (this.activeTab === "saved") {
+            if (this.activeTab === "liked") {
+              this.renderLikedPosts(this.searchInput.value);
+            } else if (this.activeTab === "saved") {
               this.renderSavedPosts(this.searchInput.value);
             } else {
               this.executeSearch(this.searchInput.value, 0);
@@ -3972,9 +4213,11 @@ class OmniTagMobileApp {
   }
 
   bindEvents() {
-    // Search routing based on active tab (Search vs Saved)
+    // Search routing based on active tab (Search vs Liked vs Saved)
     this.searchBtn.addEventListener("click", () => {
-      if (this.activeTab === "saved") {
+      if (this.activeTab === "liked") {
+        this.renderLikedPosts(this.searchInput.value);
+      } else if (this.activeTab === "saved") {
         this.renderSavedPosts(this.searchInput.value);
       } else {
         this.executeSearch(this.searchInput.value, 0);
@@ -3983,7 +4226,9 @@ class OmniTagMobileApp {
 
     this.searchInput.addEventListener("keydown", (e) => {
       if (e.key === "Enter") {
-        if (this.activeTab === "saved") {
+        if (this.activeTab === "liked") {
+          this.renderLikedPosts(this.searchInput.value);
+        } else if (this.activeTab === "saved") {
           this.renderSavedPosts(this.searchInput.value);
         } else {
           this.executeSearch(this.searchInput.value, 0);
@@ -3998,7 +4243,9 @@ class OmniTagMobileApp {
     this.clearBtn.addEventListener("click", () => {
       this.searchInput.value = "";
       this.clearBtn.style.display = "none";
-      if (this.activeTab === "saved") {
+      if (this.activeTab === "liked") {
+        this.renderLikedPosts("");
+      } else if (this.activeTab === "saved") {
         this.renderSavedPosts("");
       } else {
         this.executeSearch("", 0);
@@ -4006,7 +4253,9 @@ class OmniTagMobileApp {
     });
 
     this.refreshBtn.addEventListener("click", () => {
-      if (this.activeTab === "saved") {
+      if (this.activeTab === "liked") {
+        this.renderLikedPosts(this.searchInput.value);
+      } else if (this.activeTab === "saved") {
         this.renderSavedPosts(this.searchInput.value);
       } else {
         this.executeSearch(this.currentQuery, this.currentPage);
@@ -4142,7 +4391,7 @@ class OmniTagMobileApp {
 
     // Viewer Sidebar Controls
     if (this.viewerSidebarHeartBtn) {
-      this.viewerSidebarHeartBtn.addEventListener("click", () => this.toggleViewerFavorite());
+      this.viewerSidebarHeartBtn.addEventListener("click", () => this.toggleViewerLike());
     }
     if (this.viewerSidebarSaveBtn) {
       this.viewerSidebarSaveBtn.addEventListener("click", () => this.toggleViewerFavorite());
@@ -4173,15 +4422,61 @@ class OmniTagMobileApp {
     if (this.editProfileBtn) {
       this.editProfileBtn.addEventListener("click", () => this.editProfile());
     }
-    if (this.createAccountBtn) {
-      this.createAccountBtn.addEventListener("click", () => this.toggleNewAccountDrawer());
+
+    // Subview Navigation Pills
+    if (this.accTabProfile) {
+      this.accTabProfile.addEventListener("click", () => this.switchAccountSubview("profile"));
     }
-    if (this.confirmCreateAccountBtn) {
-      this.confirmCreateAccountBtn.addEventListener("click", () => this.handleConfirmCreateAccount());
+    if (this.accTabLogin) {
+      this.accTabLogin.addEventListener("click", () => this.switchAccountSubview("login"));
     }
-    if (this.cancelCreateAccountBtn) {
-      this.cancelCreateAccountBtn.addEventListener("click", () => this.toggleNewAccountDrawer(false));
+    if (this.accTabRegister) {
+      this.accTabRegister.addEventListener("click", () => this.switchAccountSubview("register"));
     }
+    if (this.accSwitchToRegisterBtn) {
+      this.accSwitchToRegisterBtn.addEventListener("click", () => this.switchAccountSubview("register"));
+    }
+    if (this.loginGotoRegisterBtn) {
+      this.loginGotoRegisterBtn.addEventListener("click", () => this.switchAccountSubview("register"));
+    }
+    if (this.registerGotoLoginBtn) {
+      this.registerGotoLoginBtn.addEventListener("click", () => this.switchAccountSubview("login"));
+    }
+
+    // Taste Algorithm Reset
+    if (this.resetAlgorithmBtn) {
+      this.resetAlgorithmBtn.addEventListener("click", () => this.resetTasteProfile());
+    }
+
+    // Login Submission
+    if (this.submitLoginBtn) {
+      this.submitLoginBtn.addEventListener("click", () => {
+        this.handleLogin(this.loginUsernameInput?.value, this.loginPasswordInput?.value);
+      });
+    }
+    if (this.loginPasswordInput) {
+      this.loginPasswordInput.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          this.handleLogin(this.loginUsernameInput?.value, this.loginPasswordInput?.value);
+        }
+      });
+    }
+
+    // Register Submission
+    if (this.submitRegisterBtn) {
+      this.submitRegisterBtn.addEventListener("click", () => {
+        this.handleRegister(this.registerUsernameInput?.value, this.registerPasswordInput?.value, this.selectedNewAvatar);
+      });
+    }
+    if (this.registerPasswordInput) {
+      this.registerPasswordInput.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          this.handleRegister(this.registerUsernameInput?.value, this.registerPasswordInput?.value, this.selectedNewAvatar);
+        }
+      });
+    }
+
+    // Avatar Picker Options
     document.querySelectorAll(".avatar-option").forEach(opt => {
       opt.addEventListener("click", () => {
         document.querySelectorAll(".avatar-option").forEach(o => o.classList.remove("selected"));
@@ -4229,6 +4524,8 @@ class OmniTagMobileApp {
     if (returnTab === "feed") {
       this.switchTab("feed");
       this.loadFeedPosts(true);
+    } else if (returnTab === "liked") {
+      this.switchTab("liked");
     } else if (returnTab === "saved") {
       this.switchTab("saved");
     } else {
@@ -4268,12 +4565,19 @@ class OmniTagMobileApp {
       } else {
         this.renderGrid();
       }
+    } else if (tab === "liked") {
+      if (this.feedView) this.feedView.style.display = "none";
+      if (this.gridView) this.gridView.style.display = "flex";
+      this.searchInput.value = "";
+      this.clearBtn.style.display = "none";
+      this.searchInput.placeholder = "Search within your liked posts...";
+      this.renderLikedPosts("");
     } else if (tab === "saved") {
       if (this.feedView) this.feedView.style.display = "none";
       if (this.gridView) this.gridView.style.display = "flex";
       this.searchInput.value = "";
       this.clearBtn.style.display = "none";
-      this.searchInput.placeholder = "Search within your saved posts...";
+      this.searchInput.placeholder = "Search within your saved bookmarks...";
       this.renderSavedPosts("");
     }
   }
@@ -4303,7 +4607,19 @@ class OmniTagMobileApp {
     if (this.feedLoadingSpinner) this.feedLoadingSpinner.style.display = "block";
 
     try {
-      const posts = await this.sourceManager.fetchPosts(this.feedQuery, this.feedPage, 12);
+      let queryToSend = this.feedQuery;
+      // Personalized Recommendation Engine: When feed has no explicit tag, recommend based on user taste
+      if (!queryToSend) {
+        const topTags = this.getTopAlgorithmTags ? this.getTopAlgorithmTags(5) : [];
+        if (topTags && topTags.length > 0) {
+          const picked = topTags[this.feedPage % topTags.length];
+          if (picked && picked.tag) {
+            queryToSend = picked.tag;
+          }
+        }
+      }
+
+      const posts = await this.sourceManager.fetchPosts(queryToSend, this.feedPage, 12);
       if (!posts || posts.length === 0) {
         this.feedHasMore = false;
         if (this.feedPosts.length === 0 && this.feedContainer) {
@@ -4318,6 +4634,11 @@ class OmniTagMobileApp {
           if (emptyBtn) emptyBtn.addEventListener("click", () => this.clearFeedTag());
         }
       } else {
+        // Dynamic scoring: Rank posts by personalized affinity
+        if (!this.feedQuery && typeof this.calculatePostAffinity === "function") {
+          posts.sort((a, b) => this.calculatePostAffinity(b) - this.calculatePostAffinity(a));
+        }
+
         if (reset && this.feedContainer) {
           this.feedContainer.innerHTML = "";
         }
@@ -4404,6 +4725,7 @@ class OmniTagMobileApp {
   renderFeedSlide(post, index) {
     if (!this.feedContainer) return;
     const isFav = this.isFavorite(post.id);
+    const isLiked = this.isLiked(post.id);
     const isVideo = !!post.isVideo;
 
     const slide = document.createElement("div");
@@ -4491,9 +4813,9 @@ class OmniTagMobileApp {
 
       <div class="tiktok-actions-sidebar">
         <!-- Heart / Like -->
-        <button class="tiktok-action-btn heart-btn ${isFav ? 'liked' : ''}" title="Like">
+        <button class="tiktok-action-btn heart-btn ${isLiked ? 'liked' : ''}" title="Like">
           <div class="action-icon-circle">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="${isFav ? '#f85149' : 'none'}" stroke="${isFav ? '#f85149' : 'currentColor'}" stroke-width="2.2">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="${isLiked ? '#f85149' : 'none'}" stroke="${isLiked ? '#f85149' : 'currentColor'}" stroke-width="2.2">
               <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
             </svg>
           </div>
@@ -4553,26 +4875,38 @@ class OmniTagMobileApp {
     // Action button listeners
     const heartBtn = slide.querySelector(".heart-btn");
     const saveBtn = slide.querySelector(".save-btn");
-    const updateFavUI = (fav) => {
-      heartBtn.classList.toggle("liked", fav);
-      heartBtn.querySelector("svg").setAttribute("fill", fav ? "#f85149" : "none");
-      heartBtn.querySelector("svg").setAttribute("stroke", fav ? "#f85149" : "currentColor");
-      saveBtn.classList.toggle("saved", fav);
-      saveBtn.querySelector("svg").setAttribute("fill", fav ? "#388bfd" : "none");
-      saveBtn.querySelector("svg").setAttribute("stroke", fav ? "#388bfd" : "currentColor");
-      saveBtn.querySelector(".action-label").textContent = fav ? "Saved" : "Save";
+
+    const updateLikeUI = (liked) => {
+      heartBtn.classList.toggle("liked", liked);
+      heartBtn.querySelector("svg").setAttribute("fill", liked ? "#f85149" : "none");
+      heartBtn.querySelector("svg").setAttribute("stroke", liked ? "#f85149" : "currentColor");
+    };
+
+    const updateSaveUI = (saved) => {
+      saveBtn.classList.toggle("saved", saved);
+      saveBtn.querySelector("svg").setAttribute("fill", saved ? "#388bfd" : "none");
+      saveBtn.querySelector("svg").setAttribute("stroke", saved ? "#388bfd" : "currentColor");
+      saveBtn.querySelector(".action-label").textContent = saved ? "Saved" : "Save";
     };
 
     heartBtn.addEventListener("click", (e) => {
       e.stopPropagation();
-      this.toggleFavorite(post);
-      updateFavUI(this.isFavorite(post.id));
+      this.toggleLike(post);
+      const liked = this.isLiked(post.id);
+      updateLikeUI(liked);
+      if (liked) {
+        const burst = slide.querySelector(".tiktok-heart-burst");
+        if (burst) {
+          burst.classList.add("pop");
+          setTimeout(() => burst.classList.remove("pop"), 600);
+        }
+      }
     });
 
     saveBtn.addEventListener("click", (e) => {
       e.stopPropagation();
       this.toggleFavorite(post);
-      updateFavUI(this.isFavorite(post.id));
+      updateSaveUI(this.isFavorite(post.id));
     });
 
     const downloadBtn = slide.querySelector(".download-btn");
@@ -4775,9 +5109,9 @@ class OmniTagMobileApp {
       if (now - lastTap < 320) {
         burst.classList.add("pop");
         setTimeout(() => burst.classList.remove("pop"), 600);
-        if (!this.isFavorite(post.id)) {
-          this.toggleFavorite(post);
-          updateFavUI(true);
+        if (!this.isLiked(post.id)) {
+          this.toggleLike(post);
+          updateLikeUI(true);
         }
       } else if (isVideo) {
         const video = slide.querySelector("video");
@@ -4809,16 +5143,30 @@ class OmniTagMobileApp {
   initFeedObserver() {
     if (!this.feedContainer) return;
 
-    // Auto play / pause videos
+    // Auto play / pause videos & track watch interactions for recommendation algorithm
     if (!this.feedSlideObserver) {
       this.feedSlideObserver = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
           const video = entry.target.querySelector("video");
-          if (!video) return;
+          const idx = parseInt(entry.target.dataset.index, 10);
+          const post = this.feedPosts[idx];
+
           if (entry.isIntersecting) {
-            video.play().catch(() => {});
+            if (video) video.play().catch(() => {});
+            // Record watch interaction after user watches for >= 1.5s
+            if (post) {
+              entry.target._watchTimer = setTimeout(() => {
+                if (typeof this.recordAlgorithmInteraction === "function") {
+                  this.recordAlgorithmInteraction("watch", post.tags, post.id, !!post.isVideo);
+                }
+              }, 1500);
+            }
           } else {
-            video.pause();
+            if (video) video.pause();
+            if (entry.target._watchTimer) {
+              clearTimeout(entry.target._watchTimer);
+              entry.target._watchTimer = null;
+            }
           }
         });
       }, { root: this.feedContainer, threshold: 0.6 });
@@ -4914,6 +5262,14 @@ class OmniTagMobileApp {
     this.resultsInfoEl.textContent = "Loading posts...";
     this.grid.innerHTML = '<div class="feed-spinner" style="margin: 40px auto;"></div>';
 
+    // Track search queries in personalized algorithm
+    if (query && query.trim() && typeof this.recordAlgorithmInteraction === "function") {
+      const searchTags = query.trim().split(/\s+/).filter(t => !t.startsWith("-") && !t.includes(":"));
+      if (searchTags.length > 0) {
+        this.recordAlgorithmInteraction("search", searchTags);
+      }
+    }
+
     try {
       const posts = await this.sourceManager.fetchPosts(this.currentQuery, this.currentPage, 24);
       this.posts = posts;
@@ -4937,9 +5293,20 @@ class OmniTagMobileApp {
 
   applyFiltersAndRender() {
     let list;
-    if (this.activeTab === "saved") {
+    if (this.activeTab === "liked") {
       const q = (this.searchInput?.value || "").trim().toLowerCase();
-      list = [...this.favorites];
+      list = [...(this.likes || [])];
+      if (q) {
+        list = list.filter(p => {
+          const idMatch = String(p.id).includes(q);
+          const tagMatch = (p.tags || []).some(t => t.toLowerCase().includes(q));
+          const srcMatch = (p.source || p.sourceSite || "").toLowerCase().includes(q);
+          return idMatch || tagMatch || srcMatch;
+        });
+      }
+    } else if (this.activeTab === "saved") {
+      const q = (this.searchInput?.value || "").trim().toLowerCase();
+      list = [...(this.favorites || [])];
       if (q) {
         list = list.filter(p => {
           const idMatch = String(p.id).includes(q);
@@ -4973,8 +5340,12 @@ class OmniTagMobileApp {
     }
 
     this.filteredPosts = list;
-    if (this.activeTab === "saved") {
-      this.resultsInfoEl.textContent = `Showing ${list.length} saved bookmarks`;
+    if (this.activeTab === "liked") {
+      const q = (this.searchInput?.value || "").trim();
+      this.resultsInfoEl.textContent = q ? `Found ${list.length} of ${this.likes.length} liked posts for "${q}"` : `${this.likes.length} liked posts`;
+    } else if (this.activeTab === "saved") {
+      const q = (this.searchInput?.value || "").trim();
+      this.resultsInfoEl.textContent = q ? `Found ${list.length} of ${this.favorites.length} saved bookmarks for "${q}"` : `${this.favorites.length} saved bookmarks`;
     } else {
       this.resultsInfoEl.textContent = `Showing ${list.length} posts (Page ${this.currentPage + 1})`;
     }
@@ -4984,14 +5355,18 @@ class OmniTagMobileApp {
   renderGrid() {
     this.grid.innerHTML = "";
     if (this.filteredPosts.length === 0) {
+      const emptyMsg = this.activeTab === "liked" ? "No liked posts yet" : (this.activeTab === "saved" ? "No saved bookmarks yet" : "No posts match filters");
+      const emptyDesc = this.activeTab === "liked" ? "Tap the ❤️ heart on any post or double-tap on feed to like it!" : (this.activeTab === "saved" ? "Tap the 🔖 bookmark on any post to save it for later." : "Try switching filters or searching another tag.");
       this.grid.innerHTML = `
         <div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px; color: var(--m-text-sub);">
-          <p style="font-size: 16px; font-weight: 600; color: var(--m-text); margin-bottom: 6px;">No posts match filters</p>
-          <p style="font-size: 13px;">Try switching filters or searching another tag.</p>
+          <p style="font-size: 16px; font-weight: 600; color: var(--m-text); margin-bottom: 6px;">${emptyMsg}</p>
+          <p style="font-size: 13px;">${emptyDesc}</p>
         </div>
       `;
       return;
     }
+
+    const isSavedTab = this.activeTab === "saved";
 
     this.filteredPosts.forEach((post, idx) => {
       const card = document.createElement("div");
@@ -4999,6 +5374,7 @@ class OmniTagMobileApp {
       card.dataset.index = idx;
 
       const isFav = this.isFavorite(post.id);
+      const isLiked = this.isLiked(post.id);
       const thumbUrl = post.previewUrl || post.sampleUrl || post.fileUrl;
       const fallbackUrl = (post.sampleUrl && post.sampleUrl !== thumbUrl) ? post.sampleUrl : ((post.fileUrl && post.fileUrl !== thumbUrl) ? post.fileUrl : "");
 
@@ -5018,10 +5394,16 @@ class OmniTagMobileApp {
             <span style="font-size: 10px; opacity: 0.7;">Tap to view in ${this.escapeHtml(post.source || 'viewer')}</span>
           </div>
           ${post.isVideo ? '<span class="card-badge video">VIDEO</span>' : ""}
-          <button class="card-fav-btn ${isFav ? "active" : ""}" data-id="${post.id}">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="${isFav ? "#f85149" : "none"}" stroke="currentColor" stroke-width="2">
-              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
-            </svg>
+          <button class="card-fav-btn ${isSavedTab ? (isFav ? 'active' : '') : (isLiked ? 'active' : '')}" data-id="${post.id}" title="${isSavedTab ? (isFav ? 'Remove bookmark' : 'Save bookmark') : (isLiked ? 'Unlike' : 'Like')}">
+            ${isSavedTab ? `
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="${isFav ? '#388bfd' : 'none'}" stroke="${isFav ? '#388bfd' : 'currentColor'}" stroke-width="2">
+                <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+              </svg>
+            ` : `
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="${isLiked ? '#f85149' : 'none'}" stroke="${isLiked ? '#f85149' : 'currentColor'}" stroke-width="2">
+                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+              </svg>
+            `}
           </button>
         </div>
         <div class="card-meta">
@@ -5051,11 +5433,20 @@ class OmniTagMobileApp {
       card.addEventListener("click", (e) => {
         if (e.target.closest(".card-fav-btn")) {
           e.stopPropagation();
-          this.toggleFavorite(post);
           const btn = card.querySelector(".card-fav-btn");
-          const fav = this.isFavorite(post.id);
-          btn.classList.toggle("active", fav);
-          btn.querySelector("svg").setAttribute("fill", fav ? "#f85149" : "none");
+          if (isSavedTab) {
+            this.toggleFavorite(post);
+            const fav = this.isFavorite(post.id);
+            btn.classList.toggle("active", fav);
+            btn.querySelector("svg").setAttribute("fill", fav ? "#388bfd" : "none");
+            btn.querySelector("svg").setAttribute("stroke", fav ? "#388bfd" : "currentColor");
+          } else {
+            this.toggleLike(post);
+            const liked = this.isLiked(post.id);
+            btn.classList.toggle("active", liked);
+            btn.querySelector("svg").setAttribute("fill", liked ? "#f85149" : "none");
+            btn.querySelector("svg").setAttribute("stroke", liked ? "#f85149" : "currentColor");
+          }
           return;
         }
         this.openViewer(idx);
@@ -5176,15 +5567,16 @@ class OmniTagMobileApp {
     });
 
     const isFav = this.isFavorite(post.id);
+    const isLiked = this.isLiked(post.id);
     if (this.viewerFavBtn) {
-      this.viewerFavBtn.querySelector("svg").setAttribute("fill", isFav ? "#f85149" : "none");
+      this.viewerFavBtn.querySelector("svg").setAttribute("fill", isLiked ? "#f85149" : "none");
     }
 
     // Update sidebar buttons for viewer modal
     if (this.viewerSidebarHeartBtn) {
-      this.viewerSidebarHeartBtn.classList.toggle("liked", isFav);
-      this.viewerSidebarHeartBtn.querySelector("svg").setAttribute("fill", isFav ? "#f85149" : "none");
-      this.viewerSidebarHeartBtn.querySelector("svg").setAttribute("stroke", isFav ? "#f85149" : "currentColor");
+      this.viewerSidebarHeartBtn.classList.toggle("liked", isLiked);
+      this.viewerSidebarHeartBtn.querySelector("svg").setAttribute("fill", isLiked ? "#f85149" : "none");
+      this.viewerSidebarHeartBtn.querySelector("svg").setAttribute("stroke", isLiked ? "#f85149" : "currentColor");
     }
     if (this.viewerSidebarHeartLabel) {
       this.viewerSidebarHeartLabel.textContent = post.score > 0 ? post.score : "Like";
@@ -5485,19 +5877,28 @@ class OmniTagMobileApp {
     return s;
   }
 
+  toggleViewerLike() {
+    if (this.viewerIndex < 0) return;
+    const post = this.filteredPosts[this.viewerIndex];
+    if (!post) return;
+    this.toggleLike(post);
+    const isLiked = this.isLiked(post.id);
+    if (this.viewerFavBtn) {
+      this.viewerFavBtn.querySelector("svg").setAttribute("fill", isLiked ? "#f85149" : "none");
+    }
+    if (this.viewerSidebarHeartBtn) {
+      this.viewerSidebarHeartBtn.classList.toggle("liked", isLiked);
+      this.viewerSidebarHeartBtn.querySelector("svg").setAttribute("fill", isLiked ? "#f85149" : "none");
+      this.viewerSidebarHeartBtn.querySelector("svg").setAttribute("stroke", isLiked ? "#f85149" : "currentColor");
+    }
+  }
+
   toggleViewerFavorite() {
     if (this.viewerIndex < 0) return;
     const post = this.filteredPosts[this.viewerIndex];
+    if (!post) return;
     this.toggleFavorite(post);
     const isFav = this.isFavorite(post.id);
-    if (this.viewerFavBtn) {
-      this.viewerFavBtn.querySelector("svg").setAttribute("fill", isFav ? "#f85149" : "none");
-    }
-    if (this.viewerSidebarHeartBtn) {
-      this.viewerSidebarHeartBtn.classList.toggle("liked", isFav);
-      this.viewerSidebarHeartBtn.querySelector("svg").setAttribute("fill", isFav ? "#f85149" : "none");
-      this.viewerSidebarHeartBtn.querySelector("svg").setAttribute("stroke", isFav ? "#f85149" : "currentColor");
-    }
     if (this.viewerSidebarSaveBtn) {
       this.viewerSidebarSaveBtn.classList.toggle("saved", isFav);
       this.viewerSidebarSaveBtn.querySelector("svg").setAttribute("fill", isFav ? "#388bfd" : "none");
@@ -5768,7 +6169,7 @@ class OmniTagMobileApp {
   }
 
   // ==========================================
-  // SAVED POSTS (LIBRARY & LOCAL SEARCH)
+  // LIKED & SAVED POSTS (LIBRARY & LOCAL SEARCH)
   // ==========================================
 
   loadFavorites() {
@@ -5784,22 +6185,42 @@ class OmniTagMobileApp {
     localStorage.setItem("omnitag_favorites", JSON.stringify(this.favorites));
   }
 
+  loadLikes() {
+    try {
+      const saved = localStorage.getItem("omnitag_likes");
+      return saved ? JSON.parse(saved) : [];
+    } catch (_) {
+      return [];
+    }
+  }
+
+  saveLikes() {
+    localStorage.setItem("omnitag_likes", JSON.stringify(this.likes));
+  }
+
   isFavorite(id) {
-    return this.favorites.some(f => String(f.id) === String(id));
+    return (this.favorites || []).some(f => String(f.id) === String(id));
+  }
+
+  isLiked(id) {
+    return (this.likes || []).some(l => String(l.id) === String(id));
   }
 
   toggleFavorite(post) {
+    if (!this.favorites) this.favorites = [];
     const idx = this.favorites.findIndex(f => String(f.id) === String(post.id));
     if (idx >= 0) {
       this.favorites.splice(idx, 1);
       this.showToast("Removed from Bookmarks");
     } else {
       this.favorites.unshift(post);
-      this.showToast("Saved to Bookmarks!");
+      this.showToast("Saved to Bookmarks 🔖");
+      // Record Bookmark in taste recommendation algorithm (+3 points)
+      this.recordAlgorithmInteraction("save", post.tags, post.id, !!post.isVideo);
     }
     this.saveFavorites();
     if (this.activeAccount) {
-      this.activeAccount.favorites = this.favorites;
+      this.activeAccount.savedPosts = this.favorites;
       this.saveAccounts();
       this.updateAccountUI();
     }
@@ -5809,14 +6230,57 @@ class OmniTagMobileApp {
     }
   }
 
-  renderSavedPosts(query = "") {
-    let posts = this.favorites;
+  toggleLike(post) {
+    if (!this.likes) this.likes = [];
+    const idx = this.likes.findIndex(l => String(l.id) === String(post.id));
+    if (idx >= 0) {
+      this.likes.splice(idx, 1);
+      this.showToast("Removed from Liked");
+    } else {
+      this.likes.unshift(post);
+      this.showToast("Added to Liked ❤️");
+      // Record Like in taste recommendation algorithm (+5 points!)
+      this.recordAlgorithmInteraction("like", post.tags, post.id, !!post.isVideo);
+    }
+    this.saveLikes();
+    if (this.activeAccount) {
+      this.activeAccount.likedPosts = this.likes;
+      this.saveAccounts();
+      this.updateAccountUI();
+    }
+
+    if (this.activeTab === "liked") {
+      this.renderLikedPosts(this.searchInput.value);
+    }
+  }
+
+  renderLikedPosts(query = "") {
+    let posts = this.likes || [];
     if (query && query.trim()) {
       const q = query.trim().toLowerCase();
-      posts = this.favorites.filter(p => {
+      posts = posts.filter(p => {
         const idMatch = String(p.id).includes(q);
         const tagMatch = (p.tags || []).some(t => t.toLowerCase().includes(q));
-        const srcMatch = (p.source || "").toLowerCase().includes(q);
+        const srcMatch = (p.source || p.sourceSite || "").toLowerCase().includes(q);
+        return idMatch || tagMatch || srcMatch;
+      });
+      this.resultsInfoEl.textContent = `Found ${posts.length} of ${this.likes.length} liked posts for "${query}"`;
+    } else {
+      this.resultsInfoEl.textContent = `${this.likes.length} liked posts`;
+    }
+    this.filteredPosts = posts;
+    this.renderGrid();
+    this.paginationEl.innerHTML = "";
+  }
+
+  renderSavedPosts(query = "") {
+    let posts = this.favorites || [];
+    if (query && query.trim()) {
+      const q = query.trim().toLowerCase();
+      posts = posts.filter(p => {
+        const idMatch = String(p.id).includes(q);
+        const tagMatch = (p.tags || []).some(t => t.toLowerCase().includes(q));
+        const srcMatch = (p.source || p.sourceSite || "").toLowerCase().includes(q);
         return idMatch || tagMatch || srcMatch;
       });
       this.resultsInfoEl.textContent = `Found ${posts.length} of ${this.favorites.length} saved bookmarks for "${query}"`;
@@ -5839,12 +6303,140 @@ class OmniTagMobileApp {
   }
 
   // ==========================================
-  // MULTI-ACCOUNT PROFILE SYSTEM (Unique IDs 1, 2, 3...)
+  // PERSONALIZED RECOMMENDATION ALGORITHM
+  // (Learns from Searches (+2), Watches (+1), Saves (+3), Likes (+5))
+  // ==========================================
+
+  recordAlgorithmInteraction(type, tags = [], postId = null, isVideo = false) {
+    if (!this.activeAccount) return;
+    if (!this.activeAccount.algorithm) {
+      this.activeAccount.algorithm = { tagWeights: {}, watchHistory: [], interactionCount: 0 };
+    }
+    const algo = this.activeAccount.algorithm;
+    if (!algo.tagWeights) algo.tagWeights = {};
+    if (!Array.isArray(algo.watchHistory)) algo.watchHistory = [];
+
+    let weight = 1;
+    if (type === "like") weight = 5;
+    else if (type === "save") weight = 3;
+    else if (type === "search") weight = 2;
+    else if (type === "watch") weight = 1;
+
+    // Filter meta tags that don't indicate artistic taste
+    const IGNORE_TAGS = new Set([
+      "highres", "absurdres", "incredibly_absurdres", "superabsurdres", 
+      "translated", "commentary_request", "bad_id", "bad_pixiv_id", "bad_link", 
+      "duplicate", "sample", "official_art"
+    ]);
+
+    let modified = false;
+    if (Array.isArray(tags)) {
+      tags.forEach(t => {
+        if (!t || typeof t !== "string") return;
+        const norm = t.toLowerCase().trim().replace(/\s+/g, "_");
+        if (norm.length < 2 || IGNORE_TAGS.has(norm) || norm.startsWith("rating:") || norm.startsWith("score:")) {
+          return;
+        }
+        algo.tagWeights[norm] = (algo.tagWeights[norm] || 0) + weight;
+        modified = true;
+      });
+    }
+
+    if (isVideo) {
+      algo.tagWeights["__pref_video"] = (algo.tagWeights["__pref_video"] || 0) + weight;
+      modified = true;
+    }
+
+    if (postId && !algo.watchHistory.includes(String(postId))) {
+      algo.watchHistory.unshift(String(postId));
+      if (algo.watchHistory.length > 250) {
+        algo.watchHistory.pop();
+      }
+      modified = true;
+    }
+
+    if (modified) {
+      algo.interactionCount = (algo.interactionCount || 0) + 1;
+      this.saveAccounts();
+      this.renderAlgorithmUI();
+    }
+  }
+
+  getTopAlgorithmTags(limit = 8) {
+    if (!this.activeAccount?.algorithm?.tagWeights) return [];
+    const weights = this.activeAccount.algorithm.tagWeights;
+    const entries = Object.keys(weights)
+      .filter(t => !t.startsWith("__"))
+      .map(tag => ({ tag, score: weights[tag] }))
+      .sort((a, b) => b.score - a.score);
+    return entries.slice(0, limit);
+  }
+
+  calculatePostAffinity(post) {
+    if (!this.activeAccount?.algorithm?.tagWeights || !post?.tags) return 0;
+    const weights = this.activeAccount.algorithm.tagWeights;
+    const history = this.activeAccount.algorithm.watchHistory || [];
+    let score = 0;
+    post.tags.forEach(t => {
+      const norm = t.toLowerCase().trim().replace(/\s+/g, "_");
+      if (weights[norm]) score += weights[norm];
+    });
+    if (weights["__pref_video"] && post.isVideo) {
+      score += weights["__pref_video"];
+    }
+    // Slight penalty if post was already viewed recently so new content is prioritized
+    if (history.includes(String(post.id))) {
+      score -= 10;
+    }
+    return score;
+  }
+
+  renderAlgorithmUI() {
+    if (!this.activeAccount?.algorithm) return;
+    const algo = this.activeAccount.algorithm;
+    if (this.algorithmInteractionsCountEl) {
+      const c = algo.interactionCount || 0;
+      this.algorithmInteractionsCountEl.textContent = `${c} interaction${c === 1 ? '' : 's'} recorded`;
+    }
+    if (this.algorithmTopTagsEl) {
+      const topTags = this.getTopAlgorithmTags(8);
+      if (topTags.length === 0) {
+        this.algorithmTopTagsEl.innerHTML = `
+          <span class="algorithm-empty-hint">Start searching, liking, and watching posts to build your recommendation profile!</span>
+        `;
+      } else {
+        this.algorithmTopTagsEl.innerHTML = topTags.map(t => `
+          <div class="algorithm-tag-chip">
+            <span>#${this.escapeHtml(t.tag)}</span>
+            <span class="tag-pts">+${t.score} pts</span>
+          </div>
+        `).join('');
+      }
+    }
+  }
+
+  resetTasteProfile() {
+    if (!this.activeAccount) return;
+    if (confirm(`Reset personalized recommendation taste profile for ${this.activeAccount.name}?`)) {
+      this.activeAccount.algorithm = {
+        tagWeights: {},
+        watchHistory: [],
+        interactionCount: 0
+      };
+      this.saveAccounts();
+      this.renderAlgorithmUI();
+      this.showToast("Taste profile reset successfully!");
+    }
+  }
+
+  // ==========================================
+  // MULTI-ACCOUNT PROFILE SYSTEM & AUTH
+  // (No Gmail / Email required - Username + Optional Password)
   // ==========================================
 
   initAccounts() {
     try {
-      const raw = localStorage.getItem("omnitag_accounts");
+      const raw = localStorage.getItem("omnitag_accounts_v2");
       if (raw) {
         const parsed = JSON.parse(raw);
         if (Array.isArray(parsed) && parsed.length > 0) {
@@ -5853,21 +6445,66 @@ class OmniTagMobileApp {
       }
     } catch (_) {}
 
+    // Migration from legacy omnitag_accounts or brand new initialization
     if (!this.accounts || this.accounts.length === 0) {
-      // First time initialization: Create default primary Account #1
-      const legacyFavorites = this.loadFavorites();
-      const primaryAccount = {
-        id: 1, // Unique ID 1
-        name: "OmniUser",
-        handle: "@user1",
-        avatar: "\u{1F464}",
-        color: "#388bfd",
-        createdAt: Date.now(),
-        favorites: legacyFavorites
-      };
-      this.accounts = [primaryAccount];
+      let legacyAccounts = [];
+      try {
+        const rawLegacy = localStorage.getItem("omnitag_accounts");
+        if (rawLegacy) {
+          const parsed = JSON.parse(rawLegacy);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            legacyAccounts = parsed;
+          }
+        }
+      } catch (_) {}
+
+      if (legacyAccounts.length > 0) {
+        this.accounts = legacyAccounts.map(a => ({
+          id: a.id || 1,
+          name: a.name || "OmniUser",
+          username: (a.name || "OmniUser").toLowerCase().replace(/\s+/g, "_"),
+          password: a.password || "",
+          handle: a.handle || `@user${a.id || 1}`,
+          avatar: a.avatar || "👤",
+          color: a.color || "#388bfd",
+          createdAt: a.createdAt || Date.now(),
+          likedPosts: a.likedPosts || [],
+          savedPosts: a.savedPosts || a.favorites || [],
+          algorithm: a.algorithm || { tagWeights: {}, watchHistory: [], interactionCount: 0 }
+        }));
+      } else {
+        const legacyFavorites = this.loadFavorites();
+        const legacyLikes = this.loadLikes();
+        this.accounts = [{
+          id: 1,
+          name: "OmniUser",
+          username: "omniuser",
+          password: "",
+          handle: "@user1",
+          avatar: "👤",
+          color: "#388bfd",
+          createdAt: Date.now(),
+          likedPosts: legacyLikes,
+          savedPosts: legacyFavorites,
+          algorithm: { tagWeights: {}, watchHistory: [], interactionCount: 0 }
+        }];
+      }
       this.saveAccounts();
     }
+
+    // Ensure all accounts have necessary structures
+    this.accounts.forEach(a => {
+      if (!Array.isArray(a.likedPosts)) a.likedPosts = [];
+      if (!Array.isArray(a.savedPosts)) a.savedPosts = a.favorites || [];
+      if (!a.algorithm || typeof a.algorithm !== "object") {
+        a.algorithm = { tagWeights: {}, watchHistory: [], interactionCount: 0 };
+      }
+      if (!a.algorithm.tagWeights) a.algorithm.tagWeights = {};
+      if (!Array.isArray(a.algorithm.watchHistory)) a.algorithm.watchHistory = [];
+      if (typeof a.algorithm.interactionCount !== "number") a.algorithm.interactionCount = 0;
+      if (!a.username) a.username = (a.name || `user${a.id}`).toLowerCase().replace(/\s+/g, "_");
+      if (typeof a.password !== "string") a.password = "";
+    });
 
     // Load active account
     const savedActiveId = localStorage.getItem("omnitag_active_account_id");
@@ -5875,15 +6512,27 @@ class OmniTagMobileApp {
     this.activeAccount = this.accounts.find(a => a.id === activeId) || this.accounts[0];
     localStorage.setItem("omnitag_active_account_id", String(this.activeAccount.id));
 
-    // Point favorites to active account's isolated favorites list
-    this.favorites = this.activeAccount.favorites || [];
+    // Connect active account's isolated lists
+    this.likes = this.activeAccount.likedPosts;
+    this.favorites = this.activeAccount.savedPosts;
+    this.saveLikes();
+    this.saveFavorites();
 
-    // Update UI elements
-    setTimeout(() => this.updateAccountUI(), 50);
+    setTimeout(() => {
+      this.updateAccountUI();
+      this.renderAlgorithmUI();
+    }, 50);
   }
 
   saveAccounts() {
-    localStorage.setItem("omnitag_accounts", JSON.stringify(this.accounts));
+    try {
+      localStorage.setItem("omnitag_accounts_v2", JSON.stringify(this.accounts));
+      // Keep backwards compatibility sync with legacy keys
+      localStorage.setItem("omnitag_accounts", JSON.stringify(this.accounts.map(a => ({
+        ...a,
+        favorites: a.savedPosts
+      }))));
+    } catch (_) {}
   }
 
   getNextAccountId() {
@@ -5894,9 +6543,7 @@ class OmniTagMobileApp {
 
   openAccountModal() {
     if (!this.accountModal) return;
-    this.updateAccountUI();
-    this.renderAccountsList();
-    this.toggleNewAccountDrawer(false);
+    this.switchAccountSubview("profile");
     this.accountModal.classList.add("open");
   }
 
@@ -5904,27 +6551,51 @@ class OmniTagMobileApp {
     if (this.accountModal) this.accountModal.classList.remove("open");
   }
 
+  switchAccountSubview(subview) {
+    const tabs = [
+      { id: "profile", btn: this.accTabProfile, view: this.subviewProfile },
+      { id: "login", btn: this.accTabLogin, view: this.subviewLogin },
+      { id: "register", btn: this.accTabRegister, view: this.subviewRegister }
+    ];
+    tabs.forEach(t => {
+      const isMatch = t.id === subview;
+      if (t.btn) t.btn.classList.toggle("active", isMatch);
+      if (t.view) t.view.classList.toggle("active", isMatch);
+    });
+    if (subview === "profile") {
+      this.updateAccountUI();
+      this.renderAccountsList();
+      this.renderAlgorithmUI();
+    } else if (subview === "login") {
+      if (this.loginUsernameInput) this.loginUsernameInput.focus();
+    } else if (subview === "register") {
+      if (this.registerUsernameInput) this.registerUsernameInput.focus();
+    }
+  }
+
   updateAccountUI() {
     if (!this.activeAccount) return;
     const nameStr = `#${this.activeAccount.id} ${this.activeAccount.name}`;
     const compactFeedStr = `#${this.activeAccount.id}`;
 
-    if (this.feedAccountAvatar) this.feedAccountAvatar.textContent = this.activeAccount.avatar;
+    if (this.feedAccountAvatar) this.feedAccountAvatar.textContent = this.activeAccount.avatar || "👤";
     if (this.feedAccountLabel) this.feedAccountLabel.textContent = compactFeedStr;
-    if (this.headerAccountAvatar) this.headerAccountAvatar.textContent = this.activeAccount.avatar;
+    if (this.headerAccountAvatar) this.headerAccountAvatar.textContent = this.activeAccount.avatar || "👤";
     if (this.headerAccountLabel) this.headerAccountLabel.textContent = nameStr;
 
-    if (this.currentAccountAvatar) this.currentAccountAvatar.textContent = this.activeAccount.avatar;
+    if (this.currentAccountAvatar) this.currentAccountAvatar.textContent = this.activeAccount.avatar || "👤";
     if (this.currentAccountName) this.currentAccountName.textContent = this.activeAccount.name;
     if (this.currentAccountIdBadge) this.currentAccountIdBadge.textContent = `ID #${this.activeAccount.id}`;
-    if (this.currentAccountHandle) this.currentAccountHandle.textContent = this.activeAccount.handle;
-    if (this.currentAccountStats) {
-      const count = (this.activeAccount.favorites || []).length;
-      this.currentAccountStats.textContent = `${count} saved bookmark${count === 1 ? '' : 's'}`;
-    }
+    if (this.currentAccountHandle) this.currentAccountHandle.textContent = this.activeAccount.handle || `@user${this.activeAccount.id}`;
 
-    if (this.newAccountIdHint) {
-      this.newAccountIdHint.textContent = `Next account will be assigned sequential unique ID #${this.getNextAccountId()}.`;
+    const likedCount = (this.activeAccount.likedPosts || []).length;
+    const savedCount = (this.activeAccount.savedPosts || []).length;
+
+    if (this.currentAccountLikedStat) {
+      this.currentAccountLikedStat.textContent = `❤️ ${likedCount} Liked`;
+    }
+    if (this.currentAccountSavedStat) {
+      this.currentAccountSavedStat.textContent = `🔖 ${savedCount} Saved`;
     }
   }
 
@@ -5934,22 +6605,25 @@ class OmniTagMobileApp {
 
     this.accounts.forEach(acc => {
       const isActive = acc.id === this.activeAccount.id;
-      const count = (acc.favorites || []).length;
+      const likedCount = (acc.likedPosts || []).length;
+      const savedCount = (acc.savedPosts || []).length;
 
       const card = document.createElement("div");
       card.className = `account-list-item ${isActive ? 'active' : ''}`;
 
       card.innerHTML = `
         <div class="account-list-item-left">
-          <div class="account-item-avatar">${acc.avatar || '\u{1F464}'}</div>
+          <div class="account-item-avatar">${acc.avatar || '👤'}</div>
           <div>
-            <div class="account-item-name">${acc.name} ${isActive ? '<span style="font-size: 11px; color: var(--m-accent); font-weight: 700;">(Active)</span>' : ''}</div>
+            <div class="account-item-name">${this.escapeHtml(acc.name)} ${isActive ? '<span style="font-size: 11px; color: var(--m-accent); font-weight: 700;">(Active)</span>' : ''}</div>
             <div class="account-item-meta">
               <span class="account-item-id">ID #${acc.id}</span>
               <span>&bull;</span>
-              <span>${acc.handle}</span>
+              <span>${this.escapeHtml(acc.handle || `@user${acc.id}`)}</span>
               <span>&bull;</span>
-              <span>${count} saved</span>
+              <span style="color: #f85149;">❤️ ${likedCount}</span>
+              <span>&bull;</span>
+              <span style="color: #388bfd;">🔖 ${savedCount}</span>
             </div>
           </div>
         </div>
@@ -5978,47 +6652,91 @@ class OmniTagMobileApp {
     });
   }
 
-  toggleNewAccountDrawer(force = null) {
-    if (!this.newAccountDrawer) return;
-    const shouldShow = force !== null ? force : this.newAccountDrawer.classList.contains("hidden");
-    this.newAccountDrawer.classList.toggle("hidden", !shouldShow);
-    if (shouldShow) {
-      if (this.newAccountNameInput) {
-        this.newAccountNameInput.value = `User #${this.getNextAccountId()}`;
-        this.newAccountNameInput.focus();
-      }
-      if (this.newAccountIdHint) {
-        this.newAccountIdHint.textContent = `This account will be assigned sequential unique ID #${this.getNextAccountId()}.`;
-      }
+  handleRegister(username, password = "", avatar = "👤") {
+    const u = (username || "").trim();
+    if (!u) {
+      this.showToast("Please enter a username or name!");
+      if (this.registerUsernameInput) this.registerUsernameInput.focus();
+      return;
     }
-  }
 
-  handleConfirmCreateAccount() {
-    const name = this.newAccountNameInput ? this.newAccountNameInput.value.trim() : "";
-    const avatar = this.selectedNewAvatar || "\u{1F464}";
-    this.createAccount(name, avatar);
-    this.toggleNewAccountDrawer(false);
-  }
+    const cleanUsername = u.toLowerCase().replace(/\s+/g, "_");
+    const existing = this.accounts.find(a => 
+      a.username === cleanUsername || a.name.toLowerCase() === u.toLowerCase()
+    );
 
-  createAccount(name, avatar = "\u{1F464}") {
-    // Generate next sequential unique ID strictly from 1 and up
+    if (existing) {
+      this.showToast(`An account named "${u}" already exists! Switch to Log In.`);
+      this.switchAccountSubview("login");
+      if (this.loginUsernameInput) {
+        this.loginUsernameInput.value = u;
+        if (this.loginPasswordInput) this.loginPasswordInput.focus();
+      }
+      return;
+    }
+
     const nextId = this.getNextAccountId();
-    const cleanName = (name || "").trim() || `User #${nextId}`;
-
     const newAccount = {
       id: nextId,
-      name: cleanName,
-      handle: `@user${nextId}`,
-      avatar: avatar || "\u{1F464}",
+      name: u,
+      username: cleanUsername,
+      password: (password || "").trim(),
+      handle: `@${cleanUsername}`,
+      avatar: avatar || "👤",
       color: "#388bfd",
       createdAt: Date.now(),
-      favorites: []
+      likedPosts: [],
+      savedPosts: [],
+      algorithm: { tagWeights: {}, watchHistory: [], interactionCount: 0 }
     };
 
     this.accounts.push(newAccount);
     this.saveAccounts();
     this.switchAccount(nextId);
-    this.showToast(`Created Account #${nextId} (${cleanName})!`);
+    this.switchAccountSubview("profile");
+    if (this.registerUsernameInput) this.registerUsernameInput.value = "";
+    if (this.registerPasswordInput) this.registerPasswordInput.value = "";
+    this.showToast(`Welcome, ${u}! Account created successfully.`);
+  }
+
+  handleLogin(username, password = "") {
+    const u = (username || "").trim();
+    if (!u) {
+      this.showToast("Please enter your username!");
+      if (this.loginUsernameInput) this.loginUsernameInput.focus();
+      return;
+    }
+
+    const cleanUsername = u.toLowerCase().replace(/\s+/g, "_");
+    const target = this.accounts.find(a => 
+      a.username === cleanUsername || 
+      a.name.toLowerCase() === u.toLowerCase() || 
+      String(a.id) === u
+    );
+
+    if (!target) {
+      this.showToast(`No account found with username "${u}". Tap Create Account to join!`);
+      return;
+    }
+
+    // Verify password if set on this account
+    if (target.password && target.password.trim() !== "") {
+      const enteredPass = (password || "").trim();
+      if (enteredPass !== target.password.trim()) {
+        this.showToast("Incorrect password for this account.");
+        if (this.loginPasswordInput) {
+          this.loginPasswordInput.value = "";
+          this.loginPasswordInput.focus();
+        }
+        return;
+      }
+    }
+
+    this.switchAccount(target.id);
+    this.switchAccountSubview("profile");
+    if (this.loginUsernameInput) this.loginUsernameInput.value = "";
+    if (this.loginPasswordInput) this.loginPasswordInput.value = "";
+    this.showToast(`Logged in as ${target.name}!`);
   }
 
   switchAccount(accountId) {
@@ -6027,17 +6745,22 @@ class OmniTagMobileApp {
 
     this.activeAccount = target;
     localStorage.setItem("omnitag_active_account_id", String(target.id));
-    this.favorites = target.favorites || [];
+    this.likes = target.likedPosts || [];
+    this.favorites = target.savedPosts || [];
+    this.saveLikes();
     this.saveFavorites();
 
     this.updateAccountUI();
     this.renderAccountsList();
+    this.renderAlgorithmUI();
 
-    if (this.activeTab === "saved") {
+    if (this.activeTab === "liked") {
+      this.renderLikedPosts(this.searchInput.value);
+    } else if (this.activeTab === "saved") {
       this.renderSavedPosts(this.searchInput.value);
     }
 
-    this.showToast(`Switched to Account #${target.id} (${target.name})`);
+    this.showToast(`Active account: ${target.name} (#${target.id})`);
   }
 
   deleteAccount(accountId) {
@@ -6048,7 +6771,7 @@ class OmniTagMobileApp {
     const target = this.accounts.find(a => a.id === accountId);
     if (!target) return;
 
-    if (confirm(`Delete Account #${target.id} (${target.name}) and all its saved bookmarks?`)) {
+    if (confirm(`Delete Account #${target.id} (${target.name}) and all its data?`)) {
       this.accounts = this.accounts.filter(a => a.id !== accountId);
       this.saveAccounts();
       if (this.activeAccount.id === accountId) {
