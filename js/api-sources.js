@@ -389,9 +389,26 @@ class ApiSourceManager {
 
     const fetchUrl = this.resolveUrl(url, source);
 
-    const resp = await fetch(fetchUrl, {
-      headers: { Accept: "application/json, text/plain, */*" }
-    });
+    let resp;
+    try {
+      resp = await fetch(fetchUrl, {
+        headers: { Accept: "application/json, text/plain, */*" }
+      });
+    } catch (netErr) {
+      // In web browsers/GitHub Pages, direct fetch can fail with CORS. Try public CORS proxy fallback
+      if (!fetchUrl.includes("corsproxy.io") && !fetchUrl.includes("allorigins.win")) {
+        try {
+          const fallbackUrl = `https://corsproxy.io/?url=${encodeURIComponent(url)}`;
+          resp = await fetch(fallbackUrl, {
+            headers: { Accept: "application/json, text/plain, */*" }
+          });
+        } catch (_) {
+          throw netErr;
+        }
+      } else {
+        throw netErr;
+      }
+    }
 
     if (!resp.ok) {
       throw new Error(`Failed to load posts (HTTP ${resp.status})`);
@@ -421,6 +438,13 @@ class ApiSourceManager {
     }
 
     return this.normalizePosts(json, source);
+  }
+
+  /**
+   * Search posts alias for fetchPosts
+   */
+  async searchPosts(tags = "", page = 0, limit = 24) {
+    return this.fetchPosts(tags, page, limit);
   }
 
   /**

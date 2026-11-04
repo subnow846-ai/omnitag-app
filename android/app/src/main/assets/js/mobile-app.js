@@ -29,6 +29,7 @@ class OmniTagMobileApp {
 
     this.initElements();
     this.initTheme();
+    this.initAccounts();
     this.initAutocomplete();
     this.updateSourceBadge();
     this.initInstallPrompt();
@@ -549,7 +550,14 @@ class OmniTagMobileApp {
     if (reset) {
       this.feedPage = 0;
       this.feedPosts = [];
-      if (this.feedContainer) this.feedContainer.innerHTML = "";
+      if (this.feedContainer) {
+        this.feedContainer.innerHTML = `
+          <div style="height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--m-text-sub); text-align: center;">
+            <div class="feed-spinner" style="width: 38px; height: 38px; border-width: 3px; margin-bottom: 14px;"></div>
+            <p style="font-size: 14px; font-weight: 600; color: var(--m-text);">Loading feed...</p>
+          </div>
+        `;
+      }
       this.feedHasMore = true;
     }
 
@@ -558,7 +566,7 @@ class OmniTagMobileApp {
     if (this.feedLoadingSpinner) this.feedLoadingSpinner.style.display = "block";
 
     try {
-      const posts = await this.sourceManager.searchPosts(this.feedQuery, this.feedPage, 12);
+      const posts = await this.sourceManager.fetchPosts(this.feedQuery, this.feedPage, 12);
       if (!posts || posts.length === 0) {
         this.feedHasMore = false;
         if (this.feedPosts.length === 0 && this.feedContainer) {
@@ -573,6 +581,9 @@ class OmniTagMobileApp {
           if (emptyBtn) emptyBtn.addEventListener("click", () => this.clearFeedTag());
         }
       } else {
+        if (reset && this.feedContainer) {
+          this.feedContainer.innerHTML = "";
+        }
         const startIndex = this.feedPosts.length;
         this.feedPosts.push(...posts);
         posts.forEach((post, i) => {
@@ -584,6 +595,19 @@ class OmniTagMobileApp {
     } catch (err) {
       console.error("Feed load error:", err);
       this.showToast("Feed error: " + err.message);
+      if (this.feedPosts.length === 0 && this.feedContainer) {
+        this.feedContainer.innerHTML = `
+          <div style="height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--m-text-sub); text-align: center; padding: 28px;">
+            <div style="font-size: 40px; margin-bottom: 12px;">📡</div>
+            <p style="font-size: 16px; font-weight: 700; color: var(--m-text); margin-bottom: 8px;">Could not load feed</p>
+            <p style="font-size: 13px; max-width: 280px; margin-bottom: 16px; color: var(--m-text-sub);">${err.message || "Failed to fetch posts. Check your connection or switch API source."}</p>
+            <button id="feed-error-retry-btn" class="feed-drawer-btn primary" style="padding: 10px 24px; font-size: 14px;">Try Again</button>
+            <button id="feed-error-src-btn" class="feed-drawer-btn" style="margin-top: 10px; padding: 8px 18px; font-size: 12px;">Switch API Source</button>
+          </div>
+        `;
+        document.getElementById("feed-error-retry-btn")?.addEventListener("click", () => this.loadFeedPosts(true));
+        document.getElementById("feed-error-src-btn")?.addEventListener("click", () => this.openSourcesSheet());
+      }
     } finally {
       this.feedLoading = false;
       if (this.feedLoadingSpinner) this.feedLoadingSpinner.style.display = "none";
@@ -829,7 +853,7 @@ class OmniTagMobileApp {
     this.grid.innerHTML = '<div class="feed-spinner" style="margin: 40px auto;"></div>';
 
     try {
-      const posts = await this.sourceManager.searchPosts(this.currentQuery, this.currentPage, 24);
+      const posts = await this.sourceManager.fetchPosts(this.currentQuery, this.currentPage, 24);
       this.posts = posts;
       this.applyFiltersAndRender();
       this.renderPagination();
@@ -933,14 +957,14 @@ class OmniTagMobileApp {
     if (this.currentPage > 0) {
       const prev = document.createElement("button");
       prev.className = "sheet-action-btn";
-      prev.innerHTML = &larr; Previous;
+      prev.innerHTML = "&larr; Previous";
       prev.addEventListener("click", () => this.executeSearch(this.currentQuery, this.currentPage - 1));
       this.paginationEl.appendChild(prev);
     }
 
     const next = document.createElement("button");
     next.className = "sheet-action-btn primary";
-    next.innerHTML = Next Page &rarr;;
+    next.innerHTML = "Next Page &rarr;";
     next.addEventListener("click", () => this.executeSearch(this.currentQuery, this.currentPage + 1));
     this.paginationEl.appendChild(next);
   }
@@ -1225,7 +1249,6 @@ class OmniTagMobileApp {
         }
       }
 
-      prev.innerHTML = &larr; Previous;
       if (deltaY > 80 && deltaX < 70) {
         if (this.viewerIndex > 0) {
           this.openViewer(this.viewerIndex - 1);
@@ -1388,7 +1411,7 @@ class OmniTagMobileApp {
         document.getElementById("m-src-id").value = src.id;
         document.getElementById("m-src-name").value = src.name;
         document.getElementById("m-src-type").value = src.type || "gelbooru_dapi";
-            <div style=font-size: 11px; color: var(--m-text-sub);> &bull; </div>
+        document.getElementById("m-src-base").value = src.baseUrl || "";
         document.getElementById("m-src-apikey").value = src.apiKey || "";
         document.getElementById("m-src-userid").value = src.userId || "";
         document.getElementById("m-src-proxy").value = src.proxyMode || "auto";
@@ -1592,11 +1615,6 @@ class OmniTagMobileApp {
       this.toastEl.classList.remove("show");
     }, 2400);
   }
-}
-
-// Initialize on DOM Ready
-document.addEventListener("DOMContentLoaded", () => {
-  window.omniTagMobile = new OmniTagMobileApp();
 
   // ==========================================
   // MULTI-ACCOUNT PROFILE SYSTEM (Unique IDs 1, 2, 3...)
@@ -1620,7 +1638,7 @@ document.addEventListener("DOMContentLoaded", () => {
         id: 1, // Unique ID 1
         name: "OmniUser",
         handle: "@user1",
-        avatar: "đź‘¤",
+        avatar: "\u{1F464}",
         color: "#388bfd",
         createdAt: Date.now(),
         favorites: legacyFavorites
@@ -1700,7 +1718,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       card.innerHTML = `
         <div class="account-list-item-left">
-          <div class="account-item-avatar">${acc.avatar || 'đź‘¤'}</div>
+          <div class="account-item-avatar">${acc.avatar || '\u{1F464}'}</div>
           <div>
             <div class="account-item-name">${acc.name} ${isActive ? '<span style="font-size: 11px; color: var(--m-accent); font-weight: 700;">(Active)</span>' : ''}</div>
             <div class="account-item-meta">
@@ -1754,12 +1772,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
   handleConfirmCreateAccount() {
     const name = this.newAccountNameInput ? this.newAccountNameInput.value.trim() : "";
-    const avatar = this.selectedNewAvatar || "đź‘¤";
+    const avatar = this.selectedNewAvatar || "\u{1F464}";
     this.createAccount(name, avatar);
     this.toggleNewAccountDrawer(false);
   }
 
-  createAccount(name, avatar = "đź‘¤") {
+  createAccount(name, avatar = "\u{1F464}") {
     // Generate next sequential unique ID strictly from 1 and up
     const nextId = this.getNextAccountId();
     const cleanName = (name || "").trim() || `User #${nextId}`;
@@ -1768,7 +1786,7 @@ document.addEventListener("DOMContentLoaded", () => {
       id: nextId,
       name: cleanName,
       handle: `@user${nextId}`,
-      avatar: avatar || "đź‘¤",
+      avatar: avatar || "\u{1F464}",
       color: "#388bfd",
       createdAt: Date.now(),
       favorites: []
@@ -1832,4 +1850,12 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 }
-);
+
+// Initialize robustly on DOM Ready or immediately if DOM is already ready
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", () => {
+    window.omniTagMobile = new OmniTagMobileApp();
+  });
+} else {
+  window.omniTagMobile = new OmniTagMobileApp();
+}
