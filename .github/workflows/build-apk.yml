@@ -60,12 +60,15 @@ jobs:
         run: |
           mkdir -p output
           cp android/app/build/outputs/apk/release/app-release.apk output/OmniTag.apk
+          cd output && zip -9 OmniTag-apk.zip OmniTag.apk && cd ..
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
           name: OmniTag-Production-APK
-          path: output/OmniTag.apk
+          path: |
+            output/OmniTag.apk
+            output/OmniTag-apk.zip
           if-no-files-found: error
 
       - name: Publish GitHub Release
@@ -77,14 +80,15 @@ jobs:
 
           Official production release signed with standard RSA certificate and verified security profile (non-debuggable, clean permissions).
 
-          ### ⬇️ Direct Download Link:
-          - **[OmniTag.apk](https://github.com/subnow846-ai/omnitag-app/releases/download/v1.0.0/OmniTag.apk)**
+          ### ⬇️ Direct Download Links:
+          - **[OmniTag.apk](https://github.com/subnow846-ai/omnitag-app/releases/download/v1.0.0/OmniTag.apk)** (Direct APK)
+          - **[OmniTag-apk.zip](https://github.com/subnow846-ai/omnitag-app/releases/download/v1.0.0/OmniTag-apk.zip)** (ZIP archive if direct APK download gets blocked by browser)
 
           ### 🛡️ Antivirus & Security Enhancements:
           - **Production Release Signature:** Signed with official RSA-2048 keystore (v1 + v2 schemes).
           - **Non-Debuggable:** `debuggable="false"` ensures Samsung Knox and Google Play Protect do not flag the app as a developer test build.
           - **Clean Minimal Permissions:** Removed legacy storage access; strictly uses `INTERNET` and `ACCESS_NETWORK_STATE`.
-          - **Strict Network Security:** Outgoing connections enforce HTTPS via Android Network Security Config.
+          - **Native Bridge:** Zero-CORS direct network queries and Android DownloadManager integration.
 
           ### 📲 Installation Instructions:
           1. Tap **[OmniTag.apk](https://github.com/subnow846-ai/omnitag-app/releases/download/v1.0.0/OmniTag.apk)** on your Android phone to download.
@@ -93,7 +97,17 @@ jobs:
           4. Open OmniTag!
           EOF
 
-          gh release upload v1.0.0 output/OmniTag.apk --clobber || \
-          gh release create v1.0.0 output/OmniTag.apk \
-            --title "OmniTag Mobile v1.0.1 (Production Release APK)" \
+          gh release upload v1.0.0 output/OmniTag.apk output/OmniTag-apk.zip --clobber || \
+          gh release create v1.0.0 output/OmniTag.apk output/OmniTag-apk.zip \
+            --title "OmniTag Mobile v1.2.2 (Production Release APK)" \
             --notes-file release-notes.md
+
+      - name: Commit updated APK binaries to repository
+        run: |
+          cp output/OmniTag.apk OmniTag.apk
+          cp output/OmniTag-apk.zip OmniTag-apk.zip
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add OmniTag.apk OmniTag-apk.zip
+          git commit -m "Auto-update release binaries OmniTag.apk and OmniTag-apk.zip [skip ci]" || echo "No changes to commit"
+          git push origin main || echo "Git push skipped"

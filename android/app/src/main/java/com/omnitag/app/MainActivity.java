@@ -8,25 +8,36 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.util.Log;
+import android.view.View;
 import android.webkit.ConsoleMessage;
 import android.webkit.CookieManager;
 import android.webkit.DownloadListener;
+import android.webkit.JavascriptInterface;
 import android.webkit.URLUtil;
 import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
+import android.webkit.WebResourceError;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Toast;
-import android.view.View;
+
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
 
 public class MainActivity extends Activity {
+    private static final String TAG = "OmniTagApp";
     private WebView webView;
     private ValueCallback<Uri[]> filePathCallback;
     private final static int FILECHOOSER_RESULTCODE = 101;
 
-    @SuppressLint("SetJavaScriptEnabled")
+    @SuppressLint({"SetJavaScriptEnabled", "AddJavascriptInterface"})
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -46,14 +57,17 @@ public class MainActivity extends Activity {
         settings.setAllowFileAccessFromFileURLs(true);
         settings.setAllowUniversalAccessFromFileURLs(true);
         settings.setMediaPlaybackRequiresUserGesture(false);
-        // Ensure every APK update instantly loads new assets without stale cache
+        // Prevent stale cache issues
         settings.setCacheMode(WebSettings.LOAD_NO_CACHE);
         webView.clearCache(true);
         settings.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
-        settings.setUserAgentString(settings.getUserAgentString() + " OmniTagApp/1.0");
+        settings.setUserAgentString(settings.getUserAgentString() + " OmniTagApp/1.2");
 
         CookieManager.getInstance().setAcceptCookie(true);
         CookieManager.getInstance().setAcceptThirdPartyCookies(webView, true);
+
+        // Native Android Bridge for zero-CORS booru queries & native download management
+        webView.addJavascriptInterface(new AndroidBridge(), "AndroidBridge");
 
         webView.setWebViewClient(new WebViewClient() {
             @Override
@@ -71,11 +85,18 @@ public class MainActivity extends Activity {
                     return true;
                 }
             }
+
+            @Override
+            public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
+                Log.e(TAG, "WebView error: " + error.getDescription() + " for " + request.getUrl());
+                super.onReceivedError(view, request, error);
+            }
         });
 
         webView.setWebChromeClient(new WebChromeClient() {
             @Override
             public boolean onConsoleMessage(ConsoleMessage consoleMessage) {
+                Log.d(TAG, "[JS] " + consoleMessage.message() + " (" + consoleMessage.sourceId() + ":" + consoleMessage.lineNumber() + ")");
                 return super.onConsoleMessage(consoleMessage);
             }
 
@@ -101,34 +122,85 @@ public class MainActivity extends Activity {
         webView.setDownloadListener(new DownloadListener() {
             @Override
             public void onDownloadStart(String url, String userAgent, String contentDisposition, String mimeType, long contentLength) {
-                try {
-                    DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url));
-                    request.setMimeType(mimeType);
-                    request.addRequestHeader("User-Agent", userAgent);
-                    request.setDescription("Downloading file...");
-                    request.setTitle(URLUtil.guessFileName(url, contentDisposition, mimeType));
-                    request.allowScanningByMediaScanner();
-                    request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
-                    request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, URLUtil.guessFileName(url, contentDisposition, mimeType));
-
-                    DownloadManager dm = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
-                    if (dm != null) {
-                        dm.enqueue(request);
-                        Toast.makeText(MainActivity.this, "Downloading file...", Toast.LENGTH_SHORT).show();
-                    }
-                } catch (Exception e) {
-                    try {
-                        Intent i = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
-                        startActivity(i);
-                    } catch (Exception ex) {
-                        Toast.makeText(MainActivity.this, "Download error: " + ex.getMessage(), Toast.LENGTH_LONG).show();
-                    }
-                }
+                triggerDownload(url, URLUtil.guessFileName(url, contentDisposition, mimeType));
             }
         });
 
-        // Load bundled offline mobile app assets with version parameter to prevent file caching
-        webView.loadUrl("file:///android_asset/mobile.html?v=120");
+        // Load bundled offline mobile app assets strictly without query params (fixes ERR_FILE_NOT_FOUND)
+        webView.loadUrl("file:///android_asset/mobile.html");
+    }
+
+    private void triggerDownload(String url, String filename) {
+        try {
+            DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url));
+            request.setDescription("Downloading file...");
+            request.setTitle(filename);
+            request.allowScanningByMediaScanner();
+            request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+            request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, filename);
+
+            DownloadManager dm = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
+            if (dm != null) {
+                dm.enqueue(request);
+                Toast.makeText(MainActivity.this, "Downloading " + filename + "...", Toast.LENGTH_SHORT).show();
+            }
+        } catch (Exception e) {
+            try {
+                Intent i = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+                startActivity(i);
+            } catch (Exception ex) {
+                Toast.makeText(MainActivity.this, "Download error: " + ex.getMessage(), Toast.LENGTH_LONG).show();
+            }
+        }
+    }
+
+    public class AndroidBridge {
+        @JavascriptInterface
+        public String fetchUrl(String urlString) {
+            HttpURLConnection conn = null;
+            try {
+                URL url = new URL(urlString);
+                conn = (HttpURLConnection) url.openConnection();
+                conn.setRequestMethod("GET");
+                conn.setRequestProperty("User-Agent", "OmniTagApp/1.2 (Android)");
+                conn.setRequestProperty("Accept", "application/json, text/plain, */*");
+                conn.setConnectTimeout(15000);
+                conn.setReadTimeout(15000);
+
+                int code = conn.getResponseCode();
+                InputStream in = (code >= 200 && code < 300) ? conn.getInputStream() : conn.getErrorStream();
+                if (in == null) return "{\"error\": \"Empty response (code " + code + ")\"}";
+
+                BufferedReader reader = new BufferedReader(new InputStreamReader(in, StandardCharsets.UTF_8));
+                StringBuilder sb = new StringBuilder();
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    sb.append(line).append("\n");
+                }
+                reader.close();
+                return sb.toString();
+            } catch (Exception e) {
+                Log.e(TAG, "Bridge fetch error for " + urlString, e);
+                return "{\"error\": \"" + e.getMessage() + "\"}";
+            } finally {
+                if (conn != null) conn.disconnect();
+            }
+        }
+
+        @JavascriptInterface
+        public void downloadFile(String url, String filename) {
+            runOnUiThread(() -> triggerDownload(url, filename));
+        }
+
+        @JavascriptInterface
+        public void showToast(String msg) {
+            runOnUiThread(() -> Toast.makeText(MainActivity.this, msg, Toast.LENGTH_SHORT).show());
+        }
+
+        @JavascriptInterface
+        public boolean isNative() {
+            return true;
+        }
     }
 
     @Override

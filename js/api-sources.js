@@ -277,6 +277,19 @@ class ApiSourceManager {
       url = `${source.baseUrl}/autocomplete.php?q=${encodeURIComponent(cleanQuery)}`;
     }
 
+    // If running in native Android APK with AndroidBridge, use native connection
+    if (window.AndroidBridge && typeof window.AndroidBridge.fetchUrl === "function") {
+      try {
+        const text = window.AndroidBridge.fetchUrl(url);
+        if (text && !text.includes('{"error":')) {
+          const data = JSON.parse(text);
+          return this.normalizeTags(data, source, cleanQuery);
+        }
+      } catch (bridgeErr) {
+        console.warn("AndroidBridge fetchTags fallback:", bridgeErr);
+      }
+    }
+
     const fetchUrl = this.resolveUrl(url, source);
 
     try {
@@ -385,7 +398,33 @@ class ApiSourceManager {
       .replace("{page}", pageParam.toString())
       .replace("{tags}", encodeURIComponent(finalTags));
 
-    url = this.applyAuth(url, source);
+    // If running in native Android APK with AndroidBridge, use native connection (bypasses browser CORS completely)
+    if (window.AndroidBridge && typeof window.AndroidBridge.fetchUrl === "function") {
+      try {
+        const text = window.AndroidBridge.fetchUrl(url);
+        if (text) {
+          const trimmed = text.trim();
+          if (trimmed.startsWith('{"error":') && !trimmed.includes('"id":')) {
+            const errObj = JSON.parse(trimmed);
+            throw new Error(errObj.error);
+          }
+          if (!trimmed) return [];
+          let json;
+          try {
+            json = JSON.parse(text);
+          } catch (_) {
+            if (text.includes("<?xml") || text.includes("<posts")) {
+              json = this.parseXmlPosts(text);
+            } else {
+              throw new Error("Unable to parse server response as JSON or XML");
+            }
+          }
+          return this.normalizePosts(json, source);
+        }
+      } catch (bridgeErr) {
+        console.warn("AndroidBridge fetch error, falling back to browser fetch:", bridgeErr);
+      }
+    }
 
     const fetchUrl = this.resolveUrl(url, source);
 

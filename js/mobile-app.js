@@ -1330,6 +1330,10 @@ class OmniTagMobileApp {
 
   downloadMedia(url, filename) {
     if (!url) return;
+    if (window.AndroidBridge && typeof window.AndroidBridge.downloadFile === "function") {
+      window.AndroidBridge.downloadFile(url, filename || "omnitag_media.jpg");
+      return;
+    }
     this.showToast("Starting download...");
     try {
       const a = document.createElement("a");
