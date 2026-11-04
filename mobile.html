@@ -182,13 +182,102 @@
       <div class="sheet-overlay"></div>
       <div class="sheet-panel">
         <div class="sheet-header">
-          <h4>Switch API Source</h4>
+          <h4>Manage API Sources</h4>
           <button id="close-sources-sheet-btn" class="sheet-close-btn">&times;</button>
         </div>
         <div id="mobile-sources-list" class="sheet-sources-list"></div>
-        <div class="sheet-footer">
+        <div class="sheet-footer" style="display: flex; flex-direction: column; gap: 8px;">
           <button id="mobile-add-source-btn" class="sheet-action-btn primary" style="width: 100%;">+ Add Custom API Source</button>
+          <div style="display: flex; gap: 8px;">
+            <button id="m-export-btn" class="sheet-action-btn" type="button" style="flex: 1;">Export JSON</button>
+            <label class="sheet-action-btn" style="flex: 1; text-align: center; cursor: pointer; margin: 0;">
+              Import JSON
+              <input type="file" id="m-import-file" accept=".json" style="display: none;">
+            </label>
+            <button id="m-reset-btn" class="sheet-action-btn" type="button" style="flex: 1;">Reset</button>
+          </div>
         </div>
+      </div>
+    </div>
+
+    <!-- ==========================================
+         Mobile Add / Edit Source Sheet
+         ========================================== -->
+    <div id="mobile-edit-source-sheet" class="bottom-sheet-modal">
+      <div class="sheet-overlay"></div>
+      <div class="sheet-panel" style="max-height: 90vh;">
+        <div class="sheet-header">
+          <h4 id="m-edit-sheet-title">Edit API Source</h4>
+          <button id="close-edit-source-btn" class="sheet-close-btn">&times;</button>
+        </div>
+        
+        <form id="mobile-source-form" style="overflow-y: auto; padding-right: 4px; flex: 1;">
+          <input type="hidden" id="m-src-id">
+
+          <div class="m-form-group">
+            <label class="m-form-label">Source Name</label>
+            <input type="text" id="m-src-name" class="m-form-input" placeholder="e.g. My Custom API" required>
+          </div>
+
+          <div class="m-form-group">
+            <label class="m-form-label">API Protocol / Type</label>
+            <select id="m-src-type" class="m-form-select">
+              <option value="gelbooru_dapi">Gelbooru / Safebooru DAPI (XML / JSON)</option>
+              <option value="danbooru_v2">Danbooru 2.x API (JSON)</option>
+              <option value="moebooru">Moebooru API (Yande.re, Konachan)</option>
+            </select>
+          </div>
+
+          <div class="m-form-group">
+            <label class="m-form-label">Base URL</label>
+            <input type="url" id="m-src-base" class="m-form-input" placeholder="https://example.com" required>
+          </div>
+
+          <div class="m-form-group">
+            <label class="m-form-label">API Key (Optional)</label>
+            <input type="text" id="m-src-apikey" class="m-form-input" placeholder="Paste your API key here" autocomplete="off" spellcheck="false">
+          </div>
+
+          <div class="m-form-group">
+            <label class="m-form-label">User ID (Optional)</label>
+            <input type="text" id="m-src-userid" class="m-form-input" placeholder="Numeric user ID" autocomplete="off" spellcheck="false">
+            <div class="m-form-hint">Stored securely on this device's browser local storage.</div>
+          </div>
+
+          <div class="m-form-group">
+            <label class="m-form-label">Proxy Mode</label>
+            <select id="m-src-proxy" class="m-form-select">
+              <option value="auto">Auto (Built-in / Local server proxy)</option>
+              <option value="direct">Direct (No Proxy)</option>
+              <option value="corsproxy">Public CORS Proxy</option>
+              <option value="allorigins">AllOrigins Proxy</option>
+              <option value="custom">Custom Proxy</option>
+            </select>
+          </div>
+
+          <div class="m-form-group" id="m-src-custom-proxy-group" style="display: none;">
+            <label class="m-form-label">Custom Proxy URL</label>
+            <input type="text" id="m-src-custom-proxy" class="m-form-input" placeholder="https://myproxy.com/?url={url}">
+          </div>
+
+          <div class="m-form-group">
+            <label class="m-form-label">Custom Posts URL Template (Optional)</label>
+            <input type="text" id="m-src-posts" class="m-form-input" placeholder="Leave empty for default">
+            <div class="m-form-hint">Variables: {tags}, {page}, {limit}, {api_key}, {user_id}</div>
+          </div>
+
+          <div class="m-form-group">
+            <label class="m-form-label">Custom Tag Autocomplete URL (Optional)</label>
+            <input type="text" id="m-src-tags" class="m-form-input" placeholder="Leave empty for default">
+            <div class="m-form-hint">Variable: {query}</div>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 16px; margin-bottom: 8px;">
+            <button type="submit" class="sheet-action-btn primary" style="padding: 12px; font-size: 14px;">Save Source</button>
+            <button type="button" id="m-src-cancel-btn" class="sheet-action-btn" style="padding: 10px;">Cancel</button>
+            <button type="button" id="m-src-delete-btn" class="sheet-action-btn" style="padding: 10px; color: var(--m-danger); border-color: rgba(248, 81, 73, 0.4); display: none;">Delete Source</button>
+          </div>
+        </form>
       </div>
     </div>
 

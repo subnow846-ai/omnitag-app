@@ -47,6 +47,19 @@ class OmniTagMobileApp {
     this.closeSourcesBtn = document.getElementById("close-sources-sheet-btn");
     this.addSourceBtn = document.getElementById("mobile-add-source-btn");
 
+    // Source Manager & Edit Sheet
+    this.editSourceSheet = document.getElementById("mobile-edit-source-sheet");
+    this.closeEditSourceBtn = document.getElementById("close-edit-source-btn");
+    this.sourceForm = document.getElementById("mobile-source-form");
+    this.cancelEditBtn = document.getElementById("m-src-cancel-btn");
+    this.deleteSourceBtn = document.getElementById("m-src-delete-btn");
+    this.srcTypeSelect = document.getElementById("m-src-type");
+    this.srcProxySelect = document.getElementById("m-src-proxy");
+    this.srcCustomProxyGroup = document.getElementById("m-src-custom-proxy-group");
+    this.exportBtn = document.getElementById("m-export-btn");
+    this.importFile = document.getElementById("m-import-file");
+    this.resetSourcesBtn = document.getElementById("m-reset-btn");
+
     // Viewer
     this.viewerModal = document.getElementById("mobile-viewer-modal");
     this.viewerStage = document.getElementById("viewer-media-stage");
@@ -239,25 +252,42 @@ class OmniTagMobileApp {
     this.sourceChip.addEventListener("click", () => this.openSourcesSheet());
     this.closeSourcesBtn.addEventListener("click", () => this.closeSourcesSheet());
     this.sourcesSheet.querySelector(".sheet-overlay").addEventListener("click", () => this.closeSourcesSheet());
-    this.addSourceBtn.addEventListener("click", () => {
-      const name = prompt("Enter Custom API Source Name:");
-      if (!name) return;
-      const url = prompt("Enter Base URL (e.g. https://example.com):");
-      if (!url) return;
-      
-      const newSource = {
-        name,
-        baseUrl: url.replace(/\/$/, ""),
-        type: "gelbooru_dapi",
-        proxyMode: "auto"
-      };
-      this.sourceManager.saveSource(newSource);
-      this.sourceManager.setActiveSource(newSource.id);
-      this.updateSourceBadge();
-      this.closeSourcesSheet();
-      this.showToast(`Switched to ${name}`);
-      this.executeSearch(this.currentQuery, 0);
-    });
+
+    // Add source button opens comprehensive Add/Edit modal
+    this.addSourceBtn.addEventListener("click", () => this.openEditSourceSheet());
+
+    // Source Edit Sheet Events
+    if (this.closeEditSourceBtn) {
+      this.closeEditSourceBtn.addEventListener("click", () => this.closeEditSourceSheet());
+    }
+    if (this.editSourceSheet) {
+      this.editSourceSheet.querySelector(".sheet-overlay").addEventListener("click", () => this.closeEditSourceSheet());
+    }
+    if (this.cancelEditBtn) {
+      this.cancelEditBtn.addEventListener("click", () => this.closeEditSourceSheet());
+    }
+    if (this.srcProxySelect) {
+      this.srcProxySelect.addEventListener("change", (e) => {
+        if (this.srcCustomProxyGroup) {
+          this.srcCustomProxyGroup.style.display = e.target.value === "custom" ? "block" : "none";
+        }
+      });
+    }
+    if (this.sourceForm) {
+      this.sourceForm.addEventListener("submit", (e) => this.handleSaveSource(e));
+    }
+    if (this.deleteSourceBtn) {
+      this.deleteSourceBtn.addEventListener("click", () => this.handleDeleteSource());
+    }
+    if (this.exportBtn) {
+      this.exportBtn.addEventListener("click", () => this.exportSources());
+    }
+    if (this.importFile) {
+      this.importFile.addEventListener("change", (e) => this.importSources(e));
+    }
+    if (this.resetSourcesBtn) {
+      this.resetSourcesBtn.addEventListener("click", () => this.resetSources());
+    }
 
     // Viewer Controls
     this.viewerCloseBtn.addEventListener("click", () => this.closeViewer());
@@ -519,7 +549,7 @@ class OmniTagMobileApp {
   }
 
   // ==========================================
-  // SOURCES BOTTOM SHEET
+  // SOURCES BOTTOM SHEET & SOURCE MANAGER
   // ==========================================
 
   openSourcesSheet() {
@@ -530,13 +560,34 @@ class OmniTagMobileApp {
     sources.forEach(src => {
       const row = document.createElement("div");
       row.className = `sheet-source-card ${src.id === activeId ? "active" : ""}`;
+
+      const hasKey = !!(src.apiKey && src.apiKey.trim());
+      const keyBadge = hasKey ? `<span class="sheet-source-key-badge">&#128273; Key Set</span>` : "";
+      const presetBadge = `<span class="sheet-source-badge">${src.isPreset ? "Preset" : "Custom"}</span>`;
+
       row.innerHTML = `
-        <div>
-          <div style="font-weight: 600; font-size: 14px;">${this.escapeHtml(src.name)}</div>
-          <div style="font-size: 11px; color: var(--m-text-sub);">${this.escapeHtml(src.baseUrl)}</div>
+        <div class="sheet-source-info">
+          <div class="sheet-source-name-row">
+            <div class="sheet-source-title">${this.escapeHtml(src.name)}</div>
+            ${presetBadge}
+            ${keyBadge}
+          </div>
+          <div class="sheet-source-url">${this.escapeHtml(src.baseUrl)}</div>
         </div>
-        <span style="font-size: 11px; font-weight: 700; color: var(--m-accent);">${src.id === activeId ? "ACTIVE" : "SWITCH"}</span>
+        <div class="sheet-source-actions">
+          <button class="sheet-source-edit-btn" type="button" title="Edit source and credentials">Edit</button>
+          ${src.id === activeId ? '<span class="sheet-source-active-pill">ACTIVE</span>' : '<span style="font-size: 11px; font-weight: 600; color: var(--m-text-sub);">SWITCH</span>'}
+        </div>
       `;
+
+      // Edit button handler
+      const editBtn = row.querySelector(".sheet-source-edit-btn");
+      editBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        this.openEditSourceSheet(src);
+      });
+
+      // Switch active source handler
       row.addEventListener("click", () => {
         this.sourceManager.setActiveSource(src.id);
         this.updateSourceBadge();
@@ -544,6 +595,7 @@ class OmniTagMobileApp {
         this.showToast(`Switched API to ${src.name}`);
         this.executeSearch(this.currentQuery, 0);
       });
+
       this.sourcesList.appendChild(row);
     });
 
@@ -552,6 +604,154 @@ class OmniTagMobileApp {
 
   closeSourcesSheet() {
     this.sourcesSheet.style.display = "none";
+  }
+
+  openEditSourceSheet(source = null) {
+    const isEdit = !!source;
+    document.getElementById("m-edit-sheet-title").textContent = isEdit ? `Edit ${source.name}` : "Add Custom API";
+    document.getElementById("m-src-id").value = source ? source.id : "";
+    document.getElementById("m-src-name").value = source ? source.name : "";
+    document.getElementById("m-src-type").value = source ? source.type : "gelbooru_dapi";
+    document.getElementById("m-src-base").value = source ? source.baseUrl : "https://";
+    document.getElementById("m-src-apikey").value = source ? (source.apiKey || "") : "";
+    document.getElementById("m-src-userid").value = source ? (source.userId || "") : "";
+    document.getElementById("m-src-proxy").value = source ? (source.proxyMode || "auto") : "auto";
+    document.getElementById("m-src-custom-proxy").value = source ? (source.customProxyUrl || "") : "";
+    document.getElementById("m-src-posts").value = source ? (source.postsUrl || "") : "";
+    document.getElementById("m-src-tags").value = source ? (source.tagsUrl || "") : "";
+
+    if (this.srcCustomProxyGroup) {
+      this.srcCustomProxyGroup.style.display = (source?.proxyMode === "custom") ? "block" : "none";
+    }
+
+    if (this.deleteSourceBtn) {
+      // Custom sources can be deleted, presets cannot
+      this.deleteSourceBtn.style.display = (source && !source.isPreset) ? "block" : "none";
+    }
+
+    this.sourcesSheet.style.display = "none";
+    this.editSourceSheet.style.display = "flex";
+  }
+
+  closeEditSourceSheet() {
+    this.editSourceSheet.style.display = "none";
+  }
+
+  handleSaveSource(e) {
+    e.preventDefault();
+    const id = document.getElementById("m-src-id").value;
+    const name = document.getElementById("m-src-name").value.trim();
+    const type = document.getElementById("m-src-type").value;
+    const baseUrl = document.getElementById("m-src-base").value.trim().replace(/\/$/, "");
+    let postsUrl = document.getElementById("m-src-posts").value.trim();
+    let tagsUrl = document.getElementById("m-src-tags").value.trim();
+    const proxyMode = document.getElementById("m-src-proxy").value;
+    const customProxyUrl = document.getElementById("m-src-custom-proxy").value.trim();
+    const apiKey = document.getElementById("m-src-apikey").value.trim();
+    const userId = document.getElementById("m-src-userid").value.trim();
+    const existing = id ? this.sourceManager.getSource(id) : null;
+
+    if (!name || !baseUrl) {
+      this.showToast("Name and Base URL are required.");
+      return;
+    }
+
+    // Auto-fill standard endpoints if left blank
+    if (!postsUrl) {
+      if (type === "gelbooru_dapi") {
+        postsUrl = `${baseUrl}/index.php?page=dapi&s=post&q=index&json=1&limit={limit}&pid={page}&tags={tags}`;
+      } else if (type === "danbooru_v2") {
+        postsUrl = `${baseUrl}/posts.json?limit={limit}&page={page}&tags={tags}`;
+      } else if (type === "moebooru") {
+        postsUrl = `${baseUrl}/post.json?limit={limit}&page={page}&tags={tags}`;
+      }
+    }
+
+    if (!tagsUrl) {
+      if (type === "gelbooru_dapi") {
+        tagsUrl = `${baseUrl}/autocomplete.php?q={query}`;
+      } else if (type === "danbooru_v2") {
+        tagsUrl = `${baseUrl}/autocomplete.json?search[query]={query}&search[type]=tag_query&version=1&limit=12`;
+      } else if (type === "moebooru") {
+        tagsUrl = `${baseUrl}/tag.json?name={query}&order=count&limit=12`;
+      }
+    }
+
+    const sourceData = {
+      id: id || ("custom_" + Date.now().toString(36)),
+      name,
+      type,
+      baseUrl,
+      postsUrl,
+      tagsUrl,
+      proxyMode,
+      customProxyUrl,
+      apiKey,
+      userId,
+      isPreset: existing ? existing.isPreset : false,
+      description: existing ? existing.description : "Custom API Source"
+    };
+
+    this.sourceManager.saveSource(sourceData);
+    this.sourceManager.setActiveSource(sourceData.id);
+    this.updateSourceBadge();
+    this.closeEditSourceSheet();
+    this.showToast(`Saved ${name}!`);
+    this.executeSearch(this.currentQuery, 0);
+  }
+
+  handleDeleteSource() {
+    const id = document.getElementById("m-src-id").value;
+    const source = this.sourceManager.getSource(id);
+    if (!source || source.isPreset) return;
+
+    if (confirm(`Delete custom source "${source.name}"?`)) {
+      this.sourceManager.deleteSource(id);
+      this.updateSourceBadge();
+      this.closeEditSourceSheet();
+      this.showToast(`Deleted ${source.name}`);
+      this.executeSearch(this.currentQuery, 0);
+    }
+  }
+
+  exportSources() {
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(this.sourceManager.exportSources());
+    const dl = document.createElement("a");
+    dl.setAttribute("href", dataStr);
+    dl.setAttribute("download", `omnitag_sources_backup_${Date.now()}.json`);
+    document.body.appendChild(dl);
+    dl.click();
+    dl.remove();
+    this.showToast("Sources exported to JSON");
+  }
+
+  importSources(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        this.sourceManager.importSources(event.target.result);
+        this.openSourcesSheet();
+        this.updateSourceBadge();
+        this.showToast("Sources imported successfully!");
+        this.executeSearch(this.currentQuery, 0);
+      } catch (err) {
+        this.showToast("Import failed: " + err.message);
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = "";
+  }
+
+  resetSources() {
+    if (confirm("Reset all sources to default? Any custom endpoints will be cleared.")) {
+      this.sourceManager.resetToDefaults();
+      this.openSourcesSheet();
+      this.updateSourceBadge();
+      this.showToast("Reset sources to default");
+      this.executeSearch(this.currentQuery, 0);
+    }
   }
 
   // ==========================================

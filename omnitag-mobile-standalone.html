@@ -1,17 +1,20 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en" data-theme="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <meta name="theme-color" content="#0d1117">
+  <meta name="theme-color" content="#121820">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>OmniTag Mobile</title>
   
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='25' fill='%23388bfd'/><text x='50%' y='55%' dominant-baseline='middle' text-anchor='middle' fill='white' font-size='56' font-weight='bold'>O</text></svg>">
-
+  <link rel="manifest" href="manifest.json">
   <style>
-/* --- INLINED MOBILE CSS --- */
+/* ==========================================================================
+   OmniTag Mobile - Native App UI Stylesheet
+   Designed for smartphone viewport, touch gestures, and bottom navigation
+   ========================================================================== */
+
 :root {
   --m-bg: #0d1117;
   --m-surface: #161b22;
@@ -63,6 +66,7 @@ body {
   user-select: none;
 }
 
+/* App Container */
 .mobile-app-container {
   display: flex;
   flex-direction: column;
@@ -70,13 +74,45 @@ body {
   height: 100dvh;
   position: relative;
   background-color: var(--m-bg);
-  max-width: 480px;
+  max-width: 480px; /* Constrains beautifully on PC when previewing */
   margin: 0 auto;
   box-shadow: 0 0 40px rgba(0, 0, 0, 0.5);
   border-left: 1px solid var(--m-border);
   border-right: 1px solid var(--m-border);
 }
 
+.install-banner {
+  background: linear-gradient(90deg, #1f6feb, #8a63d2);
+  color: #fff;
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 13px;
+  font-weight: 600;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+  z-index: 25;
+}
+
+.install-banner-btn {
+  background: #ffffff;
+  color: #0f172a;
+  border: none;
+  padding: 6px 14px;
+  border-radius: 16px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  transition: transform 0.15s ease;
+}
+
+.install-banner-btn:active {
+  transform: scale(0.95);
+}
+
+/* Header */
 .mobile-header {
   height: var(--header-height);
   padding: 0 16px;
@@ -154,29 +190,7 @@ body {
   cursor: pointer;
 }
 
-.install-banner {
-  background: linear-gradient(90deg, #1f6feb, #8a63d2);
-  color: #fff;
-  padding: 8px 14px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  font-size: 12px;
-  font-weight: 500;
-  flex-shrink: 0;
-}
-
-.install-banner-btn {
-  background: #fff;
-  color: #0f172a;
-  border: none;
-  padding: 4px 10px;
-  border-radius: 12px;
-  font-size: 11px;
-  font-weight: 700;
-  cursor: pointer;
-}
-
+/* Sticky Search & Filter Section */
 .mobile-search-section {
   padding: 10px 14px 6px 14px;
   background: var(--m-surface);
@@ -194,6 +208,7 @@ body {
   display: flex;
   align-items: center;
   padding: 0 8px 0 14px;
+  transition: border-color 0.2s ease;
 }
 
 .mobile-search-bar:focus-within {
@@ -237,6 +252,7 @@ body {
   cursor: pointer;
 }
 
+/* Autocomplete Dropdown in Mobile */
 .mobile-autocomplete-dropdown {
   position: absolute;
   top: calc(100% + 4px);
@@ -270,6 +286,7 @@ body {
   background: var(--m-surface-elevated);
 }
 
+/* Horizontal Filters */
 .horizontal-filter-scroll {
   display: flex;
   gap: 8px;
@@ -292,6 +309,7 @@ body {
   white-space: nowrap;
   cursor: pointer;
   flex-shrink: 0;
+  transition: all 0.2s ease;
 }
 
 .filter-pill.active {
@@ -301,6 +319,7 @@ body {
   font-weight: 600;
 }
 
+/* Scrollable Main Feed */
 .mobile-scroll-body {
   flex: 1;
   overflow-y: auto;
@@ -327,6 +346,7 @@ body {
   cursor: pointer;
 }
 
+/* 2-Column Gallery Grid */
 .mobile-gallery-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -385,6 +405,7 @@ body {
   color: var(--m-danger);
 }
 
+/* Bottom Navigation Bar */
 .mobile-bottom-nav {
   height: var(--nav-height);
   background: var(--m-surface);
@@ -416,6 +437,7 @@ body {
   font-weight: 600;
 }
 
+/* Mobile Fullscreen Viewer */
 .mobile-viewer {
   position: fixed;
   inset: 0;
@@ -472,6 +494,7 @@ body {
   object-fit: contain;
 }
 
+/* Expandable Info Bottom Sheet in Viewer */
 .viewer-info-sheet {
   position: absolute;
   bottom: 0;
@@ -485,6 +508,7 @@ body {
   box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.5);
   max-height: 60vh;
   overflow-y: auto;
+  transition: transform 0.3s ease;
 }
 
 .sheet-drag-handle {
@@ -549,6 +573,7 @@ body {
   cursor: pointer;
 }
 
+/* Bottom Sheet Modal */
 .bottom-sheet-modal {
   position: fixed;
   inset: 0;
@@ -607,7 +632,9 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 10px;
   cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
 }
 
 .sheet-source-card.active {
@@ -615,6 +642,119 @@ body {
   background: var(--m-accent-glow);
 }
 
+.sheet-source-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.sheet-source-name-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 3px;
+  flex-wrap: wrap;
+}
+
+.sheet-source-title {
+  font-weight: 600;
+  font-size: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sheet-source-badge {
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: 600;
+  background: var(--m-border);
+  color: var(--m-text-sub);
+}
+
+.sheet-source-key-badge {
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: 600;
+  background: rgba(63, 185, 80, 0.15);
+  color: var(--m-success);
+}
+
+.sheet-source-url {
+  font-size: 11px;
+  color: var(--m-text-sub);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sheet-source-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.sheet-source-edit-btn {
+  background: var(--m-surface);
+  border: 1px solid var(--m-border);
+  color: var(--m-text);
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.sheet-source-active-pill {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--m-accent);
+  padding: 4px 6px;
+}
+
+/* Mobile Form Elements */
+.m-form-group {
+  margin-bottom: 12px;
+}
+
+.m-form-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--m-text-sub);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 5px;
+}
+
+.m-form-input, .m-form-select {
+  width: 100%;
+  padding: 10px 12px;
+  background: var(--m-surface-elevated);
+  border: 1px solid var(--m-border);
+  border-radius: 8px;
+  color: var(--m-text);
+  font-size: 13px;
+  font-family: inherit;
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.2s;
+}
+
+.m-form-input:focus, .m-form-select:focus {
+  border-color: var(--m-accent);
+}
+
+.m-form-hint {
+  font-size: 11px;
+  color: var(--m-text-sub);
+  margin-top: 4px;
+  line-height: 1.4;
+}
+
+/* Toast */
 .mobile-toast {
   position: fixed;
   bottom: 80px;
@@ -637,6 +777,7 @@ body {
   transform: translateX(-50%) translateY(0);
 }
 
+/* Pagination in mobile */
 .mobile-pagination {
   display: flex;
   justify-content: center;
@@ -644,19 +785,25 @@ body {
   gap: 12px;
   margin: 18px 0;
 }
-  </style>
+
+</style>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='25' fill='%23388bfd'/><text x='50%' y='55%' dominant-baseline='middle' text-anchor='middle' fill='white' font-size='56' font-weight='bold'>O</text></svg>">
 </head>
 <body>
 
+  <!-- Mobile App Wrapper -->
   <div class="mobile-app-container">
     
-    <!-- Install to phone prompt banner -->
+    <!-- Install to phone banner -->
     <div id="install-banner" class="install-banner">
-      <span>📲 Install OmniTag on your Phone</span>
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <span style="font-size: 16px;">📲</span>
+        <span>Install OmniTag App</span>
+      </div>
       <button id="install-btn" class="install-banner-btn">Install</button>
     </div>
 
-    <!-- Top Header -->
+    <!-- Top Mobile App Header -->
     <header class="mobile-header">
       <div class="header-brand">
         <div class="brand-badge">O</div>
@@ -664,19 +811,21 @@ body {
       </div>
 
       <div class="header-actions">
+        <!-- Active Source Pill (Tap opens bottom sheet) -->
         <button id="mobile-source-chip" class="mobile-source-chip" title="Switch API">
           <span class="dot-online"></span>
           <span id="active-source-name">Safebooru</span>
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
         </button>
 
+        <!-- Theme Toggle -->
         <button id="mobile-theme-btn" class="header-icon-btn" title="Toggle Theme">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"></circle></svg>
         </button>
       </div>
     </header>
 
-    <!-- Search Section -->
+    <!-- Mobile Search Bar (Sticky) -->
     <div class="mobile-search-section">
       <div class="mobile-search-bar">
         <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
@@ -686,7 +835,7 @@ body {
         <input 
           id="mobile-search-input" 
           type="text" 
-          placeholder="Search tags (e.g. 1girl, cat)..." 
+          placeholder="Search tags (e.g. 1girl, -tag)..." 
           autocomplete="off"
           autocapitalize="none"
           spellcheck="false"
@@ -699,8 +848,10 @@ body {
         </button>
       </div>
 
+      <!-- Real-time Tag Autocomplete Sheet -->
       <div id="mobile-autocomplete" class="mobile-autocomplete-dropdown"></div>
 
+      <!-- Horizontal Quick Filter Pills -->
       <div class="horizontal-filter-scroll">
         <button class="filter-pill active" data-filter="all">All</button>
         <button class="filter-pill" data-rating="s">Safe Only</button>
@@ -712,18 +863,22 @@ body {
       </div>
     </div>
 
-    <!-- Feed -->
+    <!-- Active Feed View -->
     <main class="mobile-scroll-body">
+      <!-- Status Meta Bar -->
       <div class="feed-status-bar">
         <span id="feed-results-info">Ready to search</span>
         <button id="feed-refresh-btn" class="text-action-btn">Refresh</button>
       </div>
 
+      <!-- 2-Column Mobile Masonry Grid -->
       <div id="mobile-grid" class="mobile-gallery-grid"></div>
+
+      <!-- Mobile Pagination -->
       <div id="mobile-pagination" class="mobile-pagination"></div>
     </main>
 
-    <!-- Bottom Nav -->
+    <!-- Bottom Mobile Tab Bar -->
     <nav class="mobile-bottom-nav">
       <button class="nav-tab active" data-tab="search">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -756,7 +911,9 @@ body {
       </button>
     </nav>
 
-    <!-- Viewer Modal -->
+    <!-- ==========================================
+         Mobile Full-Screen Media Viewer
+         ========================================== -->
     <div id="mobile-viewer-modal" class="mobile-viewer">
       <div class="viewer-top-bar">
         <button id="viewer-close-btn" class="viewer-circle-btn">&times;</button>
@@ -770,6 +927,7 @@ body {
 
       <div id="viewer-media-stage" class="viewer-stage"></div>
 
+      <!-- Draggable / Expandable Bottom Sheet for Info & Tags -->
       <div id="viewer-info-sheet" class="viewer-info-sheet">
         <div class="sheet-drag-handle"></div>
         <div class="sheet-actions">
@@ -794,28 +952,140 @@ body {
       </div>
     </div>
 
-    <!-- Sources Bottom Sheet -->
+    <!-- ==========================================
+         Mobile Source Switcher & Manager Bottom Sheet
+         ========================================== -->
     <div id="mobile-sources-sheet" class="bottom-sheet-modal">
       <div class="sheet-overlay"></div>
       <div class="sheet-panel">
         <div class="sheet-header">
-          <h4>Switch API Source</h4>
+          <h4>Manage API Sources</h4>
           <button id="close-sources-sheet-btn" class="sheet-close-btn">&times;</button>
         </div>
         <div id="mobile-sources-list" class="sheet-sources-list"></div>
-        <div class="sheet-footer">
+        <div class="sheet-footer" style="display: flex; flex-direction: column; gap: 8px;">
           <button id="mobile-add-source-btn" class="sheet-action-btn primary" style="width: 100%;">+ Add Custom API Source</button>
+          <div style="display: flex; gap: 8px;">
+            <button id="m-export-btn" class="sheet-action-btn" type="button" style="flex: 1;">Export JSON</button>
+            <label class="sheet-action-btn" style="flex: 1; text-align: center; cursor: pointer; margin: 0;">
+              Import JSON
+              <input type="file" id="m-import-file" accept=".json" style="display: none;">
+            </label>
+            <button id="m-reset-btn" class="sheet-action-btn" type="button" style="flex: 1;">Reset</button>
+          </div>
         </div>
       </div>
     </div>
 
+    <!-- ==========================================
+         Mobile Add / Edit Source Sheet
+         ========================================== -->
+    <div id="mobile-edit-source-sheet" class="bottom-sheet-modal">
+      <div class="sheet-overlay"></div>
+      <div class="sheet-panel" style="max-height: 90vh;">
+        <div class="sheet-header">
+          <h4 id="m-edit-sheet-title">Edit API Source</h4>
+          <button id="close-edit-source-btn" class="sheet-close-btn">&times;</button>
+        </div>
+        
+        <form id="mobile-source-form" style="overflow-y: auto; padding-right: 4px; flex: 1;">
+          <input type="hidden" id="m-src-id">
+
+          <div class="m-form-group">
+            <label class="m-form-label">Source Name</label>
+            <input type="text" id="m-src-name" class="m-form-input" placeholder="e.g. My Custom API" required>
+          </div>
+
+          <div class="m-form-group">
+            <label class="m-form-label">API Protocol / Type</label>
+            <select id="m-src-type" class="m-form-select">
+              <option value="gelbooru_dapi">Gelbooru / Safebooru DAPI (XML / JSON)</option>
+              <option value="danbooru_v2">Danbooru 2.x API (JSON)</option>
+              <option value="moebooru">Moebooru API (Yande.re, Konachan)</option>
+            </select>
+          </div>
+
+          <div class="m-form-group">
+            <label class="m-form-label">Base URL</label>
+            <input type="url" id="m-src-base" class="m-form-input" placeholder="https://example.com" required>
+          </div>
+
+          <div class="m-form-group">
+            <label class="m-form-label">API Key (Optional)</label>
+            <input type="text" id="m-src-apikey" class="m-form-input" placeholder="Paste your API key here" autocomplete="off" spellcheck="false">
+          </div>
+
+          <div class="m-form-group">
+            <label class="m-form-label">User ID (Optional)</label>
+            <input type="text" id="m-src-userid" class="m-form-input" placeholder="Numeric user ID" autocomplete="off" spellcheck="false">
+            <div class="m-form-hint">Stored securely on this device's browser local storage.</div>
+          </div>
+
+          <div class="m-form-group">
+            <label class="m-form-label">Proxy Mode</label>
+            <select id="m-src-proxy" class="m-form-select">
+              <option value="auto">Auto (Built-in / Local server proxy)</option>
+              <option value="direct">Direct (No Proxy)</option>
+              <option value="corsproxy">Public CORS Proxy</option>
+              <option value="allorigins">AllOrigins Proxy</option>
+              <option value="custom">Custom Proxy</option>
+            </select>
+          </div>
+
+          <div class="m-form-group" id="m-src-custom-proxy-group" style="display: none;">
+            <label class="m-form-label">Custom Proxy URL</label>
+            <input type="text" id="m-src-custom-proxy" class="m-form-input" placeholder="https://myproxy.com/?url={url}">
+          </div>
+
+          <div class="m-form-group">
+            <label class="m-form-label">Custom Posts URL Template (Optional)</label>
+            <input type="text" id="m-src-posts" class="m-form-input" placeholder="Leave empty for default">
+            <div class="m-form-hint">Variables: {tags}, {page}, {limit}, {api_key}, {user_id}</div>
+          </div>
+
+          <div class="m-form-group">
+            <label class="m-form-label">Custom Tag Autocomplete URL (Optional)</label>
+            <input type="text" id="m-src-tags" class="m-form-input" placeholder="Leave empty for default">
+            <div class="m-form-hint">Variable: {query}</div>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 16px; margin-bottom: 8px;">
+            <button type="submit" class="sheet-action-btn primary" style="padding: 12px; font-size: 14px;">Save Source</button>
+            <button type="button" id="m-src-cancel-btn" class="sheet-action-btn" style="padding: 10px;">Cancel</button>
+            <button type="button" id="m-src-delete-btn" class="sheet-action-btn" style="padding: 10px; color: var(--m-danger); border-color: rgba(248, 81, 73, 0.4); display: none;">Delete Source</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Install Help Modal -->
+    <div id="install-modal" class="bottom-sheet-modal">
+      <div class="sheet-overlay"></div>
+      <div class="sheet-panel">
+        <div class="sheet-header">
+          <h4>📲 How to Install App on Phone</h4>
+          <button id="close-install-modal-btn" class="sheet-close-btn">&times;</button>
+        </div>
+        <div id="install-instructions" style="font-size: 13px; line-height: 1.6; color: var(--m-text); margin-bottom: 14px;">
+        </div>
+        <div>
+          <button id="dismiss-install-modal-btn" class="sheet-action-btn primary" style="width: 100%;">Understood</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toast Notification -->
     <div id="mobile-toast" class="mobile-toast"></div>
 
   </div>
 
-  <!-- Inline Core Scripts -->
+  <!-- Reusable API engine and Autocomplete logic -->
   <script>
-/* --- INLINED API SOURCES ENGINE --- */
+/**
+ * OmniTag - API Sources & Adapter Engine
+ * Manages switchable Booru/Image APIs, proxies, and normalizes post/tag data.
+ */
+
 const DEFAULT_SOURCES = [
   {
     id: "safebooru",
@@ -827,22 +1097,25 @@ const DEFAULT_SOURCES = [
     thumbTemplate: "https://safebooru.org/thumbnails/{directory}/thumbnail_{image}",
     sampleTemplate: "https://safebooru.org/samples/{directory}/sample_{image}",
     fileTemplate: "https://safebooru.org/images/{directory}/{image}",
-    proxyMode: "corsproxy", // Default to public CORS proxy for standalone mobile
+    proxyMode: "auto", // 'auto', 'direct', 'corsproxy', 'allorigins', 'local', 'custom'
     customProxyUrl: "",
     isPreset: true,
-    description: "Anime art (Safe)"
+    description: "Anime & manga art (Safe for work)"
   },
   {
     id: "danbooru",
     name: "Danbooru (Safe)",
     type: "danbooru_v2",
     baseUrl: "https://danbooru.donmai.us",
-    postsUrl: "https://danbooru.donmai.us/posts.json?limit={limit}&page={page}&tags=rating:g+{tags}",
+    postsUrl: "https://danbooru.donmai.us/posts.json?limit={limit}&page={page}&tags={tags}",
     tagsUrl: "https://danbooru.donmai.us/autocomplete.json?search[query]={query}&search[type]=tag_query&version=1&limit=12",
-    proxyMode: "corsproxy",
+    thumbTemplate: "",
+    sampleTemplate: "",
+    fileTemplate: "",
+    proxyMode: "auto",
     customProxyUrl: "",
     isPreset: true,
-    description: "Danbooru Safe posts"
+    description: "Danbooru General / Safe posts"
   },
   {
     id: "yande",
@@ -851,20 +1124,57 @@ const DEFAULT_SOURCES = [
     baseUrl: "https://yande.re",
     postsUrl: "https://yande.re/post.json?limit={limit}&page={page}&tags=rating:s+{tags}",
     tagsUrl: "https://yande.re/tag.json?name={query}&order=count&limit=12",
-    proxyMode: "corsproxy",
+    thumbTemplate: "",
+    sampleTemplate: "",
+    fileTemplate: "",
+    proxyMode: "auto",
     customProxyUrl: "",
     isPreset: true,
-    description: "Anime wallpapers"
+    description: "High resolution anime wallpapers"
+  },
+  {
+    id: "konachan",
+    name: "Konachan (Safe)",
+    type: "moebooru",
+    baseUrl: "https://konachan.net",
+    postsUrl: "https://konachan.net/post.json?limit={limit}&page={page}&tags=rating:s+{tags}",
+    tagsUrl: "https://konachan.net/tag.json?name={query}&order=count&limit=12",
+    thumbTemplate: "",
+    sampleTemplate: "",
+    fileTemplate: "",
+    proxyMode: "auto",
+    customProxyUrl: "",
+    isPreset: true,
+    description: "Anime wallpapers & illustrations"
   }
 ];
+
+// Bump this whenever new presets are added to DEFAULT_SOURCES so that
+// existing installs (which already have a saved list) receive them once.
+const PRESET_VERSION = 4;
 
 class ApiSourceManager {
   constructor() {
     this.storageKey = "omnitag_sources_v1";
     this.activeKey = "omnitag_active_source_id";
+    this.presetVersionKey = "omnitag_preset_version";
     this.sources = this.loadSources();
-    this.activeId = localStorage.getItem(this.activeKey) || "safebooru";
-    if (!this.getSource(this.activeId)) this.activeId = this.sources[0]?.id || "safebooru";
+    
+    // On GitHub Pages, Danbooru is the default because it has full native CORS support
+    const isGitHubPages = typeof window !== "undefined" && window.location.hostname.includes("github.io");
+    const defaultId = isGitHubPages ? "danbooru" : "safebooru";
+    this.activeId = localStorage.getItem(this.activeKey) || defaultId;
+    
+    // On GitHub Pages, ensure active source allows CORS (Danbooru) so it doesn't fail
+    if (isGitHubPages && this.activeId === "safebooru") {
+      this.activeId = "danbooru";
+      localStorage.setItem(this.activeKey, "danbooru");
+    }
+    
+    // Ensure active source exists
+    if (!this.getSource(this.activeId)) {
+      this.activeId = defaultId;
+    }
   }
 
   loadSources() {
@@ -872,10 +1182,40 @@ class ApiSourceManager {
       const saved = localStorage.getItem(this.storageKey);
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return this.addMissingPresets(parsed);
+        }
       }
-    } catch (e) {}
+    } catch (e) {
+      console.warn("Could not load sources from localStorage, using defaults", e);
+    }
+    this.saveSources(DEFAULT_SOURCES);
+    localStorage.setItem(this.presetVersionKey, String(PRESET_VERSION));
     return JSON.parse(JSON.stringify(DEFAULT_SOURCES));
+  }
+
+  /**
+   * One-time migration: add any built-in presets that an older saved list
+   * doesn't have yet. Runs once per PRESET_VERSION, so a preset the user
+   * later deletes will not keep coming back.
+   */
+  addMissingPresets(list) {
+    const seen = parseInt(localStorage.getItem(this.presetVersionKey) || "1", 10);
+    if (seen >= PRESET_VERSION) return list;
+
+    for (const def of DEFAULT_SOURCES) {
+      const existing = list.find(s => s.id === def.id);
+      if (!existing) {
+        list.push(JSON.parse(JSON.stringify(def)));
+      } else if (def.apiKey && def.userId && !existing.apiKey && !existing.userId) {
+        // Already saved but with blank credentials: fill them in (never overwrites a key you typed)
+        existing.apiKey = def.apiKey;
+        existing.userId = def.userId;
+      }
+    }
+    localStorage.setItem(this.storageKey, JSON.stringify(list));
+    localStorage.setItem(this.presetVersionKey, String(PRESET_VERSION));
+    return list;
   }
 
   saveSources(sources) {
@@ -883,9 +1223,17 @@ class ApiSourceManager {
     localStorage.setItem(this.storageKey, JSON.stringify(sources));
   }
 
-  getSources() { return this.sources; }
-  getSource(id) { return this.sources.find(s => s.id === id) || null; }
-  getActiveSource() { return this.getSource(this.activeId) || this.sources[0]; }
+  getSources() {
+    return this.sources;
+  }
+
+  getSource(id) {
+    return this.sources.find(s => s.id === id) || null;
+  }
+
+  getActiveSource() {
+    return this.getSource(this.activeId) || this.sources[0];
+  }
 
   setActiveSource(id) {
     if (this.getSource(id)) {
@@ -901,412 +1249,1411 @@ class ApiSourceManager {
     if (existingIndex >= 0) {
       this.sources[existingIndex] = { ...this.sources[existingIndex], ...sourceData };
     } else {
-      if (!sourceData.id) sourceData.id = "custom_" + Date.now().toString(36);
+      if (!sourceData.id) {
+        sourceData.id = "custom_" + Date.now().toString(36);
+      }
       this.sources.push(sourceData);
     }
     this.saveSources(this.sources);
     return sourceData;
   }
 
+  deleteSource(id) {
+    this.sources = this.sources.filter(s => s.id !== id);
+    if (this.activeId === id) {
+      this.activeId = this.sources[0]?.id || "";
+      localStorage.setItem(this.activeKey, this.activeId);
+    }
+    this.saveSources(this.sources);
+  }
+
+  resetToDefaults() {
+    this.saveSources(JSON.parse(JSON.stringify(DEFAULT_SOURCES)));
+    localStorage.setItem(this.presetVersionKey, String(PRESET_VERSION));
+    this.setActiveSource("safebooru");
+    return this.sources;
+  }
+
+  exportSources() {
+    return JSON.stringify(this.sources, null, 2);
+  }
+
+  importSources(jsonString) {
+    const parsed = JSON.parse(jsonString);
+    if (Array.isArray(parsed) && parsed.length > 0) {
+      this.saveSources(parsed);
+      this.setActiveSource(parsed[0].id);
+      return true;
+    }
+    throw new Error("Invalid sources JSON format");
+  }
+
+  /**
+   * Fill {api_key} / {user_id} placeholders from the source's saved credentials
+   */
+  applyAuth(url, source) {
+    const key = encodeURIComponent((source.apiKey || "").trim());
+    const uid = encodeURIComponent((source.userId || "").trim());
+    return url.replace(/\{api_key\}/g, () => key).replace(/\{user_id\}/g, () => uid);
+  }
+
+  /**
+   * Determine proxy wrapping for target URL based on source config and environment
+   */
   resolveUrl(targetUrl, source) {
     if (!targetUrl) return "";
     const mode = source.proxyMode || "auto";
-    if (mode === "direct") return targetUrl;
-    
-    // If served over HTTP/HTTPS from a server, use built-in /api/proxy
-    if (window.location.protocol.startsWith("http")) {
+
+    // Direct mode: no proxy
+    if (mode === "direct") {
+      return targetUrl;
+    }
+
+    // If served from local server or Cloudflare tunnel, use /api/proxy
+    const hasLocalServer = window.location.protocol.startsWith("http") && 
+      (window.location.hostname === "localhost" || 
+       window.location.hostname === "127.0.0.1" || 
+       window.location.hostname.includes("trycloudflare.com") ||
+       window.location.hostname.startsWith("192.168."));
+
+    if (mode === "local" || (mode === "auto" && hasLocalServer)) {
       return `${window.location.origin}/api/proxy?url=${encodeURIComponent(targetUrl)}`;
     }
-    
-    // Offline / file:// fallback
-    return `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`;
+
+    if (mode === "custom" && source.customProxyUrl) {
+      return source.customProxyUrl.replace("{url}", encodeURIComponent(targetUrl));
+    }
+
+    return targetUrl;
   }
 
+  /**
+   * Fetch tag suggestions from the active source's API
+   */
   async fetchTags(query) {
     const source = this.getActiveSource();
     if (!source || !query || !query.trim()) return [];
+
     const cleanQuery = query.trim().toLowerCase();
     let url = (source.tagsUrl || "").replace("{query}", encodeURIComponent(cleanQuery));
-    if (!url) url = `${source.baseUrl}/autocomplete.php?q=${encodeURIComponent(cleanQuery)}`;
-    
+    if (!url) {
+      url = `${source.baseUrl}/autocomplete.php?q=${encodeURIComponent(cleanQuery)}`;
+    }
+
+    const fetchUrl = this.resolveUrl(url, source);
+
     try {
-      const resp = await fetch(this.resolveUrl(url, source));
-      if (!resp.ok) throw new Error("HTTP " + resp.status);
+      const resp = await fetch(fetchUrl, {
+        headers: { Accept: "application/json, text/plain, */*" }
+      });
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+
       const data = await resp.json();
-      return this.normalizeTags(data);
-    } catch (e) {
+      return this.normalizeTags(data, source, cleanQuery);
+    } catch (err) {
+      console.warn("Tag fetch failed:", err);
       return [];
     }
   }
 
-  normalizeTags(raw) {
-    if (!Array.isArray(raw)) return [];
-    return raw.slice(0, 15).map(item => {
-      if (typeof item === "string") return { name: item, label: item, count: null, category: "general" };
-      const name = item.value || item.name || item.tag || "";
-      let count = item.post_count || item.count || null;
-      let label = item.label || name;
-      if (!count && label.includes("(") && label.endsWith(")")) {
-        const m = label.match(/\((\d+)\)$/);
-        if (m) count = parseInt(m[1], 10);
+  /**
+   * Normalize tag autocomplete results across different booru formats
+   */
+  normalizeTags(raw, source, query) {
+    if (!raw) return [];
+    const results = [];
+
+    // Safebooru / Gelbooru autocomplete format:
+    // [{"label": "cat_ears (1234)", "value": "cat_ears"}, ...]
+    // or array of strings: ["cat", "cat_ears"]
+    if (Array.isArray(raw)) {
+      for (const item of raw) {
+        if (typeof item === "string") {
+          results.push({
+            name: item,
+            label: item,
+            count: null,
+            category: "general"
+          });
+        } else if (item && typeof item === "object") {
+          // Danbooru autocomplete format:
+          // { type: "tag", value: "tag_name", label: "tag_name (1234)", category: 0 }
+          const name = item.value || item.name || item.tag || "";
+          let label = item.label || item.value || item.name || "";
+          let count = item.post_count || item.count || null;
+
+          // Extract count from label if format is "tag (123)"
+          if (!count && label.includes("(") && label.endsWith(")")) {
+            const match = label.match(/\((\d+)\)$/);
+            if (match) count = parseInt(match[1], 10);
+          }
+
+          let category = "general";
+          if (item.category !== undefined) {
+            const catMap = { 0: "general", 1: "artist", 3: "copyright", 4: "character", 5: "meta" };
+            category = catMap[item.category] || "general";
+          } else if (item.type) {
+            category = item.type;
+          }
+
+          if (name) {
+            results.push({ name, label: name, count, category });
+          }
+        }
       }
-      return { name, label: name, count, category: "general" };
-    }).filter(t => t.name);
+    }
+    return results.slice(0, 15);
   }
 
+  /**
+   * Fetch posts for given search tags and page
+   */
   async fetchPosts(tags = "", page = 0, limit = 24) {
     const source = this.getActiveSource();
-    let url = (source.postsUrl || `${source.baseUrl}/index.php?page=dapi&s=post&q=index&json=1&limit={limit}&pid={page}&tags={tags}`)
-      .replace("{limit}", limit.toString())
-      .replace("{page}", page.toString())
-      .replace("{tags}", encodeURIComponent((tags || "").trim()));
+    if (!source) throw new Error("No active API source configured");
 
-    const resp = await fetch(this.resolveUrl(url, source));
-    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-    const data = await resp.json();
-    return this.normalizePosts(data, source);
+    if (source.requiresAuth && (!(source.apiKey || "").trim() || !(source.userId || "").trim())) {
+      throw new Error(`${source.name} needs an API key and User ID. Open "Manage / Add APIs", click Edit on ${source.name} and paste them in. ${source.authHelp || ""}`.trim());
+    }
+
+    const cleanTags = (tags || "").trim();
+    let url = source.postsUrl || "";
+
+    if (!url) {
+      // Default to Gelbooru DAPI style
+      url = `${source.baseUrl}/index.php?page=dapi&s=post&q=index&json=1&limit={limit}&pid={page}&tags={tags}`;
+    }
+
+    // Danbooru and Moebooru use 1-indexed pages (page 1, 2, 3...)
+    // Gelbooru/Safebooru DAPI uses 0-indexed pid (0, 1, 2...)
+    let pageParam = page;
+    if (source.type === "danbooru_v2" || source.type === "moebooru") {
+      pageParam = Math.max(1, page + 1);
+    }
+
+    // Danbooru safe rating filter
+    let finalTags = cleanTags;
+    if (source.id === "danbooru" || source.type === "danbooru_v2") {
+      finalTags = cleanTags ? `rating:g ${cleanTags}` : "rating:g";
+    }
+
+    url = url
+      .replace("{limit}", limit.toString())
+      .replace("{page}", pageParam.toString())
+      .replace("{tags}", encodeURIComponent(finalTags));
+
+    url = this.applyAuth(url, source);
+
+    const fetchUrl = this.resolveUrl(url, source);
+
+    const resp = await fetch(fetchUrl, {
+      headers: { Accept: "application/json, text/plain, */*" }
+    });
+
+    if (!resp.ok) {
+      throw new Error(`Failed to load posts (HTTP ${resp.status})`);
+    }
+
+    const text = await resp.text();
+    const trimmed = text.trim();
+
+    // Gelbooru-style APIs (Rule34) return an empty body when nothing matches
+    if (!trimmed) return [];
+
+    // Some of them answer HTTP 200 with a short plain-text auth error
+    if (trimmed.length < 500 && !/^[\[{<]/.test(trimmed) && /authenticat|credential|api[ _]?key/i.test(trimmed)) {
+      throw new Error(`${source.name} rejected the API credentials: "${trimmed}". ${source.authHelp || ""}`.trim());
+    }
+
+    let json;
+    try {
+      json = JSON.parse(text);
+    } catch (e) {
+      // Check if response is XML (older boorus)
+      if (text.includes("<?xml") || text.includes("<posts")) {
+        json = this.parseXmlPosts(text);
+      } else {
+        throw new Error("Unable to parse server response as JSON or XML");
+      }
+    }
+
+    return this.normalizePosts(json, source);
   }
 
+  /**
+   * Fallback XML parser for DAPI v0.1 / v0.2 XML responses
+   */
+  parseXmlPosts(xmlStr) {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(xmlStr, "application/xml");
+    const postsEl = doc.querySelectorAll("post");
+    const list = [];
+
+    postsEl.forEach(p => {
+      const item = {};
+      for (const attr of p.attributes) {
+        item[attr.name] = attr.value;
+      }
+      list.push(item);
+    });
+
+    return list;
+  }
+
+  /**
+   * Normalize posts into unified Post model
+   */
   normalizePosts(raw, source) {
-    let list = Array.isArray(raw) ? raw : (raw?.post || raw?.posts || []);
-    return list.map(item => {
-      let id = item.id || item.post_id || Math.random().toString(36).substr(2, 7);
+    let rawList = [];
+    if (Array.isArray(raw)) {
+      rawList = raw;
+    } else if (raw && Array.isArray(raw.post)) {
+      rawList = raw.post;
+    } else if (raw && Array.isArray(raw.posts)) {
+      rawList = raw.posts;
+    } else if (raw && typeof raw === "object") {
+      // Some Gelbooru versions return { "@attributes": {...}, "post": [...] }
+      if (raw.post && Array.isArray(raw.post)) {
+        rawList = raw.post;
+      }
+    }
+
+    const normalized = [];
+
+    for (const item of rawList) {
+      if (!item) continue;
+
+      let id = item.id || item.post_id || Math.random().toString(36).substr(2, 9);
       let width = parseInt(item.width || item.image_width || 0, 10);
       let height = parseInt(item.height || item.image_height || 0, 10);
       let score = parseInt(item.score || 0, 10);
       let rating = item.rating || "general";
 
+      // Tag extraction
       let rawTags = item.tags || item.tag_string || "";
-      let tagList = Array.isArray(rawTags) ? rawTags : String(rawTags).trim().split(/\s+/).filter(Boolean);
+      let tagList = [];
+      if (Array.isArray(rawTags)) {
+        tagList = rawTags;
+      } else if (typeof rawTags === "string") {
+        tagList = rawTags.trim().split(/\s+/).filter(Boolean);
+      }
 
+      // Categorized tags if available (Danbooru style)
+      const tagCategories = {
+        artist: (item.tag_string_artist || "").split(/\s+/).filter(Boolean),
+        character: (item.tag_string_character || "").split(/\s+/).filter(Boolean),
+        copyright: (item.tag_string_copyright || "").split(/\s+/).filter(Boolean),
+        general: (item.tag_string_general || "").split(/\s+/).filter(Boolean)
+      };
+
+      // URL building
       let fileUrl = item.file_url || "";
       let sampleUrl = item.sample_url || item.large_file_url || fileUrl;
       let previewUrl = item.preview_url || item.preview_file_url || sampleUrl;
 
+      // Gelbooru / Safebooru directory & image format
       if ((!fileUrl || !fileUrl.startsWith("http")) && item.directory && item.image) {
-        previewUrl = `https://safebooru.org/thumbnails/${item.directory}/thumbnail_${item.image}`;
-        sampleUrl = `https://safebooru.org/samples/${item.directory}/sample_${item.image}`;
-        fileUrl = `https://safebooru.org/images/${item.directory}/${item.image}`;
+        if (source.thumbTemplate) {
+          previewUrl = source.thumbTemplate.replace("{directory}", item.directory).replace("{image}", item.image);
+        } else {
+          previewUrl = `${source.baseUrl}/thumbnails/${item.directory}/thumbnail_${item.image}`;
+        }
+
+        if (source.sampleTemplate && item.sample) {
+          sampleUrl = source.sampleTemplate.replace("{directory}", item.directory).replace("{image}", item.image);
+        } else {
+          sampleUrl = `${source.baseUrl}/samples/${item.directory}/sample_${item.image}`;
+        }
+
+        if (source.fileTemplate) {
+          fileUrl = source.fileTemplate.replace("{directory}", item.directory).replace("{image}", item.image);
+        } else {
+          fileUrl = `${source.baseUrl}/images/${item.directory}/${item.image}`;
+        }
       }
 
-      const ext = (fileUrl || sampleUrl).split('?')[0].split('.').pop().toLowerCase();
-      const isVideo = ["mp4", "webm"].includes(ext);
+      // Ensure full absolute URLs
+      if (previewUrl && !previewUrl.startsWith("http")) {
+        previewUrl = `${source.baseUrl}/${previewUrl.replace(/^\//, '')}`;
+      }
+      if (sampleUrl && !sampleUrl.startsWith("http")) {
+        sampleUrl = `${source.baseUrl}/${sampleUrl.replace(/^\//, '')}`;
+      }
+      if (fileUrl && !fileUrl.startsWith("http")) {
+        fileUrl = `${source.baseUrl}/${fileUrl.replace(/^\//, '')}`;
+      }
 
-      return {
+      // Determine extension & media type
+      const urlForExt = fileUrl || sampleUrl || "";
+      const extMatch = urlForExt.split('?')[0].match(/\.([a-z0-9]+)$/i);
+      const ext = extMatch ? extMatch[1].toLowerCase() : "jpg";
+      const isVideo = ["mp4", "webm", "zip"].includes(ext);
+      const isGif = ext === "gif";
+
+      normalized.push({
         id,
         tags: tagList,
+        tagCategories,
         previewUrl,
         sampleUrl: sampleUrl || previewUrl,
-        fileUrl: fileUrl || sampleUrl,
+        fileUrl: fileUrl || sampleUrl || previewUrl,
         width,
         height,
-        aspectRatio: width && height ? width / height : 1,
+        aspectRatio: width && height ? (width / height) : 1,
         score,
         rating,
         ext,
         isVideo,
-        isGif: ext === "gif",
+        isGif,
         sourceSite: source.name,
         sourceId: source.id,
-        postPageUrl: `${source.baseUrl}/index.php?page=post&s=view&id=${id}`
-      };
-    });
+        postPageUrl: `${source.baseUrl}/index.php?page=post&s=view&id=${id}`,
+        createdAt: item.change || item.created_at || ""
+      });
+    }
+
+    return normalized;
   }
 }
 
+// Export singleton
 window.apiSourceManager = new ApiSourceManager();
 
-/* --- AUTOCOMPLETE --- */
-class TagAutocomplete {
-  constructor(input, dropdown, onSelect) {
-    this.input = input;
-    this.dropdown = dropdown;
-    this.onSelect = onSelect;
-    this.debounceTimer = null;
-    this.tokenStartIndex = 0;
+/**
+ * OmniTag - Google-Style Multi-Tag Autocomplete Engine
+ * Automatically queries active API source tags as you type
+ */
 
+class TagAutocomplete {
+  constructor(inputEl, dropdownEl, onSelect) {
+    this.input = inputEl;
+    this.dropdown = dropdownEl;
+    this.onSelect = onSelect;
+    this.selectedIndex = -1;
+    this.suggestions = [];
+    this.debounceTimer = null;
+    this.currentToken = "";
+    this.tokenStartIndex = 0;
+    this.isNegative = false;
+
+    this.init();
+  }
+
+  init() {
     this.input.addEventListener("input", () => this.handleInput());
+    this.input.addEventListener("keydown", (e) => this.handleKeyDown(e));
+
+    // Hide dropdown on click outside
     document.addEventListener("click", (e) => {
       if (!this.input.contains(e.target) && !this.dropdown.contains(e.target)) {
-        this.dropdown.style.display = "none";
+        this.hide();
+      }
+    });
+
+    this.input.addEventListener("focus", () => {
+      if (this.suggestions.length > 0) {
+        this.show();
       }
     });
   }
 
-  handleInput() {
-    clearTimeout(this.debounceTimer);
+  getCurrentToken() {
     const val = this.input.value;
     const cursorPos = this.input.selectionStart || val.length;
+
+    // Find the word bounds around cursor
     const beforeCursor = val.slice(0, cursorPos);
     const lastSpace = Math.max(beforeCursor.lastIndexOf(" "), beforeCursor.lastIndexOf("+"));
     const start = lastSpace + 1;
     let token = beforeCursor.slice(start);
 
-    if (!token || token.length < 2) {
-      this.dropdown.style.display = "none";
-      return;
+    // Check negation prefix
+    if (token.startsWith("-")) {
+      this.isNegative = true;
+      token = token.slice(1);
+    } else {
+      this.isNegative = false;
     }
 
     this.tokenStartIndex = start;
+    this.currentToken = token;
+    return token;
+  }
+
+  handleInput() {
+    clearTimeout(this.debounceTimer);
+    const token = this.getCurrentToken();
+
+    if (!token || token.length < 2) {
+      this.hide();
+      this.suggestions = [];
+      return;
+    }
+
     this.debounceTimer = setTimeout(async () => {
-      const list = await window.apiSourceManager.fetchTags(token);
-      if (!list || list.length === 0) {
-        this.dropdown.style.display = "none";
-        return;
+      try {
+        const results = await window.apiSourceManager.fetchTags(token);
+        this.suggestions = results;
+        this.render();
+      } catch (e) {
+        console.warn("Autocomplete error:", e);
+        this.hide();
       }
-      this.dropdown.innerHTML = "";
-      list.forEach(item => {
-        const row = document.createElement("div");
-        row.className = "autocomplete-item";
-        row.innerHTML = `<span>${item.name}</span>${item.count ? `<span style="color: var(--m-text-sub); font-size: 11px;">${item.count}</span>` : ''}`;
-        row.addEventListener("click", () => {
-          const newVal = val.slice(0, this.tokenStartIndex) + item.name + " " + val.slice(cursorPos);
-          this.input.value = newVal;
-          this.dropdown.style.display = "none";
-          this.input.focus();
-          if (this.onSelect) this.onSelect(item);
-        });
-        this.dropdown.appendChild(row);
-      });
-      this.dropdown.style.display = "block";
     }, 180);
+  }
+
+  handleKeyDown(e) {
+    if (this.dropdown.style.display === "none" || this.suggestions.length === 0) {
+      return;
+    }
+
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      this.selectedIndex = (this.selectedIndex + 1) % this.suggestions.length;
+      this.updateSelection();
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      this.selectedIndex = (this.selectedIndex - 1 + this.suggestions.length) % this.suggestions.length;
+      this.updateSelection();
+    } else if (e.key === "Enter" && this.selectedIndex >= 0) {
+      e.preventDefault();
+      this.selectSuggestion(this.suggestions[this.selectedIndex]);
+    } else if (e.key === "Escape") {
+      this.hide();
+    }
+  }
+
+  updateSelection() {
+    const items = this.dropdown.querySelectorAll(".autocomplete-item");
+    items.forEach((item, index) => {
+      if (index === this.selectedIndex) {
+        item.classList.add("active");
+        item.scrollIntoView({ block: "nearest" });
+      } else {
+        item.classList.remove("active");
+      }
+    });
+  }
+
+  selectSuggestion(item) {
+    if (!item) return;
+
+    const val = this.input.value;
+    const cursorPos = this.input.selectionStart || val.length;
+    const beforeToken = val.slice(0, this.tokenStartIndex);
+    const afterToken = val.slice(cursorPos);
+
+    const prefix = this.isNegative ? "-" : "";
+    const newWord = `${prefix}${item.name} `;
+    
+    this.input.value = `${beforeToken}${newWord}${afterToken.trimStart()}`;
+    const newCursorPos = beforeToken.length + newWord.length;
+    this.input.setSelectionRange(newCursorPos, newCursorPos);
+
+    this.hide();
+    this.suggestions = [];
+    this.input.focus();
+
+    if (this.onSelect) {
+      this.onSelect(item, this.input.value);
+    }
+  }
+
+  render() {
+    if (!this.suggestions || this.suggestions.length === 0) {
+      this.hide();
+      return;
+    }
+
+    this.dropdown.innerHTML = "";
+    this.selectedIndex = -1;
+
+    this.suggestions.forEach((item, index) => {
+      const row = document.createElement("div");
+      row.className = "autocomplete-item";
+      
+      // Category color badge
+      const catClass = `cat-${item.category || "general"}`;
+      const prefix = this.isNegative ? '<span class="neg-sign">-</span>' : '';
+
+      // Highlight match
+      const highlightedName = this.highlightMatch(item.name, this.currentToken);
+
+      let countStr = "";
+      if (item.count !== null && item.count !== undefined) {
+        countStr = `<span class="tag-count">${this.formatCount(item.count)}</span>`;
+      }
+
+      row.innerHTML = `
+        <div class="tag-info">
+          <span class="cat-dot ${catClass}"></span>
+          <span class="tag-text">${prefix}${highlightedName}</span>
+        </div>
+        ${countStr}
+      `;
+
+      row.addEventListener("mousedown", (e) => {
+        e.preventDefault();
+        this.selectSuggestion(item);
+      });
+
+      this.dropdown.appendChild(row);
+    });
+
+    this.show();
+  }
+
+  highlightMatch(name, query) {
+    if (!query) return name;
+    const q = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    return name.replace(new RegExp(`(${q})`, 'gi'), '<strong class="highlight">$1</strong>');
+  }
+
+  formatCount(num) {
+    if (num >= 1000000) return (num / 1000000).toFixed(1) + "M";
+    if (num >= 1000) return (num / 1000).toFixed(1) + "k";
+    return num.toString();
+  }
+
+  show() {
+    this.dropdown.style.display = "block";
+  }
+
+  hide() {
+    this.dropdown.style.display = "none";
+    this.selectedIndex = -1;
   }
 }
 
-/* --- MOBILE CONTROLLER --- */
-class MobileAppController {
+window.TagAutocomplete = TagAutocomplete;
+
+/**
+ * OmniTag Mobile - Mobile Edition Controller
+ * Powers the dedicated smartphone UI while reusing the core API sources engine
+ */
+
+class OmniTagMobileApp {
   constructor() {
     this.sourceManager = window.apiSourceManager;
     this.posts = [];
     this.filteredPosts = [];
     this.currentPage = 0;
     this.currentQuery = "";
-    this.favorites = JSON.parse(localStorage.getItem("omnitag_favorites") || "[]");
-    this.activeFilter = { rating: "all", media: "all", aspect: "all", sort: "default" };
+    this.activeTab = "search";
+    this.activeFilter = "all";
+    this.activeRating = "all";
+    this.activeMedia = "all";
+    this.activeAspect = "all";
+    this.activeSort = "default";
+    this.viewerIndex = -1;
+    this.favorites = this.loadFavorites();
 
-    this.init();
+    this.initElements();
+    this.initTheme();
+    this.initAutocomplete();
+    this.updateSourceBadge();
+    this.initInstallPrompt();
+    this.bindEvents();
+    
+    // Auto-load initial feed
+    this.executeSearch("", 0);
   }
 
-  init() {
-    this.input = document.getElementById("mobile-search-input");
+  initElements() {
+    this.searchInput = document.getElementById("mobile-search-input");
+    this.searchBtn = document.getElementById("mobile-search-btn");
+    this.clearBtn = document.getElementById("mobile-clear-btn");
+    this.autocompleteEl = document.getElementById("mobile-autocomplete");
     this.grid = document.getElementById("mobile-grid");
     this.paginationEl = document.getElementById("mobile-pagination");
-    this.statusEl = document.getElementById("feed-results-info");
+    this.resultsInfoEl = document.getElementById("feed-results-info");
+    this.refreshBtn = document.getElementById("feed-refresh-btn");
     this.sourceChip = document.getElementById("mobile-source-chip");
-    this.activeName = document.getElementById("active-source-name");
-    this.toast = document.getElementById("mobile-toast");
+    this.activeSourceName = document.getElementById("active-source-name");
+    this.themeBtn = document.getElementById("mobile-theme-btn");
+    this.sourcesSheet = document.getElementById("mobile-sources-sheet");
+    this.sourcesList = document.getElementById("mobile-sources-list");
+    this.closeSourcesBtn = document.getElementById("close-sources-sheet-btn");
+    this.addSourceBtn = document.getElementById("mobile-add-source-btn");
+
+    // Source Manager & Edit Sheet
+    this.editSourceSheet = document.getElementById("mobile-edit-source-sheet");
+    this.closeEditSourceBtn = document.getElementById("close-edit-source-btn");
+    this.sourceForm = document.getElementById("mobile-source-form");
+    this.cancelEditBtn = document.getElementById("m-src-cancel-btn");
+    this.deleteSourceBtn = document.getElementById("m-src-delete-btn");
+    this.srcTypeSelect = document.getElementById("m-src-type");
+    this.srcProxySelect = document.getElementById("m-src-proxy");
+    this.srcCustomProxyGroup = document.getElementById("m-src-custom-proxy-group");
+    this.exportBtn = document.getElementById("m-export-btn");
+    this.importFile = document.getElementById("m-import-file");
+    this.resetSourcesBtn = document.getElementById("m-reset-btn");
 
     // Viewer
-    this.viewer = document.getElementById("mobile-viewer-modal");
+    this.viewerModal = document.getElementById("mobile-viewer-modal");
     this.viewerStage = document.getElementById("viewer-media-stage");
+    this.viewerCloseBtn = document.getElementById("viewer-close-btn");
+    this.viewerFavBtn = document.getElementById("viewer-fav-btn");
+    this.viewerDownloadBtn = document.getElementById("viewer-download-btn");
+    this.viewerCopyBtn = document.getElementById("viewer-copy-btn");
+    this.viewerSourceBtn = document.getElementById("viewer-source-btn");
+    this.viewerMetaRow = document.getElementById("viewer-meta-row");
+    this.viewerTagsWrap = document.getElementById("viewer-tags-chips");
 
-    new TagAutocomplete(this.input, document.getElementById("mobile-autocomplete"), () => {
-      this.search(this.input.value);
-    });
+    // Toast
+    this.toastEl = document.getElementById("mobile-toast");
 
-    // PWA Install prompt handling
-    let deferredPrompt;
-    const installBanner = document.getElementById("install-banner");
-    const installBtn = document.getElementById("install-btn");
+    // Install Banner & Modal
+    this.installBanner = document.getElementById("install-banner");
+    this.installBtn = document.getElementById("install-btn");
+    this.installModal = document.getElementById("install-modal");
+    this.installInstructions = document.getElementById("install-instructions");
+    this.closeInstallModalBtn = document.getElementById("close-install-modal-btn");
+    this.dismissInstallModalBtn = document.getElementById("dismiss-install-modal-btn");
+  }
+
+  initInstallPrompt() {
+    this.deferredInstallPrompt = null;
 
     window.addEventListener("beforeinstallprompt", (e) => {
       e.preventDefault();
-      deferredPrompt = e;
-      installBanner.style.display = "flex";
+      this.deferredInstallPrompt = e;
+      if (this.installBanner) this.installBanner.style.display = "flex";
     });
 
-    installBtn.addEventListener("click", async () => {
-      if (deferredPrompt) {
-        deferredPrompt.prompt();
-        const { outcome } = await deferredPrompt.userChoice;
-        if (outcome === "accepted") installBanner.style.display = "none";
-        deferredPrompt = null;
-      } else {
-        alert("To install on iOS Safari: Tap Share [↑] -> 'Add to Home Screen'.\nTo install on Android: Tap Chrome Menu (⋮) -> 'Install App'.");
-      }
-    });
+    if (this.installBtn) {
+      this.installBtn.addEventListener("click", async () => {
+        if (this.deferredInstallPrompt) {
+          this.deferredInstallPrompt.prompt();
+          const choice = await this.deferredInstallPrompt.userChoice;
+          if (choice.outcome === "accepted") {
+            if (this.installBanner) this.installBanner.style.display = "none";
+          }
+          this.deferredInstallPrompt = null;
+        } else {
+          this.showInstallHelp();
+        }
+      });
+    }
 
-    this.bind();
-    this.search("", 0);
+    if (this.closeInstallModalBtn) {
+      this.closeInstallModalBtn.addEventListener("click", () => {
+        this.installModal.style.display = "none";
+      });
+    }
+
+    if (this.dismissInstallModalBtn) {
+      this.dismissInstallModalBtn.addEventListener("click", () => {
+        this.installModal.style.display = "none";
+      });
+    }
+
+    if (this.installModal) {
+      const overlay = this.installModal.querySelector(".sheet-overlay");
+      if (overlay) overlay.addEventListener("click", () => {
+        this.installModal.style.display = "none";
+      });
+    }
   }
 
-  bind() {
-    document.getElementById("mobile-search-btn").addEventListener("click", () => this.search(this.input.value));
-    this.input.addEventListener("keydown", (e) => { if (e.key === "Enter") this.search(this.input.value); });
+  showInstallHelp() {
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+    let html = "";
 
+    if (isIOS) {
+      html = `
+        <div style="background: var(--m-surface-elevated); padding: 12px; border-radius: 10px; margin-bottom: 10px;">
+          <strong style="color: var(--m-accent);">How to install on iPhone (Safari):</strong>
+          <ol style="margin: 8px 0 0 18px; padding: 0;">
+            <li style="margin-bottom: 6px;">Tap the <strong>Share</strong> button <span style="font-size: 16px;">[↑]</span> at the bottom of Safari.</li>
+            <li style="margin-bottom: 6px;">Scroll down and tap <strong>"Add to Home Screen"</strong> (➕).</li>
+            <li>Tap <strong>"Add"</strong> in the top right corner.</li>
+          </ol>
+        </div>
+        <p style="color: var(--m-text-sub); font-size: 12px;">OmniTag will now be installed as an icon on your home screen and open in full-screen mode!</p>
+      `;
+    } else {
+      html = `
+        <div style="background: var(--m-surface-elevated); padding: 12px; border-radius: 10px; margin-bottom: 10px;">
+          <strong style="color: var(--m-accent);">How to install on Android (Chrome):</strong>
+          <ol style="margin: 8px 0 0 18px; padding: 0;">
+            <li style="margin-bottom: 6px;">Tap the <strong>three dots (⋮)</strong> in the top-right corner of Chrome.</li>
+            <li style="margin-bottom: 6px;">Tap <strong>"Install App"</strong> (or <strong>"Add to Home screen"</strong>).</li>
+            <li>Tap <strong>"Install"</strong> in the popup.</li>
+          </ol>
+        </div>
+        <p style="color: var(--m-text-sub); font-size: 12px;">OmniTag will be downloaded into your apps list just like an app store app!</p>
+      `;
+    }
+
+    if (this.installInstructions) this.installInstructions.innerHTML = html;
+    if (this.installModal) this.installModal.style.display = "flex";
+  }
+
+  initTheme() {
+    const saved = localStorage.getItem("omnitag_theme") || "dark";
+    document.documentElement.setAttribute("data-theme", saved);
+  }
+
+  toggleTheme() {
+    const curr = document.documentElement.getAttribute("data-theme") || "dark";
+    const next = curr === "dark" ? "light" : "dark";
+    document.documentElement.setAttribute("data-theme", next);
+    localStorage.setItem("omnitag_theme", next);
+  }
+
+  initAutocomplete() {
+    this.ac = new window.TagAutocomplete(
+      this.searchInput,
+      this.autocompleteEl,
+      (item) => {
+        this.executeSearch(this.searchInput.value);
+      }
+    );
+  }
+
+  updateSourceBadge() {
+    const active = this.sourceManager.getActiveSource();
+    if (this.activeSourceName && active) {
+      this.activeSourceName.textContent = active.name;
+    }
+  }
+
+  bindEvents() {
+    // Theme
+    this.themeBtn.addEventListener("click", () => this.toggleTheme());
+
+    // Search events
+    this.searchBtn.addEventListener("click", () => this.executeSearch(this.searchInput.value));
+    this.searchInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") this.executeSearch(this.searchInput.value);
+    });
+
+    this.searchInput.addEventListener("input", () => {
+      this.clearBtn.style.display = this.searchInput.value ? "block" : "none";
+    });
+
+    this.clearBtn.addEventListener("click", () => {
+      this.searchInput.value = "";
+      this.clearBtn.style.display = "none";
+      this.executeSearch("");
+    });
+
+    this.refreshBtn.addEventListener("click", () => {
+      this.executeSearch(this.currentQuery, this.currentPage);
+    });
+
+    // Filter pills
     document.querySelectorAll(".filter-pill").forEach(pill => {
       pill.addEventListener("click", () => {
         document.querySelectorAll(".filter-pill").forEach(p => p.classList.remove("active"));
         pill.classList.add("active");
-        this.activeFilter.rating = pill.dataset.rating || "all";
-        this.activeFilter.media = pill.dataset.media || "all";
-        this.activeFilter.aspect = pill.dataset.aspect || "all";
-        this.activeFilter.sort = pill.dataset.sort || "default";
-        this.render();
+
+        if (pill.dataset.filter === "all") {
+          this.activeRating = "all";
+          this.activeMedia = "all";
+          this.activeAspect = "all";
+          this.activeSort = "default";
+        } else if (pill.dataset.rating) {
+          this.activeRating = pill.dataset.rating;
+        } else if (pill.dataset.media) {
+          this.activeMedia = pill.dataset.media;
+        } else if (pill.dataset.aspect) {
+          this.activeAspect = pill.dataset.aspect;
+        } else if (pill.dataset.sort) {
+          this.activeSort = pill.dataset.sort;
+        }
+
+        this.applyFiltersAndRender();
       });
     });
 
+    // Bottom Tab Bar
     document.querySelectorAll(".nav-tab").forEach(tab => {
       tab.addEventListener("click", () => {
         document.querySelectorAll(".nav-tab").forEach(t => t.classList.remove("active"));
         tab.classList.add("active");
-        if (tab.dataset.tab === "search") this.search(this.input.value);
-        else if (tab.dataset.tab === "explore") { this.input.value = "landscape"; this.search("landscape"); }
-        else if (tab.dataset.tab === "saved") this.showSaved();
-        else if (tab.dataset.tab === "sources") this.openSourcesSheet();
+        this.switchTab(tab.dataset.tab);
       });
     });
 
+    // Sources Bottom Sheet
     this.sourceChip.addEventListener("click", () => this.openSourcesSheet());
-    document.getElementById("close-sources-sheet-btn").addEventListener("click", () => {
-      document.getElementById("mobile-sources-sheet").style.display = "none";
-    });
+    this.closeSourcesBtn.addEventListener("click", () => this.closeSourcesSheet());
+    this.sourcesSheet.querySelector(".sheet-overlay").addEventListener("click", () => this.closeSourcesSheet());
 
-    document.getElementById("viewer-close-btn").addEventListener("click", () => {
-      this.viewer.style.display = "none";
-      this.viewerStage.innerHTML = "";
-    });
+    // Add source button opens comprehensive Add/Edit modal
+    this.addSourceBtn.addEventListener("click", () => this.openEditSourceSheet());
 
-    document.getElementById("feed-refresh-btn").addEventListener("click", () => this.search(this.currentQuery, this.currentPage));
+    // Source Edit Sheet Events
+    if (this.closeEditSourceBtn) {
+      this.closeEditSourceBtn.addEventListener("click", () => this.closeEditSourceSheet());
+    }
+    if (this.editSourceSheet) {
+      this.editSourceSheet.querySelector(".sheet-overlay").addEventListener("click", () => this.closeEditSourceSheet());
+    }
+    if (this.cancelEditBtn) {
+      this.cancelEditBtn.addEventListener("click", () => this.closeEditSourceSheet());
+    }
+    if (this.srcProxySelect) {
+      this.srcProxySelect.addEventListener("change", (e) => {
+        if (this.srcCustomProxyGroup) {
+          this.srcCustomProxyGroup.style.display = e.target.value === "custom" ? "block" : "none";
+        }
+      });
+    }
+    if (this.sourceForm) {
+      this.sourceForm.addEventListener("submit", (e) => this.handleSaveSource(e));
+    }
+    if (this.deleteSourceBtn) {
+      this.deleteSourceBtn.addEventListener("click", () => this.handleDeleteSource());
+    }
+    if (this.exportBtn) {
+      this.exportBtn.addEventListener("click", () => this.exportSources());
+    }
+    if (this.importFile) {
+      this.importFile.addEventListener("change", (e) => this.importSources(e));
+    }
+    if (this.resetSourcesBtn) {
+      this.resetSourcesBtn.addEventListener("click", () => this.resetSources());
+    }
+
+    // Viewer Controls
+    this.viewerCloseBtn.addEventListener("click", () => this.closeViewer());
+    this.viewerFavBtn.addEventListener("click", () => this.toggleViewerFavorite());
+    this.viewerCopyBtn.addEventListener("click", () => this.copyViewerMediaUrl());
+    this.viewerDownloadBtn.addEventListener("click", () => this.downloadViewerMedia());
   }
 
-  async search(q = "", page = 0) {
-    this.currentQuery = q.trim();
-    this.currentPage = page;
-    this.statusEl.textContent = "Loading...";
-    this.grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 40px; color: var(--m-text-sub);">Loading posts...</div>';
-
-    try {
-      this.posts = await this.sourceManager.fetchPosts(this.currentQuery, page, 24);
-      this.render();
-    } catch (e) {
-      this.statusEl.textContent = "Error loading";
-      this.grid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 30px; color: var(--m-danger);">${e.message}</div>`;
+  switchTab(tab) {
+    this.activeTab = tab;
+    if (tab === "search") {
+      this.executeSearch(this.currentQuery, 0);
+    } else if (tab === "explore") {
+      this.searchInput.value = "landscape";
+      this.executeSearch("landscape", 0);
+    } else if (tab === "saved") {
+      this.renderSavedPosts();
+    } else if (tab === "sources") {
+      this.openSourcesSheet();
     }
   }
 
-  render() {
-    let list = [...this.posts];
-    if (this.activeFilter.rating === "s") list = list.filter(p => (p.rating || "").startsWith("s") || p.rating === "general");
-    if (this.activeFilter.media === "video") list = list.filter(p => p.isVideo || p.isGif);
-    if (this.activeFilter.media === "image") list = list.filter(p => !p.isVideo && !p.isGif);
-    if (this.activeFilter.aspect === "tall") list = list.filter(p => p.aspectRatio < 0.9);
-    if (this.activeFilter.aspect === "wide") list = list.filter(p => p.aspectRatio > 1.1);
-    if (this.activeFilter.sort === "score") list.sort((a, b) => b.score - a.score);
+  switchSource(id) {
+    if (this.sourceManager.setActiveSource(id)) {
+      this.updateSourceBadge();
+      this.showToast(`Switched to ${this.sourceManager.getActiveSource().name}`);
+      this.executeSearch(this.currentQuery, 0);
+    }
+  }
 
-    this.filteredPosts = list;
+  async executeSearch(query = "", page = 0) {
+    this.currentQuery = query.trim();
+    this.currentPage = page;
+    this.searchInput.value = this.currentQuery;
+
+    this.resultsInfoEl.textContent = "Loading...";
+    this.grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 40px; color: var(--m-text-sub);">Loading feed...</div>';
+
+    try {
+      const posts = await this.sourceManager.fetchPosts(this.currentQuery, page, 24);
+      this.posts = posts;
+      this.applyFiltersAndRender();
+    } catch (err) {
+      this.resultsInfoEl.textContent = "Error loading";
+      let errMsg = err.message || "Failed to load posts";
+      let isCors = errMsg.includes("Failed to fetch") || errMsg.includes("NetworkError") || errMsg.includes("CORS");
+      
+      let suggestion = "";
+      if (isCors && window.location.hostname.includes("github.io")) {
+        errMsg = `${this.sourceManager.getActiveSource().name} blocks direct requests from GitHub Pages due to browser CORS policies.`;
+        suggestion = `<p style="font-size: 12px; color: var(--m-text-sub); margin-bottom: 12px;">Danbooru supports direct requests and works 24/7 on GitHub Pages.</p>
+        <button class="sheet-action-btn primary" onclick="mobileApp.switchSource('danbooru')" style="margin-bottom: 8px;">Switch to Danbooru (Works 24/7)</button>`;
+      }
+
+      this.grid.innerHTML = `
+        <div style="grid-column: 1/-1; text-align: center; padding: 30px;">
+          <p style="color: var(--m-danger); margin-bottom: 10px; font-size: 13px; line-height: 1.5;">${this.escapeHtml(errMsg)}</p>
+          ${suggestion}
+          <button class="sheet-action-btn" onclick="mobileApp.executeSearch(mobileApp.currentQuery, mobileApp.currentPage)">Retry</button>
+        </div>
+      `;
+    }
+  }
+
+  applyFiltersAndRender() {
+    let result = [...this.posts];
+
+    if (this.activeRating === "s") {
+      result = result.filter(p => (p.rating || "").toLowerCase().startsWith("s") || (p.rating || "").toLowerCase() === "general");
+    }
+
+    if (this.activeMedia === "video") {
+      result = result.filter(p => p.isVideo || p.isGif);
+    } else if (this.activeMedia === "image") {
+      result = result.filter(p => !p.isVideo && !p.isGif);
+    }
+
+    if (this.activeAspect === "tall") {
+      result = result.filter(p => p.aspectRatio < 0.9);
+    } else if (this.activeAspect === "wide") {
+      result = result.filter(p => p.aspectRatio > 1.1);
+    }
+
+    if (this.activeSort === "score") {
+      result.sort((a, b) => b.score - a.score);
+    }
+
+    this.filteredPosts = result;
+    this.renderGrid();
+  }
+
+  renderGrid() {
     this.grid.innerHTML = "";
-    this.statusEl.textContent = `${list.length} posts (Page ${this.currentPage + 1})`;
+    this.resultsInfoEl.textContent = `${this.filteredPosts.length} posts (Page ${this.currentPage + 1})`;
 
-    list.forEach((post, i) => {
+    if (this.filteredPosts.length === 0) {
+      this.grid.innerHTML = `
+        <div style="grid-column: 1/-1; text-align: center; padding: 50px 20px; color: var(--m-text-sub);">
+          <p style="font-size: 16px; margin-bottom: 6px;">No posts found</p>
+          <p style="font-size: 12px;">Try different tags or switch API source</p>
+        </div>
+      `;
+      this.paginationEl.innerHTML = "";
+      return;
+    }
+
+    this.filteredPosts.forEach((post, index) => {
       const card = document.createElement("div");
       card.className = "mobile-card";
-      card.innerHTML = `<img src="${post.previewUrl}" alt="Post ${post.id}" loading="lazy"/>`;
-      card.addEventListener("click", () => this.openViewer(post));
+
+      let badge = "";
+      if (post.isVideo) badge = `<span class="card-badge">VIDEO</span>`;
+      else if (post.isGif) badge = `<span class="card-badge">GIF</span>`;
+
+      const isFav = this.isFavorite(post.id);
+
+      card.innerHTML = `
+        <img src="${this.escapeHtml(post.previewUrl)}" alt="Post ${post.id}" loading="lazy" />
+        ${badge}
+        <button class="card-fav-star ${isFav ? "active" : ""}">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="${isFav ? "currentColor" : "none"}" stroke="currentColor" stroke-width="2">
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+          </svg>
+        </button>
+      `;
+
+      card.addEventListener("click", () => this.openViewer(index));
+
+      const star = card.querySelector(".card-fav-star");
+      star.addEventListener("click", (e) => {
+        e.stopPropagation();
+        this.toggleFavorite(post);
+        star.classList.toggle("active");
+        star.querySelector("svg").setAttribute("fill", this.isFavorite(post.id) ? "currentColor" : "none");
+      });
+
       this.grid.appendChild(card);
     });
 
-    this.paginationEl.innerHTML = `
-      <button class="sheet-action-btn" id="prev-pg" ${this.currentPage <= 0 ? "disabled" : ""}>&larr; Prev</button>
-      <span style="font-size: 13px; font-weight: 600;">Page ${this.currentPage + 1}</span>
-      <button class="sheet-action-btn" id="next-pg">Next &rarr;</button>
-    `;
-    const prev = document.getElementById("prev-pg");
-    const next = document.getElementById("next-pg");
-    if (prev) prev.onclick = () => { if (this.currentPage > 0) this.search(this.currentQuery, this.currentPage - 1); };
-    if (next) next.onclick = () => this.search(this.currentQuery, this.currentPage + 1);
+    this.renderPagination();
   }
 
-  openViewer(post) {
-    this.viewer.style.display = "flex";
-    this.viewerStage.innerHTML = "";
+  renderPagination() {
+    this.paginationEl.innerHTML = `
+      <button class="sheet-action-btn" id="m-prev-btn" ${this.currentPage <= 0 ? "disabled" : ""}>&larr; Prev</button>
+      <span style="font-size: 13px; font-weight: 600;">Page ${this.currentPage + 1}</span>
+      <button class="sheet-action-btn" id="m-next-btn">Next &rarr;</button>
+    `;
+
+    const prev = document.getElementById("m-prev-btn");
+    const next = document.getElementById("m-next-btn");
+
+    if (prev) {
+      prev.addEventListener("click", () => {
+        if (this.currentPage > 0) this.executeSearch(this.currentQuery, this.currentPage - 1);
+      });
+    }
+
+    if (next) {
+      next.addEventListener("click", () => {
+        this.executeSearch(this.currentQuery, this.currentPage + 1);
+      });
+    }
+  }
+
+  // ==========================================
+  // MOBILE FULLSCREEN VIEWER
+  // ==========================================
+
+  openViewer(index) {
+    if (index < 0 || index >= this.filteredPosts.length) return;
+    this.viewerIndex = index;
+    const post = this.filteredPosts[index];
+
+    this.viewerModal.style.display = "flex";
+    this.viewerStage.innerHTML = '<div style="color: #fff;">Loading...</div>';
 
     if (post.isVideo) {
-      const v = document.createElement("video");
-      v.src = post.fileUrl;
-      v.controls = true;
-      v.autoplay = true;
-      v.loop = true;
-      v.style.maxWidth = "100%";
-      this.viewerStage.appendChild(v);
+      const vid = document.createElement("video");
+      vid.src = post.fileUrl || post.sampleUrl;
+      vid.controls = true;
+      vid.autoplay = true;
+      vid.loop = true;
+      vid.style.maxWidth = "100%";
+      vid.style.maxHeight = "100%";
+      this.viewerStage.innerHTML = "";
+      this.viewerStage.appendChild(vid);
     } else {
       const img = document.createElement("img");
       img.src = post.sampleUrl || post.fileUrl;
-      this.viewerStage.appendChild(img);
+      img.onload = () => {
+        this.viewerStage.innerHTML = "";
+        this.viewerStage.appendChild(img);
+      };
+      img.onerror = () => {
+        img.src = post.fileUrl || post.previewUrl;
+      };
     }
 
-    document.getElementById("viewer-meta-row").innerHTML = `<span>#${post.id}</span><span>${post.width}×${post.height}</span><span>★ ${post.score}</span>`;
-    document.getElementById("viewer-source-btn").href = post.postPageUrl || post.fileUrl;
-    document.getElementById("viewer-copy-btn").onclick = () => {
-      navigator.clipboard.writeText(post.fileUrl);
-      this.toastMsg("Copied link!");
-    };
-    document.getElementById("viewer-download-btn").onclick = () => {
-      const a = document.createElement("a");
-      a.href = post.fileUrl;
-      a.download = `omnitag_${post.id}.${post.ext}`;
-      a.target = "_blank";
-      a.click();
-    };
+    this.viewerMetaRow.innerHTML = `
+      <span>#${post.id}</span>
+      <span>${post.width}×${post.height}</span>
+      <span>★ ${post.score}</span>
+      <span>${post.ext.toUpperCase()}</span>
+    `;
 
-    const tagsWrap = document.getElementById("viewer-tags-chips");
-    tagsWrap.innerHTML = "";
-    (post.tags || []).slice(0, 25).forEach(t => {
-      const c = document.createElement("button");
-      c.className = "mobile-tag-chip";
-      c.textContent = t.replace(/_/g, " ");
-      c.onclick = () => {
-        this.viewer.style.display = "none";
-        this.input.value = t;
-        this.search(t);
-      };
-      tagsWrap.appendChild(c);
+    this.viewerSourceBtn.href = post.postPageUrl || post.fileUrl;
+
+    // Render tags
+    this.viewerTagsWrap.innerHTML = "";
+    (post.tags || []).slice(0, 30).forEach(tag => {
+      const chip = document.createElement("button");
+      chip.className = "mobile-tag-chip";
+      chip.textContent = tag.replace(/_/g, " ");
+      chip.addEventListener("click", () => {
+        this.closeViewer();
+        this.executeSearch(tag, 0);
+      });
+      this.viewerTagsWrap.appendChild(chip);
+    });
+
+    const isFav = this.isFavorite(post.id);
+    this.viewerFavBtn.querySelector("svg").setAttribute("fill", isFav ? "#f85149" : "none");
+  }
+
+  closeViewer() {
+    this.viewerModal.style.display = "none";
+    this.viewerStage.innerHTML = "";
+    this.viewerIndex = -1;
+  }
+
+  toggleViewerFavorite() {
+    if (this.viewerIndex < 0) return;
+    const post = this.filteredPosts[this.viewerIndex];
+    this.toggleFavorite(post);
+    const isFav = this.isFavorite(post.id);
+    this.viewerFavBtn.querySelector("svg").setAttribute("fill", isFav ? "#f85149" : "none");
+  }
+
+  copyViewerMediaUrl() {
+    if (this.viewerIndex < 0) return;
+    const post = this.filteredPosts[this.viewerIndex];
+    navigator.clipboard.writeText(post.fileUrl || post.sampleUrl).then(() => {
+      this.showToast("Copied link to clipboard!");
     });
   }
+
+  downloadViewerMedia() {
+    if (this.viewerIndex < 0) return;
+    const post = this.filteredPosts[this.viewerIndex];
+    const a = document.createElement("a");
+    a.href = post.fileUrl || post.sampleUrl;
+    a.download = `${post.sourceId}_${post.id}.${post.ext}`;
+    a.target = "_blank";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    this.showToast("Download started!");
+  }
+
+  // ==========================================
+  // SOURCES BOTTOM SHEET & SOURCE MANAGER
+  // ==========================================
 
   openSourcesSheet() {
-    const list = document.getElementById("mobile-sources-list");
-    list.innerHTML = "";
-    this.sourceManager.getSources().forEach(src => {
-      const div = document.createElement("div");
-      div.className = `sheet-source-card ${src.id === this.sourceManager.getActiveSource()?.id ? "active" : ""}`;
-      div.innerHTML = `<div><div style="font-weight:600;">${src.name}</div><div style="font-size:11px;color:var(--m-text-sub);">${src.baseUrl}</div></div><span>SELECT</span>`;
-      div.onclick = () => {
+    const sources = this.sourceManager.getSources();
+    const activeId = this.sourceManager.getActiveSource()?.id;
+
+    this.sourcesList.innerHTML = "";
+    sources.forEach(src => {
+      const row = document.createElement("div");
+      row.className = `sheet-source-card ${src.id === activeId ? "active" : ""}`;
+
+      const hasKey = !!(src.apiKey && src.apiKey.trim());
+      const keyBadge = hasKey ? `<span class="sheet-source-key-badge">&#128273; Key Set</span>` : "";
+      const presetBadge = `<span class="sheet-source-badge">${src.isPreset ? "Preset" : "Custom"}</span>`;
+
+      row.innerHTML = `
+        <div class="sheet-source-info">
+          <div class="sheet-source-name-row">
+            <div class="sheet-source-title">${this.escapeHtml(src.name)}</div>
+            ${presetBadge}
+            ${keyBadge}
+          </div>
+          <div class="sheet-source-url">${this.escapeHtml(src.baseUrl)}</div>
+        </div>
+        <div class="sheet-source-actions">
+          <button class="sheet-source-edit-btn" type="button" title="Edit source and credentials">Edit</button>
+          ${src.id === activeId ? '<span class="sheet-source-active-pill">ACTIVE</span>' : '<span style="font-size: 11px; font-weight: 600; color: var(--m-text-sub);">SWITCH</span>'}
+        </div>
+      `;
+
+      // Edit button handler
+      const editBtn = row.querySelector(".sheet-source-edit-btn");
+      editBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        this.openEditSourceSheet(src);
+      });
+
+      // Switch active source handler
+      row.addEventListener("click", () => {
         this.sourceManager.setActiveSource(src.id);
-        this.activeName.textContent = src.name;
-        document.getElementById("mobile-sources-sheet").style.display = "none";
-        this.toastMsg(`Switched to ${src.name}`);
-        this.search(this.currentQuery, 0);
-      };
-      list.appendChild(div);
+        this.updateSourceBadge();
+        this.closeSourcesSheet();
+        this.showToast(`Switched API to ${src.name}`);
+        this.executeSearch(this.currentQuery, 0);
+      });
+
+      this.sourcesList.appendChild(row);
     });
-    document.getElementById("mobile-sources-sheet").style.display = "flex";
+
+    this.sourcesSheet.style.display = "flex";
   }
 
-  showSaved() {
+  closeSourcesSheet() {
+    this.sourcesSheet.style.display = "none";
+  }
+
+  openEditSourceSheet(source = null) {
+    const isEdit = !!source;
+    document.getElementById("m-edit-sheet-title").textContent = isEdit ? `Edit ${source.name}` : "Add Custom API";
+    document.getElementById("m-src-id").value = source ? source.id : "";
+    document.getElementById("m-src-name").value = source ? source.name : "";
+    document.getElementById("m-src-type").value = source ? source.type : "gelbooru_dapi";
+    document.getElementById("m-src-base").value = source ? source.baseUrl : "https://";
+    document.getElementById("m-src-apikey").value = source ? (source.apiKey || "") : "";
+    document.getElementById("m-src-userid").value = source ? (source.userId || "") : "";
+    document.getElementById("m-src-proxy").value = source ? (source.proxyMode || "auto") : "auto";
+    document.getElementById("m-src-custom-proxy").value = source ? (source.customProxyUrl || "") : "";
+    document.getElementById("m-src-posts").value = source ? (source.postsUrl || "") : "";
+    document.getElementById("m-src-tags").value = source ? (source.tagsUrl || "") : "";
+
+    if (this.srcCustomProxyGroup) {
+      this.srcCustomProxyGroup.style.display = (source?.proxyMode === "custom") ? "block" : "none";
+    }
+
+    if (this.deleteSourceBtn) {
+      // Custom sources can be deleted, presets cannot
+      this.deleteSourceBtn.style.display = (source && !source.isPreset) ? "block" : "none";
+    }
+
+    this.sourcesSheet.style.display = "none";
+    this.editSourceSheet.style.display = "flex";
+  }
+
+  closeEditSourceSheet() {
+    this.editSourceSheet.style.display = "none";
+  }
+
+  handleSaveSource(e) {
+    e.preventDefault();
+    const id = document.getElementById("m-src-id").value;
+    const name = document.getElementById("m-src-name").value.trim();
+    const type = document.getElementById("m-src-type").value;
+    const baseUrl = document.getElementById("m-src-base").value.trim().replace(/\/$/, "");
+    let postsUrl = document.getElementById("m-src-posts").value.trim();
+    let tagsUrl = document.getElementById("m-src-tags").value.trim();
+    const proxyMode = document.getElementById("m-src-proxy").value;
+    const customProxyUrl = document.getElementById("m-src-custom-proxy").value.trim();
+    const apiKey = document.getElementById("m-src-apikey").value.trim();
+    const userId = document.getElementById("m-src-userid").value.trim();
+    const existing = id ? this.sourceManager.getSource(id) : null;
+
+    if (!name || !baseUrl) {
+      this.showToast("Name and Base URL are required.");
+      return;
+    }
+
+    // Auto-fill standard endpoints if left blank
+    if (!postsUrl) {
+      if (type === "gelbooru_dapi") {
+        postsUrl = `${baseUrl}/index.php?page=dapi&s=post&q=index&json=1&limit={limit}&pid={page}&tags={tags}`;
+      } else if (type === "danbooru_v2") {
+        postsUrl = `${baseUrl}/posts.json?limit={limit}&page={page}&tags={tags}`;
+      } else if (type === "moebooru") {
+        postsUrl = `${baseUrl}/post.json?limit={limit}&page={page}&tags={tags}`;
+      }
+    }
+
+    if (!tagsUrl) {
+      if (type === "gelbooru_dapi") {
+        tagsUrl = `${baseUrl}/autocomplete.php?q={query}`;
+      } else if (type === "danbooru_v2") {
+        tagsUrl = `${baseUrl}/autocomplete.json?search[query]={query}&search[type]=tag_query&version=1&limit=12`;
+      } else if (type === "moebooru") {
+        tagsUrl = `${baseUrl}/tag.json?name={query}&order=count&limit=12`;
+      }
+    }
+
+    const sourceData = {
+      id: id || ("custom_" + Date.now().toString(36)),
+      name,
+      type,
+      baseUrl,
+      postsUrl,
+      tagsUrl,
+      proxyMode,
+      customProxyUrl,
+      apiKey,
+      userId,
+      isPreset: existing ? existing.isPreset : false,
+      description: existing ? existing.description : "Custom API Source"
+    };
+
+    this.sourceManager.saveSource(sourceData);
+    this.sourceManager.setActiveSource(sourceData.id);
+    this.updateSourceBadge();
+    this.closeEditSourceSheet();
+    this.showToast(`Saved ${name}!`);
+    this.executeSearch(this.currentQuery, 0);
+  }
+
+  handleDeleteSource() {
+    const id = document.getElementById("m-src-id").value;
+    const source = this.sourceManager.getSource(id);
+    if (!source || source.isPreset) return;
+
+    if (confirm(`Delete custom source "${source.name}"?`)) {
+      this.sourceManager.deleteSource(id);
+      this.updateSourceBadge();
+      this.closeEditSourceSheet();
+      this.showToast(`Deleted ${source.name}`);
+      this.executeSearch(this.currentQuery, 0);
+    }
+  }
+
+  exportSources() {
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(this.sourceManager.exportSources());
+    const dl = document.createElement("a");
+    dl.setAttribute("href", dataStr);
+    dl.setAttribute("download", `omnitag_sources_backup_${Date.now()}.json`);
+    document.body.appendChild(dl);
+    dl.click();
+    dl.remove();
+    this.showToast("Sources exported to JSON");
+  }
+
+  importSources(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        this.sourceManager.importSources(event.target.result);
+        this.openSourcesSheet();
+        this.updateSourceBadge();
+        this.showToast("Sources imported successfully!");
+        this.executeSearch(this.currentQuery, 0);
+      } catch (err) {
+        this.showToast("Import failed: " + err.message);
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = "";
+  }
+
+  resetSources() {
+    if (confirm("Reset all sources to default? Any custom endpoints will be cleared.")) {
+      this.sourceManager.resetToDefaults();
+      this.openSourcesSheet();
+      this.updateSourceBadge();
+      this.showToast("Reset sources to default");
+      this.executeSearch(this.currentQuery, 0);
+    }
+  }
+
+  // ==========================================
+  // SAVED POSTS
+  // ==========================================
+
+  loadFavorites() {
+    try {
+      const saved = localStorage.getItem("omnitag_favorites");
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  }
+
+  saveFavorites() {
+    localStorage.setItem("omnitag_favorites", JSON.stringify(this.favorites));
+  }
+
+  isFavorite(id) {
+    return this.favorites.some(f => f.id === id);
+  }
+
+  toggleFavorite(post) {
+    if (this.isFavorite(post.id)) {
+      this.favorites = this.favorites.filter(f => f.id !== post.id);
+      this.showToast("Removed from saved");
+    } else {
+      this.favorites.unshift(post);
+      this.showToast("Saved to favorites!");
+    }
+    this.saveFavorites();
+    if (this.activeTab === "saved") {
+      this.renderSavedPosts();
+    }
+  }
+
+  renderSavedPosts() {
     this.filteredPosts = this.favorites;
-    this.statusEl.textContent = `${this.favorites.length} saved`;
-    this.grid.innerHTML = "";
-    this.favorites.forEach(post => {
-      const card = document.createElement("div");
-      card.className = "mobile-card";
-      card.innerHTML = `<img src="${post.previewUrl}" alt="Post ${post.id}"/>`;
-      card.onclick = () => this.openViewer(post);
-      this.grid.appendChild(card);
-    });
+    this.resultsInfoEl.textContent = `${this.favorites.length} saved bookmarks`;
+    this.renderGrid();
     this.paginationEl.innerHTML = "";
   }
 
-  toastMsg(msg) {
-    this.toast.textContent = msg;
-    this.toast.className = "mobile-toast show";
-    setTimeout(() => { this.toast.className = "mobile-toast"; }, 2000);
+  showToast(msg) {
+    this.toastEl.textContent = msg;
+    this.toastEl.classList.add("show");
+    clearTimeout(this.toastTimer);
+    this.toastTimer = setTimeout(() => {
+      this.toastEl.classList.remove("show");
+    }, 2400);
+  }
+
+  escapeHtml(str) {
+    if (!str) return "";
+    return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
   }
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  new MobileAppController();
+  window.mobileApp = new OmniTagMobileApp();
 });
+
+</script>
+
+  <!-- PWA Service Worker Registration -->
+  <script>
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("sw.js").catch(e => console.log("SW registration:", e));
+      });
+    }
   </script>
+
 </body>
 </html>
