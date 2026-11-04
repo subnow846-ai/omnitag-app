@@ -558,10 +558,10 @@ class OmniTagMobileApp {
   // ==========================================
 
   switchTab(tab) {
-    if (tab === "sources") {
-      this.previousTab = (this.activeTab !== "sources" ? this.activeTab : (this.previousTab || "feed"));
+    if (tab === "sources" || tab === "apis") {
+      this.previousTab = (this.activeTab !== "sources" && this.activeTab !== "apis") ? this.activeTab : (this.previousTab || "feed");
       document.querySelectorAll(".nav-tab").forEach(t => {
-        t.classList.toggle("active", t.dataset.tab === "sources");
+        t.classList.toggle("active", t.dataset.tab === "sources" || t.dataset.tab === "apis");
       });
       this.openSourcesSheet();
       return;
@@ -738,16 +738,55 @@ class OmniTagMobileApp {
     slide.dataset.index = index;
     slide.dataset.id = post.id;
 
-    const mediaSrc = post.sampleUrl || post.fileUrl || post.previewUrl || "";
-    const fallbackSrc = post.previewUrl || mediaSrc;
+    const mediaSrc = isVideo ? (post.videoUrl || post.fileUrl || post.sampleUrl) : (post.sampleUrl || post.fileUrl || post.previewUrl || "");
+    const fallbackSrc = isVideo ? (post.sampleUrl || post.fileUrl) : (post.previewUrl || mediaSrc);
+    const sourceDisplayName = post.source || post.sourceSite || (this.sourceManager?.getActiveSource()?.name) || "Safebooru";
 
     slide.innerHTML = `
       <div class="tiktok-media-stage">
         ${isVideo ? `
-          <video src="${mediaSrc}" class="tiktok-media-el" playsinline webkit-playsinline loop muted referrerpolicy="no-referrer"></video>
-          <div class="tiktok-video-badge">VIDEO</div>
+          <div class="tiktok-video-wrapper" style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; position: relative;">
+            <video 
+              src="${mediaSrc}" 
+              class="tiktok-media-el tiktok-video-el" 
+              playsinline 
+              webkit-playsinline 
+              loop 
+              muted 
+              autoplay
+              preload="auto"
+              poster="${post.previewUrl || ''}" 
+              referrerpolicy="no-referrer">
+            </video>
+            <div class="tiktok-video-badge">▶ VIDEO</div>
+          </div>
         ` : `
-          <img src="${mediaSrc}" alt="Post #${post.id}" class="tiktok-media-el" loading="lazy" referrerpolicy="no-referrer" onerror="if(this.dataset.tried!=='1'){this.dataset.tried='1';if(this.src!=='${fallbackSrc}'){this.src='${fallbackSrc}';}}">
+          <img 
+            src="${mediaSrc}" 
+            alt="Post #${post.id}" 
+            class="tiktok-media-el" 
+            loading="lazy" 
+            referrerpolicy="no-referrer"
+            onerror="
+              if (!this.dataset.step) {
+                this.dataset.step = '1';
+                if ('${fallbackSrc}' && this.src !== '${fallbackSrc}') {
+                  this.src = '${fallbackSrc}';
+                  return;
+                }
+              }
+              if (this.dataset.step === '1') {
+                this.dataset.step = '2';
+                this.src = 'https://corsproxy.org/?url=' + encodeURIComponent('${mediaSrc}');
+                return;
+              }
+              if (this.dataset.step === '2' && '${fallbackSrc}') {
+                this.dataset.step = '3';
+                this.src = 'https://corsproxy.org/?url=' + encodeURIComponent('${fallbackSrc}');
+                return;
+              }
+            "
+          >
         `}
       </div>
 
@@ -806,7 +845,7 @@ class OmniTagMobileApp {
       <div class="tiktok-info-overlay">
         <div class="tiktok-author-row">
           <span class="tiktok-post-id">#${post.id}</span>
-          <span class="tiktok-source-pill">${post.source || 'Safebooru'}</span>
+          <span class="tiktok-source-pill">${sourceDisplayName}</span>
           <span class="tiktok-meta-dim">${post.width}&times;${post.height}</span>
         </div>
         <div class="tiktok-tag-chips">
@@ -972,9 +1011,13 @@ class OmniTagMobileApp {
         <span>${this.escapeHtml(src.name)}</span>
       `;
       btn.addEventListener("click", () => {
-        if (active && active.id === src.id) return;
+        if (active && active.id === src.id) {
+          this.toggleFeedTagDrawer(false);
+          return;
+        }
         this.sourceManager.setActiveSource(src.id);
         this.updateSourceBadge();
+        this.toggleFeedTagDrawer(false);
         this.showToast(`Feed API: ${src.name}`);
         this.loadFeedPosts(true);
       });
@@ -1088,7 +1131,14 @@ class OmniTagMobileApp {
 
       card.innerHTML = `
         <div class="card-thumb-wrap">
-          <img src="${thumbUrl}" alt="Post #${post.id}" class="card-thumb" loading="lazy" referrerpolicy="no-referrer">
+          <img 
+            src="${thumbUrl}" 
+            alt="Post #${post.id}" 
+            class="card-thumb" 
+            loading="lazy" 
+            referrerpolicy="no-referrer"
+            onerror="if (!this.dataset.p) { this.dataset.p = '1'; this.src = 'https://corsproxy.org/?url=' + encodeURIComponent('${thumbUrl}'); }"
+          >
           ${post.isVideo ? '<span class="card-badge video">VIDEO</span>' : ""}
           <button class="card-fav-btn ${isFav ? "active" : ""}" data-id="${post.id}">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="${isFav ? "#f85149" : "none"}" stroke="currentColor" stroke-width="2">
@@ -1176,13 +1226,32 @@ class OmniTagMobileApp {
     } else {
       const img = document.createElement("img");
       img.setAttribute("referrerpolicy", "no-referrer");
-      img.src = post.sampleUrl || post.fileUrl || post.previewUrl;
+      const initialSrc = post.sampleUrl || post.fileUrl || post.previewUrl;
+      img.src = initialSrc;
       img.onload = () => {
         this.viewerStage.innerHTML = "";
         this.viewerStage.appendChild(img);
       };
       img.onerror = () => {
-        img.src = post.fileUrl || post.previewUrl;
+        if (!img.dataset.step) {
+          img.dataset.step = "1";
+          const fallback = post.fileUrl || post.previewUrl;
+          if (fallback && fallback !== initialSrc) {
+            img.src = fallback;
+            return;
+          }
+        }
+        if (img.dataset.step === "1") {
+          img.dataset.step = "2";
+          img.src = `https://corsproxy.org/?url=${encodeURIComponent(initialSrc)}`;
+          return;
+        }
+        if (img.dataset.step === "2" && post.previewUrl) {
+          img.dataset.step = "3";
+          img.src = `https://corsproxy.org/?url=${encodeURIComponent(post.previewUrl)}`;
+          return;
+        }
+        this.viewerStage.innerHTML = `<div style="color: var(--m-text-sub); padding: 40px; text-align: center;">Preview unavailable</div>`;
       };
     }
 
@@ -1615,7 +1684,7 @@ class OmniTagMobileApp {
 
   closeSourcesSheet() {
     this.sourcesSheet.classList.remove("open");
-    const tabToRestore = (this.previousTab && this.previousTab !== "sources") ? this.previousTab : (this.feedView && this.feedView.style.display !== "none" ? "feed" : "search");
+    const tabToRestore = (this.previousTab && this.previousTab !== "sources" && this.previousTab !== "apis") ? this.previousTab : (this.feedView && this.feedView.style.display !== "none" ? "feed" : "search");
     document.querySelectorAll(".nav-tab").forEach(t => {
       t.classList.toggle("active", t.dataset.tab === tabToRestore);
     });
@@ -1656,7 +1725,7 @@ class OmniTagMobileApp {
         this.closeSourcesSheet();
         this.showToast(`Switched to ${src.name}`);
 
-        const returnTab = (this.previousTab && this.previousTab !== "sources") ? this.previousTab : (this.activeTab === "feed" ? "feed" : "search");
+        const returnTab = (this.previousTab && this.previousTab !== "sources" && this.previousTab !== "apis") ? this.previousTab : (this.activeTab === "feed" ? "feed" : "search");
         
         if (returnTab === "feed") {
           this.switchTab("feed");

@@ -97,17 +97,8 @@ class ApiSourceManager {
     this.presetVersionKey = "omnitag_preset_version";
     this.sources = this.loadSources();
     
-    // In any web browser environment (without native AndroidBridge), Danbooru is the default
-    // because it natively supports CORS headers (Access-Control-Allow-Origin: *)
-    const isWeb = typeof window !== "undefined" && !window.AndroidBridge;
-    const defaultId = isWeb ? "danbooru" : "safebooru";
+    const defaultId = "safebooru";
     this.activeId = localStorage.getItem(this.activeKey) || defaultId;
-    
-    // In web mode, ensure active source has native CORS support (Danbooru) so requests never fail
-    if (isWeb && this.activeId === "safebooru" && !localStorage.getItem("omnitag_user_explicit_safebooru")) {
-      this.activeId = "danbooru";
-      localStorage.setItem(this.activeKey, "danbooru");
-    }
     
     // Ensure active source exists
     if (!this.getSource(this.activeId)) {
@@ -457,9 +448,9 @@ class ApiSourceManager {
     } catch (netErr) {
       // In web browsers/GitHub Pages, direct fetch can fail with CORS. Try reliable proxy fallback chain
       const proxyFallbacks = [
-        `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+        `https://corsproxy.org/?url=${encodeURIComponent(url)}`,
         `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`,
-        `https://corsproxy.io/?url=${encodeURIComponent(url)}`
+        `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`
       ];
 
       let lastError = netErr;
@@ -623,19 +614,21 @@ class ApiSourceManager {
       }
 
       // Determine extension & media type
-      const urlForExt = fileUrl || sampleUrl || "";
-      const extMatch = urlForExt.split('?')[0].match(/\.([a-z0-9]+)$/i);
-      const ext = extMatch ? extMatch[1].toLowerCase() : "jpg";
-      const isVideo = ["mp4", "webm", "zip"].includes(ext);
-      const isGif = ext === "gif";
+      const rawExt = (item.file_ext || "").toLowerCase();
+      const fileUrlExt = (fileUrl.split('?')[0].match(/\.([a-z0-9]+)$/i) || [])[1]?.toLowerCase() || "";
+      const sampleUrlExt = (sampleUrl.split('?')[0].match(/\.([a-z0-9]+)$/i) || [])[1]?.toLowerCase() || "";
+      const isVideo = ["mp4", "webm"].includes(rawExt) || ["mp4", "webm"].includes(fileUrlExt) || item.is_video === true;
+      const isGif = rawExt === "gif" || fileUrlExt === "gif" || sampleUrlExt === "gif";
+      const ext = isVideo ? (rawExt || fileUrlExt || "mp4") : (rawExt || sampleUrlExt || fileUrlExt || "jpg");
 
       normalized.push({
         id,
         tags: tagList,
         tagCategories,
         previewUrl,
-        sampleUrl: sampleUrl || previewUrl,
+        sampleUrl: isVideo ? (fileUrl || sampleUrl || previewUrl) : (sampleUrl || previewUrl),
         fileUrl: fileUrl || sampleUrl || previewUrl,
+        videoUrl: isVideo ? (fileUrl || sampleUrl) : "",
         width,
         height,
         aspectRatio: width && height ? (width / height) : 1,
@@ -644,6 +637,7 @@ class ApiSourceManager {
         ext,
         isVideo,
         isGif,
+        source: source.name,
         sourceSite: source.name,
         sourceId: source.id,
         postPageUrl: `${source.baseUrl}/index.php?page=post&s=view&id=${id}`,

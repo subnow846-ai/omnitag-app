@@ -770,25 +770,39 @@ body.with-install-banner .mobile-feed-view {
   z-index: 120;
   display: none;
   align-items: flex-end;
+  justify-content: center;
+}
+
+.bottom-sheet-modal.open {
+  display: flex !important;
 }
 
 .sheet-overlay {
   position: absolute;
   inset: 0;
   background: rgba(0, 0, 0, 0.65);
+  z-index: 1;
 }
 
 .sheet-panel {
   position: relative;
+  z-index: 2;
   background: var(--m-surface);
   border-top-left-radius: 20px;
   border-top-right-radius: 20px;
   width: 100%;
-  max-height: 80vh;
+  max-width: 480px;
+  max-height: 82vh;
   display: flex;
   flex-direction: column;
-  padding: 16px 18px 24px 18px;
+  padding: 16px 18px calc(24px + env(safe-area-inset-bottom, 0px)) 18px;
   box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.5);
+  animation: mSheetSlideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes mSheetSlideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
 }
 
 .sheet-header {
@@ -1741,5 +1755,11 @@ body.with-install-banner .mobile-feed-view {
   .mobile-bottom-nav {
     border-bottom-left-radius: 35px;
     border-bottom-right-radius: 35px;
+  }
+
+  .bottom-sheet-modal {
+    position: absolute;
+    border-radius: 35px;
+    overflow: hidden;
   }
 }
