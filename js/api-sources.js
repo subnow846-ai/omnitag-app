@@ -415,6 +415,9 @@ class ApiSourceManager {
       .replace("{page}", pageParam.toString())
       .replace("{tags}", encodeURIComponent(finalTags));
 
+    // Fill in {api_key} / {user_id} from the saved credentials
+    url = this.applyAuth(url, source);
+
     // If running in native Android APK with AndroidBridge, use native connection (bypasses browser CORS completely)
     if (window.AndroidBridge && typeof window.AndroidBridge.fetchUrl === "function") {
       try {
@@ -455,7 +458,8 @@ class ApiSourceManager {
       }
     } catch (netErr) {
       // In web browsers/GitHub Pages, direct fetch can fail with CORS. Try reliable proxy fallback chain
-      const proxyFallbacks = [
+      // Sources that need an API key never use public proxies, since the key is part of the URL
+      const proxyFallbacks = source.requiresAuth ? [] : [
         `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
         `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`
       ];
