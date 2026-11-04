@@ -1,0 +1,15 @@
+# Build & Packaging
+*.apk
+*.aab
+*.jks
+*.keystore
+.gradle/
+build/
+android/app/build/
+android/.gradle/
+output/
+release-output/
+
+# OS files
+.DS_Store
+Thumbs.db
