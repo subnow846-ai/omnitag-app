@@ -68,7 +68,7 @@ public class MainActivity extends Activity {
         // Fast, smooth caching for mobile image feeds
         settings.setCacheMode(WebSettings.LOAD_DEFAULT);
         settings.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
-        settings.setUserAgentString(settings.getUserAgentString() + " OmniTagApp/1.3.3");
+        settings.setUserAgentString(settings.getUserAgentString() + " OmniTagApp/1.3.4");
 
         CookieManager.getInstance().setAcceptCookie(true);
         CookieManager.getInstance().setAcceptThirdPartyCookies(webView, true);
@@ -105,15 +105,25 @@ public class MainActivity extends Activity {
                 if (uri != null && uri.getScheme() != null && uri.getScheme().startsWith("http")) {
                     String host = uri.getHost();
                     if (host != null && (host.contains("donmai.us") || host.contains("rule34.xxx") || host.contains("safebooru.org") || host.contains("tbib.org") || host.contains("yande.re") || host.contains("konachan.net"))) {
+                        // For video files (.mp4, .webm), allow Android WebView / MediaPlayer to stream natively with its range request engine
+                        String path = uri.getPath() != null ? uri.getPath().toLowerCase() : "";
+                        if (path.endsWith(".mp4") || path.endsWith(".webm") || path.contains("video") || (host != null && host.contains("mp4"))) {
+                            return super.shouldInterceptRequest(view, request);
+                        }
+
                         try {
                             URL url = new URL(uri.toString());
                             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
                             conn.setRequestMethod("GET");
-                            conn.setRequestProperty("User-Agent", "OmniTagApp/1.3.2");
+                            conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Linux; Android 14; Mobile) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Mobile Safari/537.36");
                             if (host.contains("donmai.us")) {
                                 conn.setRequestProperty("Referer", "https://danbooru.donmai.us/");
                             } else if (host.contains("rule34.xxx")) {
                                 conn.setRequestProperty("Referer", "https://rule34.xxx/");
+                            } else if (host.contains("safebooru.org")) {
+                                conn.setRequestProperty("Referer", "https://safebooru.org/");
+                            } else if (host.contains("tbib.org")) {
+                                conn.setRequestProperty("Referer", "https://tbib.org/");
                             }
                             conn.setConnectTimeout(8000);
                             conn.setReadTimeout(12000);
@@ -204,7 +214,7 @@ public class MainActivity extends Activity {
                 URL url = new URL(urlString);
                 conn = (HttpURLConnection) url.openConnection();
                 conn.setRequestMethod("GET");
-                conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Linux; Android 14; Mobile) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Mobile Safari/537.36 OmniTagApp/1.2.3");
+                conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Linux; Android 14; Mobile) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Mobile Safari/537.36 OmniTagApp/1.3.4");
                 conn.setRequestProperty("Accept", "application/json, text/plain, */*");
                 conn.setConnectTimeout(10000);
                 conn.setReadTimeout(10000);

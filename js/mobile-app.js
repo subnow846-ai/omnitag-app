@@ -880,8 +880,34 @@ class OmniTagMobileApp {
     slide.dataset.index = index;
     slide.dataset.id = post.id;
 
-    const mediaSrc = isVideo ? (post.videoUrl || post.fileUrl || post.sampleUrl) : (post.sampleUrl || post.fileUrl || post.previewUrl || "");
-    const fallbackSrc = isVideo ? (post.sampleUrl || post.fileUrl) : (post.previewUrl || mediaSrc);
+    // Normalize redundant duplicate slashes in URLs
+    const cleanUrl = (u) => (u || "").replace(/([^:])\/\/+/g, "$1/");
+
+    // Build multi-mirror candidate list for resilient video streaming
+    const videoCandidates = [];
+    if (isVideo) {
+      const raw = cleanUrl(post.videoUrl || post.fileUrl || post.sampleUrl || "");
+      if (raw) {
+        if (raw.includes("rule34.xxx")) {
+          const mp4Mirror = raw.replace(/https?:\/\/[^\/]+/i, "https://api-cdn-mp4.rule34.xxx");
+          videoCandidates.push(mp4Mirror);
+          if (!videoCandidates.includes(raw)) videoCandidates.push(raw);
+          ["api-cdn.rule34.xxx", "us.rule34.xxx", "wimg.rule34.xxx", "rule34.xxx"].forEach(h => {
+            const m = raw.replace(/https?:\/\/[^\/]+/i, `https://${h}`);
+            if (!videoCandidates.includes(m)) videoCandidates.push(m);
+          });
+        } else {
+          videoCandidates.push(raw);
+        }
+      }
+      if (post.sampleUrl) {
+        const s = cleanUrl(post.sampleUrl);
+        if (s && !videoCandidates.includes(s)) videoCandidates.push(s);
+      }
+    }
+
+    const mediaSrc = isVideo ? (videoCandidates[0] || "") : cleanUrl(post.sampleUrl || post.fileUrl || post.previewUrl || "");
+    const posterSrc = cleanUrl(post.previewUrl || post.sampleUrl || "");
     const sourceDisplayName = post.source || post.sourceSite || (this.sourceManager?.getActiveSource()?.name) || "Safebooru";
 
     slide.innerHTML = `
@@ -896,10 +922,8 @@ class OmniTagMobileApp {
               loop 
               muted 
               autoplay
-              preload="auto"
-              poster="${post.previewUrl || ''}" 
-              referrerpolicy="no-referrer"
-              onerror="if (this.parentElement) this.parentElement.style.display='none'; if (this.parentElement && this.parentElement.nextElementSibling) this.parentElement.nextElementSibling.style.display='flex';">
+              preload="metadata"
+              poster="${posterSrc}">
             </video>
             <div class="tiktok-video-badge">▶ VIDEO</div>
             <button type="button" class="tiktok-fit-toggle-btn" title="Toggle Fit / Fill Screen">⛶ Fit</button>
@@ -921,10 +945,12 @@ class OmniTagMobileApp {
           </div>
           <div class="tiktok-fallback-box" style="display: none;">
             <div class="tiktok-fallback-icon">🎬</div>
-            <div class="tiktok-fallback-title">Video Unavailable on Web</div>
-            <div class="tiktok-fallback-desc">Web hotlinking is restricted by ${this.escapeHtml(sourceDisplayName)}. Works directly in the OmniTag APK.</div>
+            <div class="tiktok-fallback-title">Video Playback Restricted by Browser</div>
+            <div class="tiktok-fallback-desc">Direct web video streaming was restricted by this browser. Tap Retry to reconnect or Download to watch directly.</div>
             <div class="tiktok-fallback-actions">
-              <a href="${post.postPageUrl || post.fileUrl || post.videoUrl}" target="_blank" rel="noopener noreferrer" class="sheet-action-btn primary" style="text-decoration:none; display:inline-block; padding: 10px 18px; font-size:13px;">Open on ${this.escapeHtml(sourceDisplayName)} ↗</a>
+              <button type="button" class="sheet-action-btn primary fallback-retry-video-btn" style="padding: 10px 18px; font-size:13px;">▶ Retry / Play Video</button>
+              <button type="button" class="sheet-action-btn fallback-download-video-btn" style="padding: 10px 18px; font-size:13px;">⬇️ Download Video</button>
+              <a href="${post.postPageUrl || post.fileUrl || post.videoUrl}" target="_blank" rel="noopener noreferrer" class="sheet-action-btn" style="text-decoration:none; display:inline-block; padding: 10px 18px; font-size:13px;">Open on ${this.escapeHtml(sourceDisplayName)} ↗</a>
               <button type="button" class="sheet-action-btn fallback-switch-safebooru-btn" style="padding: 10px 18px; font-size:13px;">Switch to Safebooru / TBIB</button>
             </div>
           </div>
@@ -936,7 +962,6 @@ class OmniTagMobileApp {
               class="tiktok-media-el" 
               loading="lazy" 
               referrerpolicy="no-referrer"
-              onerror="this.style.display='none'; if (this.nextElementSibling) this.nextElementSibling.style.display='flex';"
             >
             <button type="button" class="tiktok-fit-toggle-btn photo-fit" title="Toggle Fit / Fill Screen">⛶ Fit</button>
           </div>
@@ -1078,11 +1103,64 @@ class OmniTagMobileApp {
       });
     }
 
-    const feedMediaEl = slide.querySelector(".tiktok-media-el");
+    const feedVideoWrapper = slide.querySelector(".tiktok-video-wrapper");
+    const feedPhotoWrapper = slide.querySelector(".tiktok-photo-wrapper");
     const feedFallbackBox = slide.querySelector(".tiktok-fallback-box");
-    if (feedMediaEl && feedFallbackBox) {
-      feedMediaEl.addEventListener("error", () => {
-        feedMediaEl.style.display = "none";
+    const video = isVideo ? slide.querySelector("video.tiktok-video-el") : null;
+    const photoImg = !isVideo ? slide.querySelector("img.tiktok-media-el") : null;
+
+    if (isVideo && video) {
+      let candidateIdx = 0;
+      let hasExhaustedCandidates = false;
+
+      const tryNextMirror = () => {
+        candidateIdx++;
+        if (candidateIdx < videoCandidates.length) {
+          console.log(`[OmniTag Video] Retrying video #${post.id} with mirror:`, videoCandidates[candidateIdx]);
+          video.src = videoCandidates[candidateIdx];
+          video.load();
+          video.play().catch(() => {});
+          return true;
+        }
+        return false;
+      };
+
+      video.addEventListener("error", (e) => {
+        // Try alternate CDN mirror before showing fallback
+        if (!hasExhaustedCandidates && tryNextMirror()) {
+          return;
+        }
+        hasExhaustedCandidates = true;
+        if (feedVideoWrapper) feedVideoWrapper.style.display = "none";
+        if (feedFallbackBox) feedFallbackBox.style.display = "flex";
+      });
+
+      // Video fallback buttons
+      const retryBtn = slide.querySelector(".fallback-retry-video-btn");
+      if (retryBtn) {
+        retryBtn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          candidateIdx = 0;
+          hasExhaustedCandidates = false;
+          if (feedVideoWrapper) feedVideoWrapper.style.display = "flex";
+          if (feedFallbackBox) feedFallbackBox.style.display = "none";
+          video.src = videoCandidates[0] || post.fileUrl || post.sampleUrl;
+          video.load();
+          video.play().catch(() => {});
+        });
+      }
+
+      const downloadFallbackBtn = slide.querySelector(".fallback-download-video-btn");
+      if (downloadFallbackBtn) {
+        downloadFallbackBtn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          const targetUrl = videoCandidates[0] || post.fileUrl || post.videoUrl;
+          this.downloadMedia(targetUrl, `omnitag_${post.id}.mp4`);
+        });
+      }
+    } else if (photoImg && feedFallbackBox) {
+      photoImg.addEventListener("error", () => {
+        if (feedPhotoWrapper) feedPhotoWrapper.style.display = "none";
         feedFallbackBox.style.display = "flex";
       });
     }
@@ -1522,8 +1600,9 @@ class OmniTagMobileApp {
 
       const isFav = this.isFavorite(post.id);
       const isLiked = this.isLiked(post.id);
-      const thumbUrl = post.previewUrl || post.sampleUrl || post.fileUrl;
-      const fallbackUrl = (post.sampleUrl && post.sampleUrl !== thumbUrl) ? post.sampleUrl : ((post.fileUrl && post.fileUrl !== thumbUrl) ? post.fileUrl : "");
+      const cleanUrl = (u) => (u || "").replace(/([^:])\/\/+/g, "$1/");
+      const thumbUrl = cleanUrl(post.previewUrl || post.sampleUrl || post.fileUrl);
+      const fallbackUrl = cleanUrl((post.sampleUrl && post.sampleUrl !== thumbUrl) ? post.sampleUrl : ((post.fileUrl && post.fileUrl !== thumbUrl) ? post.fileUrl : ""));
 
       card.innerHTML = `
         <div class="card-thumb-wrap">
@@ -1533,7 +1612,6 @@ class OmniTagMobileApp {
             class="card-thumb" 
             loading="lazy" 
             referrerpolicy="no-referrer"
-            onerror="this.classList.add('broken'); this.style.display='none'; if (this.nextElementSibling) this.nextElementSibling.style.display='flex';"
           >
           <div class="card-thumb-fallback" style="display: none;">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
@@ -1645,13 +1723,47 @@ class OmniTagMobileApp {
 
     if (post.isVideo) {
       const vid = document.createElement("video");
-      vid.src = post.fileUrl || post.sampleUrl;
+      const cleanUrl = (u) => (u || "").replace(/([^:])\/\/+/g, "$1/");
+      const candidates = [];
+      const raw = cleanUrl(post.videoUrl || post.fileUrl || post.sampleUrl || "");
+      if (raw) {
+        if (raw.includes("rule34.xxx")) {
+          const mp4Mirror = raw.replace(/https?:\/\/[^\/]+/i, "https://api-cdn-mp4.rule34.xxx");
+          candidates.push(mp4Mirror);
+          if (!candidates.includes(raw)) candidates.push(raw);
+          ["api-cdn.rule34.xxx", "us.rule34.xxx", "wimg.rule34.xxx", "rule34.xxx"].forEach(h => {
+            const m = raw.replace(/https?:\/\/[^\/]+/i, `https://${h}`);
+            if (!candidates.includes(m)) candidates.push(m);
+          });
+        } else {
+          candidates.push(raw);
+        }
+      }
+      if (post.sampleUrl) {
+        const s = cleanUrl(post.sampleUrl);
+        if (s && !candidates.includes(s)) candidates.push(s);
+      }
+
+      let cIdx = 0;
+      vid.src = candidates[0] || raw;
       vid.controls = true;
       vid.autoplay = true;
       vid.loop = true;
-      vid.setAttribute("referrerpolicy", "no-referrer");
+      vid.playsInline = true;
+      vid.setAttribute("playsinline", "");
+      vid.setAttribute("webkit-playsinline", "");
       vid.style.maxWidth = "100%";
       vid.style.maxHeight = "100%";
+
+      vid.onerror = () => {
+        cIdx++;
+        if (cIdx < candidates.length) {
+          vid.src = candidates[cIdx];
+          vid.load();
+          vid.play().catch(() => {});
+        }
+      };
+
       this.viewerStage.innerHTML = "";
       this.viewerStage.appendChild(vid);
     } else {

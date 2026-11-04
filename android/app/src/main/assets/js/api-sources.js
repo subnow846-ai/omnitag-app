@@ -653,7 +653,12 @@ class ApiSourceManager {
         }
       }
 
-      // Ensure full absolute URLs
+      // Ensure full absolute URLs and normalize redundant duplicate slashes
+      const cleanUrl = (u) => {
+        if (!u) return "";
+        return u.replace(/([^:])\/\/+/g, "$1/");
+      };
+
       if (previewUrl && !previewUrl.startsWith("http")) {
         previewUrl = `${source.baseUrl}/${previewUrl.replace(/^\//, '')}`;
       }
@@ -664,13 +669,27 @@ class ApiSourceManager {
         fileUrl = `${source.baseUrl}/${fileUrl.replace(/^\//, '')}`;
       }
 
+      previewUrl = cleanUrl(previewUrl);
+      sampleUrl = cleanUrl(sampleUrl);
+      fileUrl = cleanUrl(fileUrl);
+
       // Determine extension & media type
       const rawExt = (item.file_ext || "").toLowerCase();
       const fileUrlExt = (fileUrl.split('?')[0].match(/\.([a-z0-9]+)$/i) || [])[1]?.toLowerCase() || "";
       const sampleUrlExt = (sampleUrl.split('?')[0].match(/\.([a-z0-9]+)$/i) || [])[1]?.toLowerCase() || "";
-      const isVideo = ["mp4", "webm"].includes(rawExt) || ["mp4", "webm"].includes(fileUrlExt) || item.is_video === true;
+      const isVideo = ["mp4", "webm"].includes(rawExt) || ["mp4", "webm"].includes(fileUrlExt) || ["mp4", "webm"].includes(sampleUrlExt) || item.is_video === true;
       const isGif = rawExt === "gif" || fileUrlExt === "gif" || sampleUrlExt === "gif";
-      const ext = isVideo ? (rawExt || fileUrlExt || "mp4") : (rawExt || sampleUrlExt || fileUrlExt || "jpg");
+      const ext = isVideo ? (rawExt || fileUrlExt || sampleUrlExt || "mp4") : (rawExt || sampleUrlExt || fileUrlExt || "jpg");
+
+      // Rule34 hosts video files on api-cdn-mp4.rule34.xxx (wimg and us return 403 Forbidden on videos)
+      if (isVideo && (source.id === "rule34" || fileUrl.includes("rule34.xxx"))) {
+        if (/https?:\/\/(?:wimg|us|api-cdn)\.rule34\.xxx/i.test(fileUrl)) {
+          fileUrl = fileUrl.replace(/https?:\/\/(?:wimg|us|api-cdn)\.rule34\.xxx/i, "https://api-cdn-mp4.rule34.xxx");
+        }
+        if (/https?:\/\/(?:wimg|us|api-cdn)\.rule34\.xxx/i.test(sampleUrl) && (sampleUrl.endsWith(".mp4") || sampleUrl.endsWith(".webm"))) {
+          sampleUrl = sampleUrl.replace(/https?:\/\/(?:wimg|us|api-cdn)\.rule34\.xxx/i, "https://api-cdn-mp4.rule34.xxx");
+        }
+      }
 
       normalized.push({
         id,
