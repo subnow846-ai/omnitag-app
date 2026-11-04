@@ -1,4 +1,4 @@
-﻿/* ==========================================================================
+/* ==========================================================================
    OmniTag Mobile - Native App UI Stylesheet
    Designed for smartphone viewport, touch gestures, and bottom navigation
    ========================================================================== */
@@ -22,7 +22,23 @@
 
   --nav-height: 60px;
   --header-height: 54px;
-  --font-system: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --font-system: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+
+  /* Modern Android Safe-Area Insets (Samsung Galaxy A56+, S24/S25, Pixel 8/9) */
+  --sat: env(safe-area-inset-top, 0px);
+  --sab: env(safe-area-inset-bottom, 0px);
+  --sal: env(safe-area-inset-left, 0px);
+  --sar: env(safe-area-inset-right, 0px);
+}
+
+/* Completely suppress install banners when running inside Android APK or installed standalone PWA */
+.is-apk #install-banner,
+.is-apk #install-modal,
+@media all and (display-mode: standalone) {
+  #install-banner,
+  #install-modal {
+    display: none !important;
+  }
 }
 
 [data-theme="light"] {
@@ -875,4 +891,435 @@ body {
   align-items: center;
   gap: 12px;
   margin: 18px 0;
+}
+
+/* ==========================================================================
+   TikTok-Style Vertical Infinite Feed & Modern Phone Compatibility
+   (Samsung Galaxy A56+, S24/S25, Pixel 8/9, 120Hz smooth scrolling)
+   ========================================================================== */
+
+.mobile-feed-view {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: calc(var(--nav-height) + env(safe-area-inset-bottom, 0px));
+  height: calc(100dvh - var(--nav-height) - env(safe-area-inset-bottom, 0px));
+  background: #000;
+  overflow: hidden;
+  z-index: 10;
+}
+
+.tiktok-feed-container {
+  width: 100%;
+  height: 100%;
+  overflow-y: scroll;
+  scroll-snap-type: y mandatory;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
+  scrollbar-width: none;
+}
+
+.tiktok-feed-container::-webkit-scrollbar {
+  display: none;
+}
+
+.tiktok-slide {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: #000;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.tiktok-media-stage {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: #000;
+}
+
+.tiktok-media-el {
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  pointer-events: auto;
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+  will-change: transform;
+}
+
+.tiktok-video-badge {
+  position: absolute;
+  top: calc(56px + env(safe-area-inset-top, 0px));
+  left: 14px;
+  background: rgba(0, 0, 0, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #fff;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  backdrop-filter: blur(8px);
+}
+
+/* Double-Tap Heart Burst Animation */
+.tiktok-heart-burst {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 25;
+  transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.4s ease;
+  filter: drop-shadow(0 0 20px rgba(248, 81, 73, 0.8));
+}
+
+.tiktok-heart-burst.pop {
+  transform: translate(-50%, -50%) scale(1.4);
+  opacity: 1;
+}
+
+/* Right Side Action Sidebar (Heart, Save, Download underneath Save, Tags) */
+.tiktok-actions-sidebar {
+  position: absolute;
+  right: 12px;
+  bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  z-index: 20;
+  pointer-events: auto;
+}
+
+.tiktok-action-btn {
+  background: transparent;
+  border: none;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  outline: none;
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.85));
+  transition: transform 0.15s ease;
+}
+
+.tiktok-action-btn:active {
+  transform: scale(0.88);
+}
+
+.action-icon-circle {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(22, 27, 34, 0.68);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
+
+.tiktok-action-btn.heart-btn.liked .action-icon-circle {
+  background: rgba(248, 81, 73, 0.2);
+  border-color: rgba(248, 81, 73, 0.6);
+  color: #f85149;
+}
+
+.tiktok-action-btn.save-btn.saved .action-icon-circle {
+  background: rgba(56, 139, 253, 0.2);
+  border-color: rgba(56, 139, 253, 0.6);
+  color: #388bfd;
+}
+
+.tiktok-action-btn .action-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: #fff;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
+}
+
+/* Bottom Left Info Overlay */
+.tiktok-info-overlay {
+  position: absolute;
+  left: 14px;
+  right: 76px;
+  bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+  z-index: 20;
+  pointer-events: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.tiktok-author-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.tiktok-post-id {
+  font-size: 13px;
+  font-weight: 800;
+  color: #fff;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.9);
+}
+
+.tiktok-source-pill {
+  background: rgba(56, 139, 253, 0.8);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.tiktok-meta-dim {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.85);
+  font-weight: 600;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
+}
+
+.tiktok-tag-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  max-height: 52px;
+  overflow: hidden;
+}
+
+.tiktok-tag-pill {
+  background: rgba(22, 27, 34, 0.72);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #f0f6fc;
+  padding: 3px 9px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.tiktok-tag-pill:active {
+  background: var(--m-accent);
+  color: #fff;
+}
+
+/* Feed Floating Top Bar */
+.feed-top-bar {
+  position: absolute;
+  top: calc(8px + env(safe-area-inset-top, 0px));
+  left: 12px;
+  right: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 30;
+  pointer-events: auto;
+}
+
+.feed-top-left, .feed-top-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.brand-badge.small {
+  width: 28px;
+  height: 28px;
+  font-size: 15px;
+}
+
+.feed-tag-indicator-btn {
+  background: rgba(22, 27, 34, 0.75);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #fff;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+.feed-tag-indicator-btn:active {
+  background: var(--m-surface-elevated);
+}
+
+.feed-live-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #3fb950;
+  box-shadow: 0 0 8px #3fb950;
+}
+
+.feed-glass-btn {
+  background: rgba(22, 27, 34, 0.75);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #fff;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+}
+
+.feed-glass-btn:active {
+  background: var(--m-surface-elevated);
+}
+
+/* Feed Tag Input Drawer */
+.feed-tag-drawer {
+  position: absolute;
+  top: calc(52px + env(safe-area-inset-top, 0px));
+  left: 12px;
+  right: 12px;
+  background: rgba(22, 27, 34, 0.94);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--m-border);
+  border-radius: 16px;
+  padding: 12px;
+  z-index: 35;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.7);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease;
+}
+
+.feed-tag-drawer.hidden {
+  display: none !important;
+}
+
+.feed-drawer-input-row {
+  display: flex;
+  gap: 8px;
+}
+
+.feed-tag-drawer input {
+  flex: 1;
+  background: var(--m-surface-elevated);
+  border: 1px solid var(--m-border);
+  color: var(--m-text);
+  padding: 10px 14px;
+  border-radius: 12px;
+  font-size: 13px;
+  outline: none;
+}
+
+.feed-tag-drawer input:focus {
+  border-color: var(--m-accent);
+}
+
+.feed-drawer-btn {
+  background: var(--m-surface-elevated);
+  border: 1px solid var(--m-border);
+  color: var(--m-text);
+  padding: 0 14px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.feed-drawer-btn.primary {
+  background: var(--m-accent);
+  color: #fff;
+  border-color: var(--m-accent);
+}
+
+.feed-drawer-quick-tags {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  padding-top: 4px;
+}
+
+.quick-tag-label {
+  font-size: 11px;
+  color: var(--m-text-sub);
+  font-weight: 600;
+}
+
+.quick-tag-chip {
+  background: var(--m-surface-elevated);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--m-text);
+  padding: 4px 9px;
+  border-radius: 10px;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.quick-tag-chip:active {
+  background: var(--m-accent);
+  color: #fff;
+}
+
+/* Feed Loading Spinner */
+.feed-loading-spinner {
+  position: absolute;
+  bottom: calc(75px + env(safe-area-inset-bottom, 0px));
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 25;
+  pointer-events: none;
+}
+
+.feed-spinner {
+  width: 28px;
+  height: 28px;
+  border: 3px solid rgba(255, 255, 255, 0.2);
+  border-top-color: var(--m-accent);
+  border-radius: 50%;
+  animation: feedSpin 0.7s linear infinite;
+}
+
+@keyframes feedSpin {
+  to { transform: rotate(360deg); }
+}
+
+/* Viewer Modal Sidebar styling */
+.viewer-sidebar {
+  bottom: calc(30px + env(safe-area-inset-bottom, 0px));
 }

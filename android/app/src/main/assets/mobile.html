@@ -8,6 +8,13 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>OmniTag Mobile</title>
   
+  <script>
+    // Immediately suppress install banners when running inside Android APK or standalone PWA
+    if (location.protocol === "file:" || navigator.userAgent.includes("OmniTagApp") || window.matchMedia("(display-mode: standalone)").matches) {
+      document.documentElement.classList.add("is-apk");
+    }
+  </script>
+
   <link rel="manifest" href="manifest.json">
   <link rel="stylesheet" href="css/mobile.css">
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='25' fill='%23388bfd'/><text x='50%' y='55%' dominant-baseline='middle' text-anchor='middle' fill='white' font-size='56' font-weight='bold'>O</text></svg>">
@@ -17,7 +24,7 @@
   <!-- Mobile App Wrapper -->
   <div class="mobile-app-container">
     
-    <!-- Install to phone banner -->
+    <!-- Install to phone banner (Automatically hidden in APK) -->
     <div id="install-banner" class="install-banner">
       <div style="display: flex; align-items: center; gap: 8px;">
         <span style="font-size: 16px;">📲</span>
@@ -26,8 +33,8 @@
       <button id="install-btn" class="install-banner-btn">Install</button>
     </div>
 
-    <!-- Top Mobile App Header -->
-    <header class="mobile-header">
+    <!-- Top Mobile App Header (Visible in Grid and Saved tabs) -->
+    <header id="mobile-header" class="mobile-header" style="display: none;">
       <div class="header-brand">
         <div class="brand-badge">O</div>
         <span class="brand-name">OmniTag</span>
@@ -48,8 +55,8 @@
       </div>
     </header>
 
-    <!-- Mobile Search Bar (Sticky) -->
-    <div class="mobile-search-section">
+    <!-- Mobile Search Bar (Sticky, for Grid & Saved views) -->
+    <div id="mobile-search-section" class="mobile-search-section" style="display: none;">
       <div class="mobile-search-bar">
         <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
           <circle cx="11" cy="11" r="8"></circle>
@@ -64,7 +71,7 @@
           spellcheck="false"
         >
         <button id="mobile-clear-btn" class="clear-btn" style="display: none;">&times;</button>
-        <button id="mobile-search-btn" class="submit-btn">
+        <button id="mobile-search-btn" class="submit-btn" title="Search">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
             <polyline points="9 18 15 12 9 6"></polyline>
           </svg>
@@ -75,7 +82,7 @@
       <div id="mobile-autocomplete" class="mobile-autocomplete-dropdown"></div>
 
       <!-- Horizontal Quick Filter Pills -->
-      <div class="horizontal-filter-scroll">
+      <div id="mobile-filter-scroll" class="horizontal-filter-scroll">
         <button class="filter-pill active" data-filter="all">All</button>
         <button class="filter-pill" data-rating="s">Safe Only</button>
         <button class="filter-pill" data-media="video">Videos / GIFs</button>
@@ -86,8 +93,66 @@
       </div>
     </div>
 
-    <!-- Active Feed View -->
-    <main class="mobile-scroll-body">
+    <!-- ==========================================
+         TikTok-Style Vertical Scrolling Feed View
+         ========================================== -->
+    <div id="mobile-feed-view" class="mobile-feed-view">
+      <!-- Floating Glass Top Bar for Feed -->
+      <div class="feed-top-bar">
+        <div class="feed-top-left">
+          <div class="brand-badge small">O</div>
+          <button id="feed-tag-pill" class="feed-tag-indicator-btn" title="Tap to change or search tags">
+            <span class="feed-live-dot"></span>
+            <span id="feed-tag-label">All / Trending</span>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
+          </button>
+        </div>
+        <div class="feed-top-right">
+          <button id="feed-clear-tag-btn" class="feed-glass-btn" title="Clear tag filter" style="display: none;">
+            &times; Clear
+          </button>
+          <button id="feed-source-chip" class="feed-glass-btn" title="Switch API Source">
+            <span class="dot-online"></span>
+            <span id="feed-active-source-name">Safebooru</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Quick Tag Input Drawer (Toggled by feed-tag-pill) -->
+      <div id="feed-tag-drawer" class="feed-tag-drawer hidden">
+        <div class="feed-drawer-input-row">
+          <input 
+            type="text" 
+            id="feed-tag-input" 
+            placeholder="Type tags to filter feed (e.g. 1girl, landscape)..." 
+            autocomplete="off" 
+            autocapitalize="none" 
+            spellcheck="false"
+          >
+          <button id="feed-tag-apply-btn" class="feed-drawer-btn primary">Apply</button>
+          <button id="feed-tag-close-btn" class="feed-drawer-btn">&times;</button>
+        </div>
+        <div class="feed-drawer-quick-tags">
+          <span class="quick-tag-label">Popular:</span>
+          <button class="quick-tag-chip" data-tag="1girl">1girl</button>
+          <button class="quick-tag-chip" data-tag="scenery">scenery</button>
+          <button class="quick-tag-chip" data-tag="cyberpunk">cyberpunk</button>
+          <button class="quick-tag-chip" data-tag="genshin_impact">genshin</button>
+          <button class="quick-tag-chip" data-tag="cat_ears">cat ears</button>
+        </div>
+      </div>
+
+      <!-- Full-Screen Vertical Swipeable TikTok Feed Container -->
+      <div id="mobile-feed-container" class="tiktok-feed-container"></div>
+      
+      <!-- Feed Loading Spinner -->
+      <div id="feed-loading-spinner" class="feed-loading-spinner" style="display: none;">
+        <div class="feed-spinner"></div>
+      </div>
+    </div>
+
+    <!-- Active 2-Column Grid Scroll Body (For Grid & Saved tabs) -->
+    <main id="mobile-scroll-body" class="mobile-scroll-body" style="display: none;">
       <!-- Status Meta Bar -->
       <div class="feed-status-bar">
         <span id="feed-results-info">Ready to search</span>
@@ -103,24 +168,27 @@
 
     <!-- Bottom Mobile Tab Bar -->
     <nav class="mobile-bottom-nav">
-      <button class="nav-tab active" data-tab="search">
+      <button class="nav-tab active" data-tab="feed">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="11" cy="11" r="8"></circle>
-          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          <rect x="5" y="2" width="14" height="20" rx="3"></rect>
+          <line x1="12" y1="18" x2="12.01" y2="18" stroke-width="3"></line>
         </svg>
-        <span>Search</span>
+        <span>Feed</span>
       </button>
 
-      <button class="nav-tab" data-tab="explore">
+      <button class="nav-tab" data-tab="search">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+          <rect x="3" y="3" width="7" height="7"></rect>
+          <rect x="14" y="3" width="7" height="7"></rect>
+          <rect x="14" y="14" width="7" height="7"></rect>
+          <rect x="3" y="14" width="7" height="7"></rect>
         </svg>
-        <span>Trending</span>
+        <span>Grid</span>
       </button>
 
       <button class="nav-tab" data-tab="saved">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+          <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
         </svg>
         <span>Saved</span>
       </button>
@@ -135,7 +203,8 @@
     </nav>
 
     <!-- ==========================================
-         Mobile Full-Screen Media Viewer
+         Mobile Full-Screen Media Viewer Modal
+         (Also functions with vertical swipe and right-side TikTok action bar)
          ========================================== -->
     <div id="mobile-viewer-modal" class="mobile-viewer">
       <div class="viewer-top-bar">
@@ -166,6 +235,53 @@
 
       <div id="viewer-media-stage" class="viewer-stage"></div>
 
+      <!-- Right Side Vertical Action Bar for Viewer Modal -->
+      <div class="tiktok-actions-sidebar viewer-sidebar">
+        <!-- Heart / Like -->
+        <button id="viewer-sidebar-heart-btn" class="tiktok-action-btn heart-btn" title="Like">
+          <div class="action-icon-circle">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+            </svg>
+          </div>
+          <span id="viewer-sidebar-heart-label" class="action-label">Like</span>
+        </button>
+
+        <!-- Save / Bookmark Button -->
+        <button id="viewer-sidebar-save-btn" class="tiktok-action-btn save-btn" title="Save Bookmark">
+          <div class="action-icon-circle">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+              <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+            </svg>
+          </div>
+          <span id="viewer-sidebar-save-label" class="action-label">Save</span>
+        </button>
+
+        <!-- Download Button Directly Underneath Save Button -->
+        <button id="viewer-sidebar-download-btn" class="tiktok-action-btn download-btn" title="Download Media">
+          <div class="action-icon-circle">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="7 10 12 15 17 10"></polyline>
+              <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+          </div>
+          <span class="action-label">Download</span>
+        </button>
+
+        <!-- Tags Button -->
+        <button id="viewer-sidebar-tags-btn" class="tiktok-action-btn info-btn" title="Tags & Info">
+          <div class="action-icon-circle">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="16" x2="12" y2="12"></line>
+              <line x1="12" y1="8" x2="12.01" y2="8"></line>
+            </svg>
+          </div>
+          <span class="action-label">Tags</span>
+        </button>
+      </div>
+
       <!-- Floating Button to Open Details (visible when sheet is hidden) -->
       <button id="viewer-info-pill-btn" class="viewer-floating-pill" type="button">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
@@ -179,7 +295,7 @@
         <div id="viewer-sheet-drag-header" class="sheet-drag-header" title="Pull down or tap Hide to close">
           <div class="sheet-drag-bar"></div>
           <div class="sheet-header-title-row">
-            <span class="sheet-header-title">Post Details & Tags</span>
+            <span class="sheet-header-title">Post Details &amp; Tags</span>
             <button type="button" id="viewer-collapse-btn" class="sheet-collapse-btn" title="Hide Details">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                 <polyline points="6 9 12 15 18 9"></polyline>

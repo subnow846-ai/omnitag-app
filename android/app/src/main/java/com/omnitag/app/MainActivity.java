@@ -19,6 +19,7 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Toast;
+import android.view.View;
 
 public class MainActivity extends Activity {
     private WebView webView;
@@ -31,6 +32,9 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
 
         webView = new WebView(this);
+        // Modern Android 120Hz hardware acceleration and butter-smooth scrolling
+        webView.setLayerType(View.LAYER_TYPE_HARDWARE, null);
+        webView.setOverScrollMode(View.OVER_SCROLL_NEVER);
         setContentView(webView);
 
         WebSettings settings = webView.getSettings();
@@ -124,7 +128,7 @@ public class MainActivity extends Activity {
         });
 
         // Load bundled offline mobile app assets with version parameter to prevent file caching
-        webView.loadUrl("file:///android_asset/mobile.html?v=104");
+        webView.loadUrl("file:///android_asset/mobile.html?v=110");
     }
 
     @Override
