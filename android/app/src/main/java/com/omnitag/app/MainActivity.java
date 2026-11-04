@@ -42,7 +42,9 @@ public class MainActivity extends Activity {
         settings.setAllowFileAccessFromFileURLs(true);
         settings.setAllowUniversalAccessFromFileURLs(true);
         settings.setMediaPlaybackRequiresUserGesture(false);
-        settings.setCacheMode(WebSettings.LOAD_DEFAULT);
+        // Ensure every APK update instantly loads new assets without stale cache
+        settings.setCacheMode(WebSettings.LOAD_NO_CACHE);
+        webView.clearCache(true);
         settings.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
         settings.setUserAgentString(settings.getUserAgentString() + " OmniTagApp/1.0");
 
@@ -121,8 +123,8 @@ public class MainActivity extends Activity {
             }
         });
 
-        // Load bundled offline mobile app assets
-        webView.loadUrl("file:///android_asset/mobile.html");
+        // Load bundled offline mobile app assets with version parameter to prevent file caching
+        webView.loadUrl("file:///android_asset/mobile.html?v=104");
     }
 
     @Override
