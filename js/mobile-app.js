@@ -86,6 +86,29 @@ class OmniTagMobileApp {
     this.closeSourcesBtn = document.getElementById("close-sources-sheet-btn");
     this.addSourceBtn = document.getElementById("mobile-add-source-btn");
 
+    // Accounts & Profile Elements
+    this.feedAccountBtn = document.getElementById("feed-account-btn");
+    this.feedAccountAvatar = document.getElementById("feed-account-avatar");
+    this.feedAccountLabel = document.getElementById("feed-account-label");
+    this.headerAccountBtn = document.getElementById("header-account-btn");
+    this.headerAccountAvatar = document.getElementById("header-account-avatar");
+    this.headerAccountLabel = document.getElementById("header-account-label");
+    this.accountModal = document.getElementById("mobile-account-modal");
+    this.closeAccountModalBtn = document.getElementById("close-account-modal-btn");
+    this.currentAccountAvatar = document.getElementById("current-account-avatar");
+    this.currentAccountName = document.getElementById("current-account-name");
+    this.currentAccountIdBadge = document.getElementById("current-account-id-badge");
+    this.currentAccountHandle = document.getElementById("current-account-handle");
+    this.currentAccountStats = document.getElementById("current-account-stats");
+    this.editProfileBtn = document.getElementById("edit-profile-btn");
+    this.createAccountBtn = document.getElementById("create-account-btn");
+    this.accountsListContainer = document.getElementById("accounts-list-container");
+    this.newAccountDrawer = document.getElementById("new-account-drawer");
+    this.newAccountNameInput = document.getElementById("new-account-name-input");
+    this.confirmCreateAccountBtn = document.getElementById("confirm-create-account-btn");
+    this.cancelCreateAccountBtn = document.getElementById("cancel-create-account-btn");
+    this.newAccountIdHint = document.getElementById("new-account-id-hint");
+
     // Source Manager & Edit Sheet
     this.editSourceSheet = document.getElementById("mobile-edit-source-sheet");
     this.closeEditSourceBtn = document.getElementById("close-edit-source-btn");
@@ -439,6 +462,40 @@ class OmniTagMobileApp {
     }
 
     this.initViewerGestures();
+
+    // Accounts & Profile Events
+    if (this.feedAccountBtn) {
+      this.feedAccountBtn.addEventListener("click", () => this.openAccountModal());
+    }
+    if (this.headerAccountBtn) {
+      this.headerAccountBtn.addEventListener("click", () => this.openAccountModal());
+    }
+    if (this.closeAccountModalBtn) {
+      this.closeAccountModalBtn.addEventListener("click", () => this.closeAccountModal());
+    }
+    if (this.accountModal) {
+      const overlay = this.accountModal.querySelector(".sheet-overlay");
+      if (overlay) overlay.addEventListener("click", () => this.closeAccountModal());
+    }
+    if (this.editProfileBtn) {
+      this.editProfileBtn.addEventListener("click", () => this.editProfile());
+    }
+    if (this.createAccountBtn) {
+      this.createAccountBtn.addEventListener("click", () => this.toggleNewAccountDrawer());
+    }
+    if (this.confirmCreateAccountBtn) {
+      this.confirmCreateAccountBtn.addEventListener("click", () => this.handleConfirmCreateAccount());
+    }
+    if (this.cancelCreateAccountBtn) {
+      this.cancelCreateAccountBtn.addEventListener("click", () => this.toggleNewAccountDrawer(false));
+    }
+    document.querySelectorAll(".avatar-option").forEach(opt => {
+      opt.addEventListener("click", () => {
+        document.querySelectorAll(".avatar-option").forEach(o => o.classList.remove("selected"));
+        opt.classList.add("selected");
+        this.selectedNewAvatar = opt.dataset.avatar;
+      });
+    });
   }
 
   // ==========================================
@@ -1496,6 +1553,11 @@ class OmniTagMobileApp {
       this.showToast("Saved to Bookmarks!");
     }
     this.saveFavorites();
+    if (this.activeAccount) {
+      this.activeAccount.favorites = this.favorites;
+      this.saveAccounts();
+      this.updateAccountUI();
+    }
 
     if (this.activeTab === "saved") {
       this.renderSavedPosts(this.searchInput.value);
@@ -1535,4 +1597,239 @@ class OmniTagMobileApp {
 // Initialize on DOM Ready
 document.addEventListener("DOMContentLoaded", () => {
   window.omniTagMobile = new OmniTagMobileApp();
-});
+
+  // ==========================================
+  // MULTI-ACCOUNT PROFILE SYSTEM (Unique IDs 1, 2, 3...)
+  // ==========================================
+
+  initAccounts() {
+    try {
+      const raw = localStorage.getItem("omnitag_accounts");
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          this.accounts = parsed;
+        }
+      }
+    } catch (_) {}
+
+    if (!this.accounts || this.accounts.length === 0) {
+      // First time initialization: Create default primary Account #1
+      const legacyFavorites = this.loadFavorites();
+      const primaryAccount = {
+        id: 1, // Unique ID 1
+        name: "OmniUser",
+        handle: "@user1",
+        avatar: "đź‘¤",
+        color: "#388bfd",
+        createdAt: Date.now(),
+        favorites: legacyFavorites
+      };
+      this.accounts = [primaryAccount];
+      this.saveAccounts();
+    }
+
+    // Load active account
+    const savedActiveId = localStorage.getItem("omnitag_active_account_id");
+    const activeId = savedActiveId ? parseInt(savedActiveId, 10) : 1;
+    this.activeAccount = this.accounts.find(a => a.id === activeId) || this.accounts[0];
+    localStorage.setItem("omnitag_active_account_id", String(this.activeAccount.id));
+
+    // Point favorites to active account's isolated favorites list
+    this.favorites = this.activeAccount.favorites || [];
+
+    // Update UI elements
+    setTimeout(() => this.updateAccountUI(), 50);
+  }
+
+  saveAccounts() {
+    localStorage.setItem("omnitag_accounts", JSON.stringify(this.accounts));
+  }
+
+  getNextAccountId() {
+    // Strictly sequential and unique IDs from 1 and up
+    const maxId = this.accounts.reduce((max, a) => Math.max(max, a.id || 0), 0);
+    return maxId + 1;
+  }
+
+  openAccountModal() {
+    if (!this.accountModal) return;
+    this.updateAccountUI();
+    this.renderAccountsList();
+    this.toggleNewAccountDrawer(false);
+    this.accountModal.classList.add("open");
+  }
+
+  closeAccountModal() {
+    if (this.accountModal) this.accountModal.classList.remove("open");
+  }
+
+  updateAccountUI() {
+    if (!this.activeAccount) return;
+    const nameStr = `#${this.activeAccount.id} ${this.activeAccount.name}`;
+
+    if (this.feedAccountAvatar) this.feedAccountAvatar.textContent = this.activeAccount.avatar;
+    if (this.feedAccountLabel) this.feedAccountLabel.textContent = nameStr;
+    if (this.headerAccountAvatar) this.headerAccountAvatar.textContent = this.activeAccount.avatar;
+    if (this.headerAccountLabel) this.headerAccountLabel.textContent = nameStr;
+
+    if (this.currentAccountAvatar) this.currentAccountAvatar.textContent = this.activeAccount.avatar;
+    if (this.currentAccountName) this.currentAccountName.textContent = this.activeAccount.name;
+    if (this.currentAccountIdBadge) this.currentAccountIdBadge.textContent = `ID #${this.activeAccount.id}`;
+    if (this.currentAccountHandle) this.currentAccountHandle.textContent = this.activeAccount.handle;
+    if (this.currentAccountStats) {
+      const count = (this.activeAccount.favorites || []).length;
+      this.currentAccountStats.textContent = `${count} saved bookmark${count === 1 ? '' : 's'}`;
+    }
+
+    if (this.newAccountIdHint) {
+      this.newAccountIdHint.textContent = `Next account will be assigned sequential unique ID #${this.getNextAccountId()}.`;
+    }
+  }
+
+  renderAccountsList() {
+    if (!this.accountsListContainer) return;
+    this.accountsListContainer.innerHTML = "";
+
+    this.accounts.forEach(acc => {
+      const isActive = acc.id === this.activeAccount.id;
+      const count = (acc.favorites || []).length;
+
+      const card = document.createElement("div");
+      card.className = `account-list-item ${isActive ? 'active' : ''}`;
+
+      card.innerHTML = `
+        <div class="account-list-item-left">
+          <div class="account-item-avatar">${acc.avatar || 'đź‘¤'}</div>
+          <div>
+            <div class="account-item-name">${acc.name} ${isActive ? '<span style="font-size: 11px; color: var(--m-accent); font-weight: 700;">(Active)</span>' : ''}</div>
+            <div class="account-item-meta">
+              <span class="account-item-id">ID #${acc.id}</span>
+              <span>&bull;</span>
+              <span>${acc.handle}</span>
+              <span>&bull;</span>
+              <span>${count} saved</span>
+            </div>
+          </div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          ${isActive ? `
+            <span style="font-size: 18px; color: var(--m-accent); font-weight: 700;">&check;</span>
+          ` : `
+            <button class="sheet-action-btn switch-acc-btn" style="padding: 5px 10px; font-size: 11px;">Switch</button>
+            ${this.accounts.length > 1 ? `<button class="sheet-action-btn delete-acc-btn" style="padding: 5px 8px; font-size: 11px; color: var(--m-danger);" title="Delete Account">&times;</button>` : ''}
+          `}
+        </div>
+      `;
+
+      card.addEventListener("click", (e) => {
+        if (e.target.closest(".delete-acc-btn")) {
+          e.stopPropagation();
+          this.deleteAccount(acc.id);
+          return;
+        }
+        if (!isActive) {
+          this.switchAccount(acc.id);
+        }
+      });
+
+      this.accountsListContainer.appendChild(card);
+    });
+  }
+
+  toggleNewAccountDrawer(force = null) {
+    if (!this.newAccountDrawer) return;
+    const shouldShow = force !== null ? force : this.newAccountDrawer.classList.contains("hidden");
+    this.newAccountDrawer.classList.toggle("hidden", !shouldShow);
+    if (shouldShow) {
+      if (this.newAccountNameInput) {
+        this.newAccountNameInput.value = `User #${this.getNextAccountId()}`;
+        this.newAccountNameInput.focus();
+      }
+      if (this.newAccountIdHint) {
+        this.newAccountIdHint.textContent = `This account will be assigned sequential unique ID #${this.getNextAccountId()}.`;
+      }
+    }
+  }
+
+  handleConfirmCreateAccount() {
+    const name = this.newAccountNameInput ? this.newAccountNameInput.value.trim() : "";
+    const avatar = this.selectedNewAvatar || "đź‘¤";
+    this.createAccount(name, avatar);
+    this.toggleNewAccountDrawer(false);
+  }
+
+  createAccount(name, avatar = "đź‘¤") {
+    // Generate next sequential unique ID strictly from 1 and up
+    const nextId = this.getNextAccountId();
+    const cleanName = (name || "").trim() || `User #${nextId}`;
+
+    const newAccount = {
+      id: nextId,
+      name: cleanName,
+      handle: `@user${nextId}`,
+      avatar: avatar || "đź‘¤",
+      color: "#388bfd",
+      createdAt: Date.now(),
+      favorites: []
+    };
+
+    this.accounts.push(newAccount);
+    this.saveAccounts();
+    this.switchAccount(nextId);
+    this.showToast(`Created Account #${nextId} (${cleanName})!`);
+  }
+
+  switchAccount(accountId) {
+    const target = this.accounts.find(a => a.id === accountId);
+    if (!target) return;
+
+    this.activeAccount = target;
+    localStorage.setItem("omnitag_active_account_id", String(target.id));
+    this.favorites = target.favorites || [];
+    this.saveFavorites();
+
+    this.updateAccountUI();
+    this.renderAccountsList();
+
+    if (this.activeTab === "saved") {
+      this.renderSavedPosts(this.searchInput.value);
+    }
+
+    this.showToast(`Switched to Account #${target.id} (${target.name})`);
+  }
+
+  deleteAccount(accountId) {
+    if (this.accounts.length <= 1) {
+      this.showToast("Cannot delete the only account!");
+      return;
+    }
+    const target = this.accounts.find(a => a.id === accountId);
+    if (!target) return;
+
+    if (confirm(`Delete Account #${target.id} (${target.name}) and all its saved bookmarks?`)) {
+      this.accounts = this.accounts.filter(a => a.id !== accountId);
+      this.saveAccounts();
+      if (this.activeAccount.id === accountId) {
+        this.switchAccount(this.accounts[0].id);
+      } else {
+        this.updateAccountUI();
+        this.renderAccountsList();
+      }
+      this.showToast(`Account #${target.id} deleted`);
+    }
+  }
+
+  editProfile() {
+    if (!this.activeAccount) return;
+    const newName = prompt(`Enter new profile name for Account #${this.activeAccount.id}:`, this.activeAccount.name);
+    if (newName && newName.trim()) {
+      this.activeAccount.name = newName.trim();
+      this.saveAccounts();
+      this.updateAccountUI();
+      this.renderAccountsList();
+      this.showToast("Profile name updated!");
+    }
+  }
+}
+);

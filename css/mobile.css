@@ -1323,3 +1323,227 @@ body {
 .viewer-sidebar {
   bottom: calc(30px + env(safe-area-inset-bottom, 0px));
 }
+/* ==========================================================================
+   User Account & Profile Management Styles (Unique IDs 1, 2, 3...)
+   ========================================================================== */
+
+.account-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(56, 139, 253, 0.15) !important;
+  border: 1px solid rgba(56, 139, 253, 0.4) !important;
+  color: var(--m-text) !important;
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.account-pill:active {
+  transform: scale(0.95);
+  background: var(--m-accent) !important;
+  color: #fff !important;
+}
+
+.account-avatar-emoji {
+  font-size: 14px;
+}
+
+.active-account-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: linear-gradient(135deg, rgba(56, 139, 253, 0.15), rgba(139, 92, 246, 0.12));
+  border: 1px solid rgba(56, 139, 253, 0.35);
+  border-radius: 16px;
+  padding: 14px;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.3);
+}
+
+.account-avatar-large {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--m-surface-elevated);
+  border: 2px solid var(--m-accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  box-shadow: 0 0 16px rgba(56, 139, 253, 0.35);
+}
+
+.account-card-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.account-name-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.account-name-text {
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--m-text);
+}
+
+.edit-profile-mini-btn {
+  background: none;
+  border: none;
+  font-size: 13px;
+  cursor: pointer;
+  opacity: 0.7;
+}
+
+.edit-profile-mini-btn:hover {
+  opacity: 1;
+}
+
+.account-badges-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.account-id-badge {
+  background: var(--m-accent);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 10px;
+  letter-spacing: 0.5px;
+}
+
+.account-handle-text {
+  font-size: 12px;
+  color: var(--m-text-sub);
+  font-weight: 600;
+}
+
+.account-stats-text {
+  font-size: 12px;
+  color: var(--m-text-sub);
+}
+
+.account-section-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--m-text);
+  margin-top: 6px;
+}
+
+.accounts-list-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.account-list-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--m-surface);
+  border: 1px solid var(--m-border);
+  border-radius: 12px;
+  padding: 10px 14px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.account-list-item:active {
+  transform: scale(0.98);
+}
+
+.account-list-item.active {
+  border-color: var(--m-accent);
+  background: rgba(56, 139, 253, 0.08);
+}
+
+.account-list-item-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.account-item-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: var(--m-surface-elevated);
+  border: 1px solid var(--m-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+}
+
+.account-item-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--m-text);
+}
+
+.account-item-meta {
+  font-size: 11px;
+  color: var(--m-text-sub);
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.account-item-id {
+  color: var(--m-accent);
+  font-weight: 700;
+}
+
+.new-account-drawer {
+  background: var(--m-surface);
+  border: 1px solid var(--m-border);
+  border-radius: 14px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.new-account-drawer.hidden {
+  display: none !important;
+}
+
+.avatar-picker-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.avatar-option {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--m-surface-elevated);
+  border: 2px solid transparent;
+  font-size: 18px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+
+.avatar-option.selected {
+  border-color: var(--m-accent);
+  background: rgba(56, 139, 253, 0.2);
+  transform: scale(1.1);
+}

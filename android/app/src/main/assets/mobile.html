@@ -41,6 +41,11 @@
       </div>
 
       <div class="header-actions">
+        <!-- User Account Pill (Unique ID #1, #2, etc.) -->
+        <button id="header-account-btn" class="account-pill" title="My Account Profile">
+          <span class="account-avatar-emoji">&#128100;</span>
+          <span id="header-account-label">#1 User</span>
+        </button>
         <!-- Active Source Pill (Tap opens bottom sheet) -->
         <button id="mobile-source-chip" class="mobile-source-chip" title="Switch API">
           <span class="dot-online"></span>
@@ -108,6 +113,11 @@
           </button>
         </div>
         <div class="feed-top-right">
+          <!-- User Account Pill (Unique ID #1, #2, etc.) -->
+          <button id="feed-account-btn" class="feed-glass-btn account-pill" title="My Account Profile">
+            <span class="account-avatar-emoji">&#128100;</span>
+            <span id="feed-account-label">#1 User</span>
+          </button>
           <button id="feed-clear-tag-btn" class="feed-glass-btn" title="Clear tag filter" style="display: none;">
             &times; Clear
           </button>
@@ -433,6 +443,76 @@
       </div>
     </div>
 
+        <!-- ==========================================
+         Mobile Accounts & Profile Bottom Sheet Modal
+         ========================================== -->
+    <div id="mobile-account-modal" class="bottom-sheet-modal">
+      <div class="sheet-overlay"></div>
+      <div class="sheet-panel" style="max-height: 88vh;">
+        <div class="sheet-header">
+          <h4>đź‘¤ User Profiles &amp; Accounts</h4>
+          <button id="close-account-modal-btn" class="sheet-close-btn">&times;</button>
+        </div>
+
+        <div style="overflow-y: auto; padding-right: 4px; flex: 1; display: flex; flex-direction: column; gap: 14px;">
+          <!-- Active Account Card -->
+          <div class="active-account-card">
+            <div class="account-avatar-large" id="current-account-avatar">&#128100;</div>
+            <div class="account-card-info">
+              <div class="account-name-row">
+                <span id="current-account-name" class="account-name-text">OmniUser</span>
+                <button id="edit-profile-btn" class="edit-profile-mini-btn" title="Edit Profile">&#9998;</button>
+              </div>
+              <div class="account-badges-row">
+                <span class="account-id-badge" id="current-account-id-badge">ID #1</span>
+                <span class="account-handle-text" id="current-account-handle">@user1</span>
+              </div>
+              <div class="account-stats-text" id="current-account-stats">0 saved bookmarks</div>
+            </div>
+          </div>
+
+          <!-- Account Switcher Section -->
+          <div class="account-section-title">
+            <span>Switch Profile</span>
+            <button id="create-account-btn" class="text-action-btn">+ New Account</button>
+          </div>
+
+          <div id="accounts-list-container" class="accounts-list-container">
+            <!-- Dynamic Account Cards rendered here -->
+          </div>
+
+          <!-- Create Account Form Drawer (Hidden by default) -->
+          <div id="new-account-drawer" class="new-account-drawer hidden">
+            <h5 style="color: var(--m-text); font-weight: 700;">Create Unique Account</h5>
+            <div class="m-form-group">
+              <label class="m-form-label">Profile Name</label>
+              <input type="text" id="new-account-name-input" class="m-form-input" placeholder="e.g. Anime Fan">
+            </div>
+            <div class="m-form-group">
+              <label class="m-form-label">Choose Avatar</label>
+              <div class="avatar-picker-row">
+                <button type="button" class="avatar-option selected" data-avatar="&#128100;">&#128100;</button>
+                <button type="button" class="avatar-option" data-avatar="&#127775;">&#127775;</button>
+                <button type="button" class="avatar-option" data-avatar="&#129418;">&#129418;</button>
+                <button type="button" class="avatar-option" data-avatar="&#128049;">&#128049;</button>
+                <button type="button" class="avatar-option" data-avatar="&#127800;">&#127800;</button>
+                <button type="button" class="avatar-option" data-avatar="&#9889;">&#9889;</button>
+                <button type="button" class="avatar-option" data-avatar="&#127918;">&#127918;</button>
+                <button type="button" class="avatar-option" data-avatar="&#127912;">&#127912;</button>
+                <button type="button" class="avatar-option" data-avatar="&#128081;">&#128081;</button>
+              </div>
+            </div>
+            <div style="font-size: 11px; color: var(--m-text-sub); margin-bottom: 8px;" id="new-account-id-hint">
+              This account will be assigned sequential unique ID #2.
+            </div>
+            <div style="display: flex; gap: 8px;">
+              <button type="button" id="confirm-create-account-btn" class="sheet-action-btn primary" style="flex: 1;">Create Account</button>
+              <button type="button" id="cancel-create-account-btn" class="sheet-action-btn" style="flex: 1;">Cancel</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
     <!-- Install Help Modal -->
     <div id="install-modal" class="bottom-sheet-modal">
       <div class="sheet-overlay"></div>

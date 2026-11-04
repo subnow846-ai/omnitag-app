@@ -128,7 +128,7 @@ public class MainActivity extends Activity {
         });
 
         // Load bundled offline mobile app assets with version parameter to prevent file caching
-        webView.loadUrl("file:///android_asset/mobile.html?v=110");
+        webView.loadUrl("file:///android_asset/mobile.html?v=120");
     }
 
     @Override
