@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#121820">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>OmniTag Mobile</title>
+  
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="css/mobile.css">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='25' fill='%23388bfd'/><text x='50%' y='55%' dominant-baseline='middle' text-anchor='middle' fill='white' font-size='56' font-weight='bold'>O</text></svg>">
+</head>
+<body>
+
+  <!-- Mobile App Wrapper -->
+  <div class="mobile-app-container">
+    
+    <!-- Install to phone banner -->
+    <div id="install-banner" class="install-banner">
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <span style="font-size: 16px;">📲</span>
+        <span>Install OmniTag App</span>
+      </div>
+      <button id="install-btn" class="install-banner-btn">Install</button>
+    </div>
+
+    <!-- Top Mobile App Header -->
+    <header class="mobile-header">
+      <div class="header-brand">
+        <div class="brand-badge">O</div>
+        <span class="brand-name">OmniTag</span>
+      </div>
+
+      <div class="header-actions">
+        <!-- Active Source Pill (Tap opens bottom sheet) -->
+        <button id="mobile-source-chip" class="mobile-source-chip" title="Switch API">
+          <span class="dot-online"></span>
+          <span id="active-source-name">Safebooru</span>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
+        </button>
+
+        <!-- Theme Toggle -->
+        <button id="mobile-theme-btn" class="header-icon-btn" title="Toggle Theme">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"></circle></svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Mobile Search Bar (Sticky) -->
+    <div class="mobile-search-section">
+      <div class="mobile-search-bar">
+        <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+        <input 
+          id="mobile-search-input" 
+          type="text" 
+          placeholder="Search tags (e.g. 1girl, -tag)..." 
+          autocomplete="off"
+          autocapitalize="none"
+          spellcheck="false"
+        >
+        <button id="mobile-clear-btn" class="clear-btn" style="display: none;">&times;</button>
+        <button id="mobile-search-btn" class="submit-btn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+            <polyline points="9 18 15 12 9 6"></polyline>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Real-time Tag Autocomplete Sheet -->
+      <div id="mobile-autocomplete" class="mobile-autocomplete-dropdown"></div>
+
+      <!-- Horizontal Quick Filter Pills -->
+      <div class="horizontal-filter-scroll">
+        <button class="filter-pill active" data-filter="all">All</button>
+        <button class="filter-pill" data-rating="s">Safe Only</button>
+        <button class="filter-pill" data-media="video">Videos / GIFs</button>
+        <button class="filter-pill" data-media="image">Images</button>
+        <button class="filter-pill" data-aspect="tall">Portrait</button>
+        <button class="filter-pill" data-aspect="wide">Landscape</button>
+        <button class="filter-pill" data-sort="score">★ Top Score</button>
+      </div>
+    </div>
+
+    <!-- Active Feed View -->
+    <main class="mobile-scroll-body">
+      <!-- Status Meta Bar -->
+      <div class="feed-status-bar">
+        <span id="feed-results-info">Ready to search</span>
+        <button id="feed-refresh-btn" class="text-action-btn">Refresh</button>
+      </div>
+
+      <!-- 2-Column Mobile Masonry Grid -->
+      <div id="mobile-grid" class="mobile-gallery-grid"></div>
+
+      <!-- Mobile Pagination -->
+      <div id="mobile-pagination" class="mobile-pagination"></div>
+    </main>
+
+    <!-- Bottom Mobile Tab Bar -->
+    <nav class="mobile-bottom-nav">
+      <button class="nav-tab active" data-tab="search">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+        <span>Search</span>
+      </button>
+
+      <button class="nav-tab" data-tab="explore">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+        </svg>
+        <span>Trending</span>
+      </button>
+
+      <button class="nav-tab" data-tab="saved">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+        </svg>
+        <span>Saved</span>
+      </button>
+
+      <button class="nav-tab" data-tab="sources">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="3"></circle>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+        </svg>
+        <span>APIs</span>
+      </button>
+    </nav>
+
+    <!-- ==========================================
+         Mobile Full-Screen Media Viewer
+         ========================================== -->
+    <div id="mobile-viewer-modal" class="mobile-viewer">
+      <div class="viewer-top-bar">
+        <button id="viewer-close-btn" class="viewer-circle-btn">&times;</button>
+        <div class="viewer-title">Post View</div>
+        <button id="viewer-fav-btn" class="viewer-circle-btn">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+          </svg>
+        </button>
+      </div>
+
+      <div id="viewer-media-stage" class="viewer-stage"></div>
+
+      <!-- Draggable / Expandable Bottom Sheet for Info & Tags -->
+      <div id="viewer-info-sheet" class="viewer-info-sheet">
+        <div class="sheet-drag-handle"></div>
+        <div class="sheet-actions">
+          <button id="viewer-download-btn" class="sheet-action-btn primary">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="7 10 12 15 17 10"></polyline>
+              <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+            Download
+          </button>
+          <button id="viewer-copy-btn" class="sheet-action-btn">Copy Link</button>
+          <a id="viewer-source-btn" class="sheet-action-btn" target="_blank" rel="noopener">Source ↗</a>
+        </div>
+
+        <div class="sheet-meta-row" id="viewer-meta-row"></div>
+        
+        <div class="sheet-tags-section">
+          <h5>Tags (Tap to Search)</h5>
+          <div id="viewer-tags-chips" class="mobile-tags-wrap"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==========================================
+         Mobile Source Switcher & Manager Bottom Sheet
+         ========================================== -->
+    <div id="mobile-sources-sheet" class="bottom-sheet-modal">
+      <div class="sheet-overlay"></div>
+      <div class="sheet-panel">
+        <div class="sheet-header">
+          <h4>Manage API Sources</h4>
+          <button id="close-sources-sheet-btn" class="sheet-close-btn">&times;</button>
+        </div>
+        <div id="mobile-sources-list" class="sheet-sources-list"></div>
+        <div class="sheet-footer" style="display: flex; flex-direction: column; gap: 8px;">
+          <button id="mobile-add-source-btn" class="sheet-action-btn primary" style="width: 100%;">+ Add Custom API Source</button>
+          <div style="display: flex; gap: 8px;">
+            <button id="m-export-btn" class="sheet-action-btn" type="button" style="flex: 1;">Export JSON</button>
+            <label class="sheet-action-btn" style="flex: 1; text-align: center; cursor: pointer; margin: 0;">
+              Import JSON
+              <input type="file" id="m-import-file" accept=".json" style="display: none;">
+            </label>
+            <button id="m-reset-btn" class="sheet-action-btn" type="button" style="flex: 1;">Reset</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==========================================
+         Mobile Add / Edit Source Sheet
+         ========================================== -->
+    <div id="mobile-edit-source-sheet" class="bottom-sheet-modal">
+      <div class="sheet-overlay"></div>
+      <div class="sheet-panel" style="max-height: 90vh;">
+        <div class="sheet-header">
+          <h4 id="m-edit-sheet-title">Edit API Source</h4>
+          <button id="close-edit-source-btn" class="sheet-close-btn">&times;</button>
+        </div>
+        
+        <form id="mobile-source-form" style="overflow-y: auto; padding-right: 4px; flex: 1;">
+          <input type="hidden" id="m-src-id">
+
+          <div class="m-form-group">
+            <label class="m-form-label">Source Name</label>
+            <input type="text" id="m-src-name" class="m-form-input" placeholder="e.g. My Custom API" required>
+          </div>
+
+          <div class="m-form-group">
+            <label class="m-form-label">API Protocol / Type</label>
+            <select id="m-src-type" class="m-form-select">
+              <option value="gelbooru_dapi">Gelbooru / Safebooru DAPI (XML / JSON)</option>
+              <option value="danbooru_v2">Danbooru 2.x API (JSON)</option>
+              <option value="moebooru">Moebooru API (Yande.re, Konachan)</option>
+            </select>
+          </div>
+
+          <div class="m-form-group">
+            <label class="m-form-label">Base URL</label>
+            <input type="url" id="m-src-base" class="m-form-input" placeholder="https://example.com" required>
+          </div>
+
+          <div class="m-form-group">
+            <label class="m-form-label">API Key (Optional)</label>
+            <input type="text" id="m-src-apikey" class="m-form-input" placeholder="Paste your API key here" autocomplete="off" spellcheck="false">
+          </div>
+
+          <div class="m-form-group">
+            <label class="m-form-label">User ID (Optional)</label>
+            <input type="text" id="m-src-userid" class="m-form-input" placeholder="Numeric user ID" autocomplete="off" spellcheck="false">
+            <div class="m-form-hint">Stored securely on this device's browser local storage.</div>
+          </div>
+
+          <div class="m-form-group">
+            <label class="m-form-label">Proxy Mode</label>
+            <select id="m-src-proxy" class="m-form-select">
+              <option value="auto">Auto (Built-in / Local server proxy)</option>
+              <option value="direct">Direct (No Proxy)</option>
+              <option value="corsproxy">Public CORS Proxy</option>
+              <option value="allorigins">AllOrigins Proxy</option>
+              <option value="custom">Custom Proxy</option>
+            </select>
+          </div>
+
+          <div class="m-form-group" id="m-src-custom-proxy-group" style="display: none;">
+            <label class="m-form-label">Custom Proxy URL</label>
+            <input type="text" id="m-src-custom-proxy" class="m-form-input" placeholder="https://myproxy.com/?url={url}">
+          </div>
+
+          <div class="m-form-group">
+            <label class="m-form-label">Custom Posts URL Template (Optional)</label>
+            <input type="text" id="m-src-posts" class="m-form-input" placeholder="Leave empty for default">
+            <div class="m-form-hint">Variables: {tags}, {page}, {limit}, {api_key}, {user_id}</div>
+          </div>
+
+          <div class="m-form-group">
+            <label class="m-form-label">Custom Tag Autocomplete URL (Optional)</label>
+            <input type="text" id="m-src-tags" class="m-form-input" placeholder="Leave empty for default">
+            <div class="m-form-hint">Variable: {query}</div>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 16px; margin-bottom: 8px;">
+            <button type="submit" class="sheet-action-btn primary" style="padding: 12px; font-size: 14px;">Save Source</button>
+            <button type="button" id="m-src-cancel-btn" class="sheet-action-btn" style="padding: 10px;">Cancel</button>
+            <button type="button" id="m-src-delete-btn" class="sheet-action-btn" style="padding: 10px; color: var(--m-danger); border-color: rgba(248, 81, 73, 0.4); display: none;">Delete Source</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Install Help Modal -->
+    <div id="install-modal" class="bottom-sheet-modal">
+      <div class="sheet-overlay"></div>
+      <div class="sheet-panel">
+        <div class="sheet-header">
+          <h4>📲 How to Install App on Phone</h4>
+          <button id="close-install-modal-btn" class="sheet-close-btn">&times;</button>
+        </div>
+        <div id="install-instructions" style="font-size: 13px; line-height: 1.6; color: var(--m-text); margin-bottom: 14px;">
+        </div>
+        <div>
+          <button id="dismiss-install-modal-btn" class="sheet-action-btn primary" style="width: 100%;">Understood</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="mobile-toast" class="mobile-toast"></div>
+
+  </div>
+
+  <!-- Reusable API engine and Autocomplete logic -->
+  <script src="js/api-sources.js"></script>
+  <script src="js/autocomplete.js"></script>
+  <script src="js/mobile-app.js"></script>
+
+  <!-- PWA Service Worker Registration -->
+  <script>
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("sw.js").catch(e => console.log("SW registration:", e));
+      });
+    }
+  </script>
+
+</body>
+</html>

@@ -37,6 +37,21 @@ OmniTag is a modern, responsive tag-based media search engine and gallery applic
 
 ---
 
+## 📱 Native Android App (APK)
+
+You can download and install the standalone native Android APK directly on your phone:
+
+- **[⬇️ Download OmniTag.apk](https://github.com/subnow846-ai/omnitag-app/releases/latest/download/OmniTag.apk)**
+- **GitHub Release Page:** [https://github.com/subnow846-ai/omnitag-app/releases](https://github.com/subnow846-ai/omnitag-app/releases)
+
+### How to Install on Android:
+1. Tap the download link on your Android phone.
+2. Open the downloaded `OmniTag.apk` file from your notification bar or **Downloads** folder.
+3. If prompted, select **Settings** and enable **"Allow from this source"**.
+4. Tap **Install** and launch OmniTag!
+
+---
+
 ## 📱 Instant 1-Click Install to Phone (Scan QR Code)
 
 Double-click:
