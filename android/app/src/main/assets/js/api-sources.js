@@ -97,13 +97,14 @@ class ApiSourceManager {
     this.presetVersionKey = "omnitag_preset_version";
     this.sources = this.loadSources();
     
-    // On GitHub Pages, Danbooru is the default because it has full native CORS support
-    const isGitHubPages = typeof window !== "undefined" && window.location.hostname.includes("github.io");
-    const defaultId = isGitHubPages ? "danbooru" : "safebooru";
+    // In any web browser environment (without native AndroidBridge), Danbooru is the default
+    // because it natively supports CORS headers (Access-Control-Allow-Origin: *)
+    const isWeb = typeof window !== "undefined" && !window.AndroidBridge;
+    const defaultId = isWeb ? "danbooru" : "safebooru";
     this.activeId = localStorage.getItem(this.activeKey) || defaultId;
     
-    // On GitHub Pages, ensure active source allows CORS (Danbooru) so it doesn't fail
-    if (isGitHubPages && this.activeId === "safebooru") {
+    // In web mode, ensure active source has native CORS support (Danbooru) so requests never fail
+    if (isWeb && this.activeId === "safebooru" && !localStorage.getItem("omnitag_user_explicit_safebooru")) {
       this.activeId = "danbooru";
       localStorage.setItem(this.activeKey, "danbooru");
     }
@@ -164,6 +165,18 @@ class ApiSourceManager {
     return this.sources;
   }
 
+  getAllSources() {
+    return this.getSources();
+  }
+
+  addSource(data) {
+    return this.saveSource(data);
+  }
+
+  updateSource(id, data) {
+    return this.saveSource({ id, ...data });
+  }
+
   getSource(id) {
     return this.sources.find(s => s.id === id) || null;
   }
@@ -176,6 +189,11 @@ class ApiSourceManager {
     if (this.getSource(id)) {
       this.activeId = id;
       localStorage.setItem(this.activeKey, id);
+      if (id === "safebooru") {
+        localStorage.setItem("omnitag_user_explicit_safebooru", "1");
+      } else {
+        localStorage.removeItem("omnitag_user_explicit_safebooru");
+      }
       return true;
     }
     return false;

@@ -958,8 +958,8 @@ class OmniTagMobileApp {
 
   renderFeedDrawerApiPills() {
     if (!this.feedDrawerApiPills) return;
-    const sources = this.sourceManager.getAllSources();
-    const active = this.sourceManager.getActiveSource();
+    const sources = (this.sourceManager?.getAllSources ? this.sourceManager.getAllSources() : this.sourceManager?.getSources()) || [];
+    const active = this.sourceManager?.getActiveSource();
     this.feedDrawerApiPills.innerHTML = "";
 
     sources.forEach(src => {
@@ -1004,6 +1004,12 @@ class OmniTagMobileApp {
       this.applyFiltersAndRender();
       this.renderPagination();
     } catch (err) {
+      if (!window.AndroidBridge && this.sourceManager && this.sourceManager.activeId !== "danbooru") {
+        console.warn("Search failed on primary booru in browser, trying Danbooru fallback...");
+        this.sourceManager.setActiveSource("danbooru");
+        this.updateSourceBadge();
+        return this.executeSearch(query, page);
+      }
       this.grid.innerHTML = `
         <div style="grid-column: 1 / -1; text-align: center; padding: 40px 16px; color: var(--m-danger);">
           <p style="font-weight: 700; margin-bottom: 6px;">Error fetching posts</p>
@@ -1559,13 +1565,29 @@ class OmniTagMobileApp {
     }
   }
 
-  downloadMedia(url, filename) {
+  async downloadMedia(url, filename) {
     if (!url) return;
     if (window.AndroidBridge && typeof window.AndroidBridge.downloadFile === "function") {
       window.AndroidBridge.downloadFile(url, filename || "omnitag_media.jpg");
       return;
     }
     this.showToast("Starting download...");
+    try {
+      const resp = await fetch(url, { referrerPolicy: "no-referrer" });
+      if (resp.ok) {
+        const blob = await resp.blob();
+        const blobUrl = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = blobUrl;
+        a.download = filename || "omnitag_media.jpg";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(blobUrl), 10000);
+        return;
+      }
+    } catch (_) {}
+
     try {
       const a = document.createElement("a");
       a.href = url;
@@ -1601,8 +1623,8 @@ class OmniTagMobileApp {
   }
 
   renderSourcesList() {
-    const sources = this.sourceManager.getAllSources();
-    const active = this.sourceManager.getActiveSource();
+    const sources = (this.sourceManager?.getAllSources ? this.sourceManager.getAllSources() : this.sourceManager?.getSources()) || [];
+    const active = this.sourceManager?.getActiveSource();
     this.sourcesList.innerHTML = "";
 
     sources.forEach(src => {
