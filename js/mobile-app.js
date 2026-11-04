@@ -129,6 +129,11 @@ class OmniTagMobileApp {
     this.submitRegisterBtn = document.getElementById("submit-register-btn");
     this.registerGotoLoginBtn = document.getElementById("register-goto-login-btn");
     this.editProfileBtn = document.getElementById("edit-profile-btn");
+    this.accountLogoutBtn = document.getElementById("account-logout-btn");
+    this.guestGotoLoginBtn = document.getElementById("guest-goto-login-btn");
+    this.guestGotoRegisterBtn = document.getElementById("guest-goto-register-btn");
+    this.loggedInProfileCard = document.getElementById("logged-in-profile-card");
+    this.guestProfileCard = document.getElementById("guest-profile-card");
     this.createAccountBtn = document.getElementById("create-account-btn");
     this.accountsListContainer = document.getElementById("accounts-list-container");
     this.newAccountDrawer = document.getElementById("new-account-drawer");
@@ -568,6 +573,15 @@ class OmniTagMobileApp {
     }
     if (this.editProfileBtn) {
       this.editProfileBtn.addEventListener("click", () => this.editProfile());
+    }
+    if (this.accountLogoutBtn) {
+      this.accountLogoutBtn.addEventListener("click", () => this.handleLogout());
+    }
+    if (this.guestGotoLoginBtn) {
+      this.guestGotoLoginBtn.addEventListener("click", () => this.switchAccountSubview("login"));
+    }
+    if (this.guestGotoRegisterBtn) {
+      this.guestGotoRegisterBtn.addEventListener("click", () => this.switchAccountSubview("register"));
     }
 
     // Subview Navigation Pills
@@ -3042,6 +3056,7 @@ class OmniTagMobileApp {
   // ==========================================
 
   initAccounts() {
+    this.accounts = [];
     try {
       const raw = localStorage.getItem("omnitag_accounts_v2");
       if (raw) {
@@ -3052,54 +3067,41 @@ class OmniTagMobileApp {
       }
     } catch (_) {}
 
-    // Migration from legacy omnitag_accounts or brand new initialization
+    // Migration from legacy omnitag_accounts if v2 was empty
     if (!this.accounts || this.accounts.length === 0) {
-      let legacyAccounts = [];
       try {
         const rawLegacy = localStorage.getItem("omnitag_accounts");
         if (rawLegacy) {
           const parsed = JSON.parse(rawLegacy);
           if (Array.isArray(parsed) && parsed.length > 0) {
-            legacyAccounts = parsed;
+            this.accounts = parsed.map(a => ({
+              id: a.id || 1,
+              name: a.name || "User",
+              username: (a.username || a.name || `user${a.id || 1}`).toLowerCase().replace(/\s+/g, "_"),
+              password: a.password || "",
+              handle: a.handle || `@user${a.id || 1}`,
+              avatar: a.avatar || "👤",
+              color: a.color || "#388bfd",
+              createdAt: a.createdAt || Date.now(),
+              likedPosts: a.likedPosts || [],
+              savedPosts: a.savedPosts || a.favorites || [],
+              algorithm: a.algorithm || { tagWeights: {}, watchHistory: [], interactionCount: 0 }
+            }));
           }
         }
       } catch (_) {}
-
-      if (legacyAccounts.length > 0) {
-        this.accounts = legacyAccounts.map(a => ({
-          id: a.id || 1,
-          name: a.name || "OmniUser",
-          username: (a.name || "OmniUser").toLowerCase().replace(/\s+/g, "_"),
-          password: a.password || "",
-          handle: a.handle || `@user${a.id || 1}`,
-          avatar: a.avatar || "👤",
-          color: a.color || "#388bfd",
-          createdAt: a.createdAt || Date.now(),
-          likedPosts: a.likedPosts || [],
-          savedPosts: a.savedPosts || a.favorites || [],
-          algorithm: a.algorithm || { tagWeights: {}, watchHistory: [], interactionCount: 0 }
-        }));
-      } else {
-        const legacyFavorites = this.loadFavorites();
-        const legacyLikes = this.loadLikes();
-        this.accounts = [{
-          id: 1,
-          name: "OmniUser",
-          username: "omniuser",
-          password: "",
-          handle: "@user1",
-          avatar: "👤",
-          color: "#388bfd",
-          createdAt: Date.now(),
-          likedPosts: legacyLikes,
-          savedPosts: legacyFavorites,
-          algorithm: { tagWeights: {}, watchHistory: [], interactionCount: 0 }
-        }];
-      }
-      this.saveAccounts();
     }
 
-    // Ensure all accounts have necessary structures
+    // Clean up any phantom dummy OmniUser if the user never wanted it
+    this.accounts = this.accounts.filter(a => {
+      if (a.name === "OmniUser" && a.id === 1 && (!a.likedPosts || a.likedPosts.length === 0) && (!a.savedPosts || a.savedPosts.length === 0) && (!a.algorithm || a.algorithm.interactionCount === 0)) {
+        return false;
+      }
+      return true;
+    });
+    this.saveAccounts();
+
+    // Ensure all accounts have complete schema
     this.accounts.forEach(a => {
       if (!Array.isArray(a.likedPosts)) a.likedPosts = [];
       if (!Array.isArray(a.savedPosts)) a.savedPosts = a.favorites || [];
@@ -3113,22 +3115,26 @@ class OmniTagMobileApp {
       if (typeof a.password !== "string") a.password = "";
     });
 
-    // Load active account
+    // Determine active account: Guest by default on first launch!
     const savedActiveId = localStorage.getItem("omnitag_active_account_id");
-    const activeId = savedActiveId ? parseInt(savedActiveId, 10) : 1;
-    this.activeAccount = this.accounts.find(a => a.id === activeId) || this.accounts[0];
-    localStorage.setItem("omnitag_active_account_id", String(this.activeAccount.id));
+    if (savedActiveId && savedActiveId !== "guest") {
+      const activeId = parseInt(savedActiveId, 10);
+      this.activeAccount = this.accounts.find(a => a.id === activeId) || null;
+    } else {
+      this.activeAccount = null;
+    }
 
-    // Connect active account's isolated lists
-    this.likes = this.activeAccount.likedPosts;
-    this.favorites = this.activeAccount.savedPosts;
-    this.saveLikes();
-    this.saveFavorites();
+    if (this.activeAccount) {
+      this.likes = this.activeAccount.likedPosts || [];
+      this.favorites = this.activeAccount.savedPosts || [];
+    } else {
+      this.likes = this.loadLikes();
+      this.favorites = this.loadFavorites();
+    }
 
-    setTimeout(() => {
-      this.updateAccountUI();
-      this.renderAlgorithmUI();
-    }, 50);
+    // Immediate synchronous UI refresh so guest view shows instantly
+    this.updateAccountUI();
+    this.renderAlgorithmUI();
   }
 
   saveAccounts() {
@@ -3143,14 +3149,22 @@ class OmniTagMobileApp {
   }
 
   getNextAccountId() {
-    // Strictly sequential and unique IDs from 1 and up
+    if (!this.accounts || this.accounts.length === 0) return 1;
     const maxId = this.accounts.reduce((max, a) => Math.max(max, a.id || 0), 0);
     return maxId + 1;
   }
 
   openAccountModal() {
     if (!this.accountModal) return;
-    this.switchAccountSubview("profile");
+    if (!this.activeAccount) {
+      if (!this.accounts || this.accounts.length === 0) {
+        this.switchAccountSubview("register");
+      } else {
+        this.switchAccountSubview("login");
+      }
+    } else {
+      this.switchAccountSubview("profile");
+    }
     this.accountModal.classList.add("open");
   }
 
@@ -3181,28 +3195,72 @@ class OmniTagMobileApp {
   }
 
   updateAccountUI() {
-    if (!this.activeAccount) return;
-    const nameStr = `#${this.activeAccount.id} ${this.activeAccount.name}`;
-    const compactFeedStr = `#${this.activeAccount.id}`;
+    const isGuest = !this.activeAccount;
 
-    if (this.feedAccountAvatar) this.feedAccountAvatar.textContent = this.activeAccount.avatar || "👤";
-    if (this.feedAccountLabel) this.feedAccountLabel.textContent = compactFeedStr;
-    if (this.headerAccountAvatar) this.headerAccountAvatar.textContent = this.activeAccount.avatar || "👤";
-    if (this.headerAccountLabel) this.headerAccountLabel.textContent = nameStr;
+    // 1. Header & Feed Top Bar Pills
+    if (isGuest) {
+      if (this.headerAccountAvatar) this.headerAccountAvatar.textContent = "👤";
+      if (this.headerAccountLabel) this.headerAccountLabel.textContent = "Log In";
+      if (this.headerAccountBtn) {
+        this.headerAccountBtn.classList.add("is-guest");
+        this.headerAccountBtn.title = "Log In or Sign Up";
+      }
 
-    if (this.currentAccountAvatar) this.currentAccountAvatar.textContent = this.activeAccount.avatar || "👤";
-    if (this.currentAccountName) this.currentAccountName.textContent = this.activeAccount.name;
-    if (this.currentAccountIdBadge) this.currentAccountIdBadge.textContent = `ID #${this.activeAccount.id}`;
-    if (this.currentAccountHandle) this.currentAccountHandle.textContent = this.activeAccount.handle || `@user${this.activeAccount.id}`;
+      if (this.feedAccountAvatar) this.feedAccountAvatar.textContent = "👤";
+      if (this.feedAccountLabel) this.feedAccountLabel.textContent = "Log In";
+      if (this.feedAccountBtn) {
+        this.feedAccountBtn.classList.add("is-guest");
+        this.feedAccountBtn.title = "Log In or Sign Up";
+      }
+    } else {
+      const acc = this.activeAccount;
+      const nameStr = `#${acc.id} ${acc.name}`;
+      const compactFeedStr = `#${acc.id}`;
 
-    const likedCount = (this.activeAccount.likedPosts || []).length;
-    const savedCount = (this.activeAccount.savedPosts || []).length;
+      if (this.headerAccountAvatar) this.headerAccountAvatar.textContent = acc.avatar || "👤";
+      if (this.headerAccountLabel) this.headerAccountLabel.textContent = nameStr;
+      if (this.headerAccountBtn) {
+        this.headerAccountBtn.classList.remove("is-guest");
+        this.headerAccountBtn.title = `Logged in as ${acc.name} (#${acc.id})`;
+      }
 
-    if (this.currentAccountLikedStat) {
-      this.currentAccountLikedStat.textContent = `❤️ ${likedCount} Liked`;
+      if (this.feedAccountAvatar) this.feedAccountAvatar.textContent = acc.avatar || "👤";
+      if (this.feedAccountLabel) this.feedAccountLabel.textContent = compactFeedStr;
+      if (this.feedAccountBtn) {
+        this.feedAccountBtn.classList.remove("is-guest");
+        this.feedAccountBtn.title = `Logged in as ${acc.name} (#${acc.id})`;
+      }
     }
-    if (this.currentAccountSavedStat) {
-      this.currentAccountSavedStat.textContent = `🔖 ${savedCount} Saved`;
+
+    // 2. Profile Subview Cards
+    const loggedInCard = document.getElementById("logged-in-profile-card") || this.loggedInProfileCard;
+    const guestCard = document.getElementById("guest-profile-card") || this.guestProfileCard;
+    const algoBox = document.querySelector(".algorithm-profile-box");
+
+    if (isGuest) {
+      if (loggedInCard) loggedInCard.style.display = "none";
+      if (guestCard) guestCard.style.display = "flex";
+      if (algoBox) algoBox.style.display = "none";
+    } else {
+      if (loggedInCard) loggedInCard.style.display = "flex";
+      if (guestCard) guestCard.style.display = "none";
+      if (algoBox) algoBox.style.display = "flex";
+
+      const acc = this.activeAccount;
+      if (this.currentAccountAvatar) this.currentAccountAvatar.textContent = acc.avatar || "👤";
+      if (this.currentAccountName) this.currentAccountName.textContent = acc.name;
+      if (this.currentAccountIdBadge) this.currentAccountIdBadge.textContent = `ID #${acc.id}`;
+      if (this.currentAccountHandle) this.currentAccountHandle.textContent = acc.handle || `@user${acc.id}`;
+
+      const likedCount = (acc.likedPosts || []).length;
+      const savedCount = (acc.savedPosts || []).length;
+
+      if (this.currentAccountLikedStat) {
+        this.currentAccountLikedStat.textContent = `❤️ ${likedCount} Liked`;
+      }
+      if (this.currentAccountSavedStat) {
+        this.currentAccountSavedStat.textContent = `🔖 ${savedCount} Saved`;
+      }
     }
   }
 
@@ -3210,8 +3268,18 @@ class OmniTagMobileApp {
     if (!this.accountsListContainer) return;
     this.accountsListContainer.innerHTML = "";
 
+    if (!this.accounts || this.accounts.length === 0) {
+      this.accountsListContainer.innerHTML = `
+        <div style="padding: 16px; text-align: center; color: var(--m-text-sub); font-size: 12px; background: var(--m-surface); border-radius: 12px; border: 1px dashed rgba(255,255,255,0.1);">
+          No accounts registered on this device yet.<br>
+          <span style="color: var(--m-accent); font-weight: 600;">Tap "Create Account" above to get started!</span>
+        </div>
+      `;
+      return;
+    }
+
     this.accounts.forEach(acc => {
-      const isActive = acc.id === this.activeAccount.id;
+      const isActive = this.activeAccount && acc.id === this.activeAccount.id;
       const likedCount = (acc.likedPosts || []).length;
       const savedCount = (acc.savedPosts || []).length;
 
@@ -3238,8 +3306,8 @@ class OmniTagMobileApp {
           ${isActive ? `
             <span style="font-size: 18px; color: var(--m-accent); font-weight: 700;">&check;</span>
           ` : `
-            <button class="sheet-action-btn switch-acc-btn" style="padding: 5px 10px; font-size: 11px;">Switch</button>
-            ${this.accounts.length > 1 ? `<button class="sheet-action-btn delete-acc-btn" style="padding: 5px 8px; font-size: 11px; color: var(--m-danger);" title="Delete Account">&times;</button>` : ''}
+            <button type="button" class="sheet-action-btn switch-acc-btn" style="padding: 5px 10px; font-size: 11px;">${this.activeAccount ? 'Switch' : 'Log In'}</button>
+            <button type="button" class="sheet-action-btn delete-acc-btn" style="padding: 5px 8px; font-size: 11px; color: var(--m-danger);" title="Delete Account">&times;</button>
           `}
         </div>
       `;
@@ -3292,8 +3360,8 @@ class OmniTagMobileApp {
       avatar: avatar || "👤",
       color: "#388bfd",
       createdAt: Date.now(),
-      likedPosts: [],
-      savedPosts: [],
+      likedPosts: Array.isArray(this.likes) ? [...this.likes] : [],
+      savedPosts: Array.isArray(this.favorites) ? [...this.favorites] : [],
       algorithm: { tagWeights: {}, watchHistory: [], interactionCount: 0 }
     };
 
@@ -3303,7 +3371,7 @@ class OmniTagMobileApp {
     this.switchAccountSubview("profile");
     if (this.registerUsernameInput) this.registerUsernameInput.value = "";
     if (this.registerPasswordInput) this.registerPasswordInput.value = "";
-    this.showToast(`Welcome, ${u}! Account created successfully.`);
+    this.showToast(`Welcome, ${u}! Account #${nextId} created successfully.`);
   }
 
   handleLogin(username, password = "") {
@@ -3346,6 +3414,27 @@ class OmniTagMobileApp {
     this.showToast(`Logged in as ${target.name}!`);
   }
 
+  handleLogout() {
+    const oldName = this.activeAccount?.name || "User";
+    this.activeAccount = null;
+    localStorage.setItem("omnitag_active_account_id", "guest");
+
+    this.likes = this.loadLikes();
+    this.favorites = this.loadFavorites();
+
+    this.updateAccountUI();
+    this.renderAccountsList();
+    this.renderAlgorithmUI();
+
+    if (this.activeTab === "liked") {
+      this.renderLikedPosts(this.searchInput?.value || "");
+    } else if (this.activeTab === "saved") {
+      this.renderSavedPosts(this.searchInput?.value || "");
+    }
+
+    this.showToast(`Logged out (${oldName}). You are now browsing as Guest.`);
+  }
+
   switchAccount(accountId) {
     const target = this.accounts.find(a => a.id === accountId);
     if (!target) return;
@@ -3362,27 +3451,23 @@ class OmniTagMobileApp {
     this.renderAlgorithmUI();
 
     if (this.activeTab === "liked") {
-      this.renderLikedPosts(this.searchInput.value);
+      this.renderLikedPosts(this.searchInput ? this.searchInput.value : "");
     } else if (this.activeTab === "saved") {
-      this.renderSavedPosts(this.searchInput.value);
+      this.renderSavedPosts(this.searchInput ? this.searchInput.value : "");
     }
 
     this.showToast(`Active account: ${target.name} (#${target.id})`);
   }
 
   deleteAccount(accountId) {
-    if (this.accounts.length <= 1) {
-      this.showToast("Cannot delete the only account!");
-      return;
-    }
     const target = this.accounts.find(a => a.id === accountId);
     if (!target) return;
 
     if (confirm(`Delete Account #${target.id} (${target.name}) and all its data?`)) {
       this.accounts = this.accounts.filter(a => a.id !== accountId);
       this.saveAccounts();
-      if (this.activeAccount.id === accountId) {
-        this.switchAccount(this.accounts[0].id);
+      if (this.activeAccount && this.activeAccount.id === accountId) {
+        this.handleLogout();
       } else {
         this.updateAccountUI();
         this.renderAccountsList();

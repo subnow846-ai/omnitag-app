@@ -1975,6 +1975,19 @@ video.tiktok-media-el {
   transition: all 0.2s ease;
 }
 
+.account-pill.is-guest {
+  background: rgba(255, 255, 255, 0.08) !important;
+  border: 1px solid rgba(255, 255, 255, 0.22) !important;
+  color: var(--m-text-sub) !important;
+}
+
+.account-pill.is-guest:hover,
+.account-pill.is-guest:focus {
+  background: rgba(56, 139, 253, 0.18) !important;
+  border-color: rgba(56, 139, 253, 0.5) !important;
+  color: var(--m-text) !important;
+}
+
 .account-pill:active {
   transform: scale(0.95);
   background: var(--m-accent) !important;
@@ -1994,6 +2007,80 @@ video.tiktok-media-el {
   border-radius: 16px;
   padding: 14px;
   box-shadow: 0 4px 18px rgba(0, 0, 0, 0.3);
+}
+
+.guest-profile-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: linear-gradient(135deg, rgba(30, 41, 59, 0.6) 0%, rgba(15, 23, 42, 0.8) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.25);
+}
+
+.guest-card-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.guest-avatar-large {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+  border: 2px dashed rgba(255, 255, 255, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+}
+
+.guest-card-title {
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--m-text);
+}
+
+.guest-card-subtitle {
+  font-size: 12px;
+  color: var(--m-text-sub);
+}
+
+.guest-card-desc {
+  font-size: 12px;
+  color: var(--m-text-sub);
+  line-height: 1.4;
+  margin: 0;
+}
+
+.guest-card-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.account-logout-mini-btn {
+  margin-left: auto;
+  background: rgba(248, 81, 73, 0.15);
+  border: 1px solid rgba(248, 81, 73, 0.35);
+  color: #ff7b72;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.account-logout-mini-btn:hover,
+.account-logout-mini-btn:active {
+  background: #f85149;
+  color: #fff;
+  border-color: #f85149;
+  transform: scale(0.95);
 }
 
 .account-avatar-large {
