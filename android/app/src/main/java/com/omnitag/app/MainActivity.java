@@ -68,7 +68,7 @@ public class MainActivity extends Activity {
         // Fast, smooth caching for mobile image feeds
         settings.setCacheMode(WebSettings.LOAD_DEFAULT);
         settings.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
-        settings.setUserAgentString(settings.getUserAgentString() + " OmniTagApp/1.3.5");
+        settings.setUserAgentString(settings.getUserAgentString() + " OmniTagApp/1.3.6");
 
         CookieManager.getInstance().setAcceptCookie(true);
         CookieManager.getInstance().setAcceptThirdPartyCookies(webView, true);
@@ -214,7 +214,7 @@ public class MainActivity extends Activity {
                 URL url = new URL(urlString);
                 conn = (HttpURLConnection) url.openConnection();
                 conn.setRequestMethod("GET");
-                conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Linux; Android 14; Mobile) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Mobile Safari/537.36 OmniTagApp/1.3.5");
+                conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Linux; Android 14; Mobile) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Mobile Safari/537.36 OmniTagApp/1.3.6");
                 conn.setRequestProperty("Accept", "application/json, text/plain, */*");
                 conn.setConnectTimeout(10000);
                 conn.setReadTimeout(10000);

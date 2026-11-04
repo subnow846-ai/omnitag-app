@@ -1,4 +1,4 @@
-const CACHE_NAME = "omnitag-cache-v15";
+const CACHE_NAME = "omnitag-cache-v16";
 const STATIC_ASSETS = [
   "./",
   "./index.html",
