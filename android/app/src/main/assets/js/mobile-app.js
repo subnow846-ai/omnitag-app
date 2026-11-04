@@ -683,12 +683,18 @@ class OmniTagMobileApp {
 
   switchTab(tab) {
     if (tab === "sources" || tab === "apis") {
+      this.pauseAllFeedVideos();
       this.previousTab = (this.activeTab !== "sources" && this.activeTab !== "apis") ? this.activeTab : (this.previousTab || "feed");
       document.querySelectorAll(".nav-tab").forEach(t => {
         t.classList.toggle("active", t.dataset.tab === "sources" || t.dataset.tab === "apis");
       });
       this.openSourcesSheet();
       return;
+    }
+
+    const leavingFeed = this.activeTab === "feed" && tab !== "feed";
+    if (leavingFeed) {
+      this.pauseAllFeedVideos();
     }
 
     this.activeTab = tab;
@@ -702,6 +708,8 @@ class OmniTagMobileApp {
       if (this.gridView) this.gridView.style.display = "none";
       if (this.feedPosts.length === 0 || this.feedSourceId !== this.sourceManager?.activeId) {
         this.loadFeedPosts(true);
+      } else {
+        this.updateActiveFeedSlide();
       }
     } else if (tab === "search") {
       if (this.feedView) this.feedView.style.display = "none";
@@ -910,21 +918,28 @@ class OmniTagMobileApp {
     const posterSrc = cleanUrl(post.previewUrl || post.sampleUrl || "");
     const sourceDisplayName = post.source || post.sourceSite || (this.sourceManager?.getActiveSource()?.name) || "Safebooru";
 
+    // Only attach initial src to first 2 slides to avoid exhausting hardware decoders & bandwidth
+    const initialVideoSrc = isVideo && index <= 1 ? mediaSrc : "";
+    const initialPreload = isVideo ? (index === 0 ? "auto" : (index === 1 ? "metadata" : "none")) : "auto";
+
     slide.innerHTML = `
       <div class="tiktok-media-stage">
         ${isVideo ? `
           <div class="tiktok-video-wrapper">
             <video 
-              src="${mediaSrc}" 
+              ${initialVideoSrc ? `src="${initialVideoSrc}"` : ""} 
+              data-src="${mediaSrc}"
               class="tiktok-media-el tiktok-video-el" 
               playsinline 
               webkit-playsinline 
               loop 
               muted 
-              autoplay
-              preload="metadata"
+              preload="${initialPreload}"
               poster="${posterSrc}">
             </video>
+            <div class="tiktok-buffering-spinner" style="display: none;">
+              <div class="spinner-ring"></div>
+            </div>
             <div class="tiktok-video-badge">▶ VIDEO</div>
             <button type="button" class="tiktok-fit-toggle-btn" title="Toggle Fit / Fill Screen">⛶ Fit</button>
             <button type="button" class="tiktok-mute-toggle-btn" title="Toggle Sound">🔇</button>
@@ -1110,6 +1125,7 @@ class OmniTagMobileApp {
     const photoImg = !isVideo ? slide.querySelector("img.tiktok-media-el") : null;
 
     if (isVideo && video) {
+      slide._videoCandidates = videoCandidates;
       let candidateIdx = 0;
       let hasExhaustedCandidates = false;
 
@@ -1117,6 +1133,7 @@ class OmniTagMobileApp {
         candidateIdx++;
         if (candidateIdx < videoCandidates.length) {
           console.log(`[OmniTag Video] Retrying video #${post.id} with mirror:`, videoCandidates[candidateIdx]);
+          video.dataset.src = videoCandidates[candidateIdx];
           video.src = videoCandidates[candidateIdx];
           video.load();
           video.play().catch(() => {});
@@ -1124,6 +1141,22 @@ class OmniTagMobileApp {
         }
         return false;
       };
+
+      slide._tryNextMirror = tryNextMirror;
+
+      const spinner = slide.querySelector(".tiktok-buffering-spinner");
+      video.addEventListener("waiting", () => {
+        if (spinner) spinner.style.display = "flex";
+      });
+      video.addEventListener("playing", () => {
+        if (spinner) spinner.style.display = "none";
+      });
+      video.addEventListener("canplay", () => {
+        if (spinner) spinner.style.display = "none";
+      });
+      video.addEventListener("timeupdate", () => {
+        if (spinner && !video.paused) spinner.style.display = "none";
+      });
 
       video.addEventListener("error", (e) => {
         // Try alternate CDN mirror before showing fallback
@@ -1144,7 +1177,9 @@ class OmniTagMobileApp {
           hasExhaustedCandidates = false;
           if (feedVideoWrapper) feedVideoWrapper.style.display = "flex";
           if (feedFallbackBox) feedFallbackBox.style.display = "none";
-          video.src = videoCandidates[0] || post.fileUrl || post.sampleUrl;
+          const targetSrc = videoCandidates[0] || post.fileUrl || post.sampleUrl;
+          video.dataset.src = targetSrc;
+          video.src = targetSrc;
           video.load();
           video.play().catch(() => {});
         });
@@ -1166,8 +1201,7 @@ class OmniTagMobileApp {
     }
 
     // Video controls: TikTok-Style Interactive Progress Line & Touch Scrubber
-    if (isVideo) {
-      const video = slide.querySelector("video");
+    if (isVideo && video) {
       const scrubberContainer = slide.querySelector(".tiktok-scrubber-container");
       const trackEl = slide.querySelector(".tiktok-scrubber-track");
       const fillEl = slide.querySelector(".tiktok-scrubber-fill");
@@ -1365,36 +1399,197 @@ class OmniTagMobileApp {
     this.feedContainer.appendChild(slide);
   }
 
+  pauseAllFeedVideos() {
+    if (!this.feedContainer) return;
+    this.feedContainer.querySelectorAll(".tiktok-slide").forEach(slide => {
+      const video = slide.querySelector("video");
+      if (video) {
+        this.clearStallWatchdog(video);
+        try { video.pause(); } catch (_) {}
+      }
+      if (slide._watchTimer) {
+        clearTimeout(slide._watchTimer);
+        slide._watchTimer = null;
+      }
+    });
+  }
+
+  updateActiveFeedSlide(targetIndex = null) {
+    if (!this.feedContainer || this.activeTab !== "feed") return;
+    const slides = Array.from(this.feedContainer.querySelectorAll(".tiktok-slide"));
+    if (slides.length === 0) return;
+
+    if (targetIndex === null || isNaN(targetIndex)) {
+      const containerHeight = this.feedContainer.clientHeight || window.innerHeight;
+      targetIndex = Math.max(0, Math.min(slides.length - 1, Math.round(this.feedContainer.scrollTop / containerHeight)));
+    }
+
+    this.currentFeedIndex = targetIndex;
+
+    slides.forEach((slide, idx) => {
+      const video = slide.querySelector("video");
+      const post = this.feedPosts[idx];
+      const isVideo = !!(post && post.isVideo);
+      if (!video || !isVideo) return;
+
+      const distance = Math.abs(idx - targetIndex);
+
+      if (distance === 0) {
+        // ACTIVE SLIDE: Must stream smoothly with dedicated bandwidth & hardware decoder
+        slide.classList.add("active-slide");
+        const targetSrc = video.dataset.src || (slide._videoCandidates && slide._videoCandidates[0]) || "";
+        if (targetSrc && (!video.src || video.src === "" || video.src === window.location.href)) {
+          video.src = targetSrc;
+          video.load();
+        }
+        video.preload = "auto";
+        if (window.omniTagAudioEnabled) {
+          video.muted = false;
+        }
+        const playPromise = video.play();
+        if (playPromise !== undefined) {
+          playPromise.catch(() => {});
+        }
+        this.startStallWatchdog(video, slide, idx);
+
+        // Algorithm watch tracker
+        if (post) {
+          if (slide._watchTimer) clearTimeout(slide._watchTimer);
+          slide._watchTimer = setTimeout(() => {
+            if (typeof this.recordAlgorithmInteraction === "function" && this.currentFeedIndex === idx) {
+              this.recordAlgorithmInteraction("watch", post.tags, post.id, true);
+            }
+          }, 1500);
+        }
+      } else if (distance === 1) {
+        // ADJACENT SLIDE: Preload metadata so immediate swipe starts with 0ms lag
+        slide.classList.remove("active-slide");
+        this.clearStallWatchdog(video);
+        if (slide._watchTimer) {
+          clearTimeout(slide._watchTimer);
+          slide._watchTimer = null;
+        }
+        video.pause();
+        const targetSrc = video.dataset.src || (slide._videoCandidates && slide._videoCandidates[0]) || "";
+        if (targetSrc && (!video.src || video.src === "" || video.src === window.location.href)) {
+          video.src = targetSrc;
+          video.preload = "metadata";
+          video.load();
+        }
+      } else {
+        // DISTANT OFFSCREEN SLIDE (distance >= 2):
+        // Free the MediaCodec hardware decoder and stop CDN network streaming completely
+        slide.classList.remove("active-slide");
+        this.clearStallWatchdog(video);
+        if (slide._watchTimer) {
+          clearTimeout(slide._watchTimer);
+          slide._watchTimer = null;
+        }
+        video.pause();
+        if (video.src && video.src !== "" && video.src !== window.location.href) {
+          video.removeAttribute("src");
+          video.load();
+        }
+      }
+    });
+  }
+
+  startStallWatchdog(video, slide, idx) {
+    this.clearStallWatchdog(video);
+
+    const spinner = slide.querySelector(".tiktok-buffering-spinner");
+    let lastTime = video.currentTime;
+    let stallCounter = 0;
+
+    const onWaiting = () => {
+      if (spinner) spinner.style.display = "flex";
+    };
+
+    const onPlaying = () => {
+      if (spinner) spinner.style.display = "none";
+      stallCounter = 0;
+    };
+
+    video.addEventListener("waiting", onWaiting);
+    video.addEventListener("playing", onPlaying);
+    video.addEventListener("canplay", onPlaying);
+    video.addEventListener("timeupdate", onPlaying);
+
+    const watchdogInterval = setInterval(() => {
+      if (this.currentFeedIndex !== idx || video.paused || this.activeTab !== "feed") {
+        if (spinner) spinner.style.display = "none";
+        return;
+      }
+
+      // If video is supposed to play but time is stuck
+      if (video.currentTime === lastTime && !video.ended && video.readyState >= 1) {
+        stallCounter++;
+        if (stallCounter >= 2) {
+          if (spinner) spinner.style.display = "flex";
+          // Try kickstarting hardware decode
+          video.play().catch(() => {});
+          if (stallCounter >= 5) {
+            try {
+              if (video.buffered.length > 0 && video.buffered.end(0) > video.currentTime + 0.1) {
+                video.currentTime += 0.05;
+              } else if (typeof slide._tryNextMirror === "function") {
+                console.warn(`[OmniTag Watchdog] Buffer starved for > 3.5s. Cycling CDN mirror...`);
+                slide._tryNextMirror();
+              }
+            } catch (_) {}
+            stallCounter = 0;
+          }
+        }
+      } else {
+        stallCounter = 0;
+        lastTime = video.currentTime;
+        if (spinner) spinner.style.display = "none";
+      }
+    }, 700);
+
+    video._watchdogCleanup = () => {
+      clearInterval(watchdogInterval);
+      video.removeEventListener("waiting", onWaiting);
+      video.removeEventListener("playing", onPlaying);
+      video.removeEventListener("canplay", onPlaying);
+      video.removeEventListener("timeupdate", onPlaying);
+      if (spinner) spinner.style.display = "none";
+    };
+  }
+
+  clearStallWatchdog(video) {
+    if (video && typeof video._watchdogCleanup === "function") {
+      video._watchdogCleanup();
+      video._watchdogCleanup = null;
+    }
+  }
+
   initFeedObserver() {
     if (!this.feedContainer) return;
 
-    // Auto play / pause videos & track watch interactions for recommendation algorithm
     if (!this.feedSlideObserver) {
       this.feedSlideObserver = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
-          const video = entry.target.querySelector("video");
-          const idx = parseInt(entry.target.dataset.index, 10);
-          const post = this.feedPosts[idx];
-
           if (entry.isIntersecting) {
-            if (video) video.play().catch(() => {});
-            // Record watch interaction after user watches for >= 1.5s
-            if (post) {
-              entry.target._watchTimer = setTimeout(() => {
-                if (typeof this.recordAlgorithmInteraction === "function") {
-                  this.recordAlgorithmInteraction("watch", post.tags, post.id, !!post.isVideo);
-                }
-              }, 1500);
-            }
-          } else {
-            if (video) video.pause();
-            if (entry.target._watchTimer) {
-              clearTimeout(entry.target._watchTimer);
-              entry.target._watchTimer = null;
+            const idx = parseInt(entry.target.dataset.index, 10);
+            if (!isNaN(idx)) {
+              this.updateActiveFeedSlide(idx);
             }
           }
         });
-      }, { root: this.feedContainer, threshold: 0.6 });
+      }, { root: this.feedContainer, threshold: 0.5 });
+    }
+
+    // Scroll snap end detector for precise slide tracking
+    if (!this._feedScrollBound) {
+      this._feedScrollBound = true;
+      let scrollTimer = null;
+      this.feedContainer.addEventListener("scroll", () => {
+        if (scrollTimer) clearTimeout(scrollTimer);
+        scrollTimer = setTimeout(() => {
+          this.updateActiveFeedSlide();
+        }, 50);
+      }, { passive: true });
     }
 
     const slides = this.feedContainer.querySelectorAll(".tiktok-slide");
@@ -1412,6 +1607,9 @@ class OmniTagMobileApp {
     if (slides.length > 0) {
       this.feedScrollObserver.observe(slides[slides.length - 1]);
     }
+
+    // Activate current active slide
+    this.updateActiveFeedSlide(this.currentFeedIndex || 0);
   }
 
   setFeedTag(tag) {
@@ -1703,6 +1901,7 @@ class OmniTagMobileApp {
   // ==========================================
 
   openViewer(index) {
+    this.pauseAllFeedVideos();
     if (index < 0 || index >= this.filteredPosts.length) return;
     this.viewerIndex = index;
     const post = this.filteredPosts[index];
@@ -1856,6 +2055,9 @@ class OmniTagMobileApp {
     this.viewerIndex = -1;
     this.closeViewerSheet();
     if (this.viewerTopBar) this.viewerTopBar.classList.remove("hidden");
+    if (this.activeTab === "feed") {
+      this.updateActiveFeedSlide();
+    }
     if (handleHistory) {
       try {
         if (history.state && history.state.omnitagViewer) {
@@ -2228,6 +2430,7 @@ class OmniTagMobileApp {
   // ==========================================
 
   openSourcesSheet() {
+    this.pauseAllFeedVideos();
     if (this.activeTab !== "sources") {
       this.previousTab = this.activeTab;
     }
