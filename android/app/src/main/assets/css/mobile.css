@@ -1,4 +1,4 @@
-/* ==========================================================================
+﻿/* ==========================================================================
    OmniTag Mobile - Native App UI Stylesheet
    Designed for smartphone viewport, touch gestures, and bottom navigation
    ========================================================================== */
@@ -70,33 +70,55 @@ body {
   user-select: none;
 }
 
-/* App Container */
+/* App Container - Fixed viewport to eliminate jumping and layout shifts */
 .mobile-app-container {
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-  height: 100dvh;
-  position: relative;
-  background-color: var(--m-bg);
+  position: fixed;
+  inset: 0;
+  width: 100%;
   max-width: 480px; /* Constrains beautifully on PC when previewing */
   margin: 0 auto;
+  overflow: hidden;
+  background-color: var(--m-bg);
   box-shadow: 0 0 40px rgba(0, 0, 0, 0.5);
   border-left: 1px solid var(--m-border);
   border-right: 1px solid var(--m-border);
 }
 
+/* Grid & Saved View Container */
+.mobile-grid-view {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: calc(var(--nav-height) + env(safe-area-inset-bottom, 0px));
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--m-bg);
+  z-index: 10;
+}
+
 .install-banner {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 44px;
   background: linear-gradient(90deg, #1f6feb, #8a63d2);
   color: #fff;
-  padding: 10px 16px;
+  padding: 0 16px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   font-size: 13px;
   font-weight: 600;
-  flex-shrink: 0;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
-  z-index: 25;
+  z-index: 60;
+}
+
+body.with-install-banner .mobile-grid-view,
+body.with-install-banner .mobile-feed-view {
+  top: 44px;
 }
 
 .install-banner-btn {
@@ -409,17 +431,21 @@ body {
   color: var(--m-danger);
 }
 
-/* Bottom Navigation Bar */
+/* Bottom Navigation Bar - Physically locked at bottom: 0 to prevent jumping */
 .mobile-bottom-nav {
-  height: var(--nav-height);
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: calc(var(--nav-height) + env(safe-area-inset-bottom, 0px));
   background: var(--m-surface);
   border-top: 1px solid var(--m-border);
   display: flex;
   align-items: center;
   justify-content: space-around;
-  flex-shrink: 0;
-  padding-bottom: env(safe-area-inset-bottom);
-  z-index: 20;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  z-index: 50;
+  box-sizing: border-box;
 }
 
 .nav-tab {
@@ -942,7 +968,6 @@ body {
   left: 0;
   right: 0;
   bottom: calc(var(--nav-height) + env(safe-area-inset-bottom, 0px));
-  height: calc(100dvh - var(--nav-height) - env(safe-area-inset-bottom, 0px));
   background: #000;
   overflow: hidden;
   z-index: 10;
@@ -1242,6 +1267,90 @@ body {
 
 .feed-glass-btn:active {
   background: var(--m-surface-elevated);
+}
+
+.feed-api-pill {
+  border-color: rgba(56, 139, 253, 0.4);
+  background: rgba(22, 27, 34, 0.85);
+}
+
+.feed-api-pill:active {
+  background: rgba(56, 139, 253, 0.3);
+}
+
+.feed-drawer-api-section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.feed-drawer-section-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--m-text-sub);
+  font-weight: 600;
+}
+
+.feed-drawer-manage-link {
+  background: transparent;
+  border: none;
+  color: var(--m-accent);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+}
+
+.feed-drawer-api-pills {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+  scrollbar-width: none;
+}
+
+.feed-drawer-api-pills::-webkit-scrollbar {
+  display: none;
+}
+
+.feed-drawer-api-chip {
+  background: var(--m-surface-elevated);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: var(--m-text);
+  padding: 5px 11px;
+  border-radius: 14px;
+  font-size: 12px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.feed-drawer-api-chip.active {
+  background: var(--m-accent);
+  color: #fff;
+  border-color: var(--m-accent);
+  box-shadow: 0 2px 8px var(--m-accent-glow);
+}
+
+.feed-chip-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--m-text-sub);
+}
+
+.feed-chip-dot.active {
+  background: #fff;
 }
 
 /* Feed Tag Input Drawer */

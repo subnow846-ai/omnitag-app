@@ -33,69 +33,89 @@
       <button id="install-btn" class="install-banner-btn">Install</button>
     </div>
 
-    <!-- Top Mobile App Header (Visible in Grid and Saved tabs) -->
-    <header id="mobile-header" class="mobile-header" style="display: none;">
-      <div class="header-brand">
-        <div class="brand-badge">O</div>
-        <span class="brand-name">OmniTag</span>
-      </div>
+    <!-- ==========================================
+         Grid & Saved View Pane (Consolidated to prevent layout jumping)
+         ========================================== -->
+    <div id="mobile-grid-view" class="mobile-grid-view" style="display: none;">
+      <!-- Top Mobile App Header -->
+      <header id="mobile-header" class="mobile-header">
+        <div class="header-brand">
+          <div class="brand-badge">O</div>
+          <span class="brand-name">OmniTag</span>
+        </div>
 
-      <div class="header-actions">
-        <!-- User Account Pill (Unique ID #1, #2, etc.) -->
-        <button id="header-account-btn" class="account-pill" title="My Account Profile">
-          <span id="header-account-avatar" class="account-avatar-emoji">&#128100;</span>
-          <span id="header-account-label">#1 User</span>
-        </button>
-        <!-- Active Source Pill (Tap opens bottom sheet) -->
-        <button id="mobile-source-chip" class="mobile-source-chip" title="Switch API">
-          <span class="dot-online"></span>
-          <span id="active-source-name">Safebooru</span>
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
-        </button>
+        <div class="header-actions">
+          <!-- User Account Pill (Unique ID #1, #2, etc.) -->
+          <button id="header-account-btn" class="account-pill" title="My Account Profile">
+            <span id="header-account-avatar" class="account-avatar-emoji">&#128100;</span>
+            <span id="header-account-label">#1 User</span>
+          </button>
+          <!-- Active Source Pill (Tap opens bottom sheet) -->
+          <button id="mobile-source-chip" class="mobile-source-chip" title="Switch API">
+            <span class="dot-online"></span>
+            <span id="active-source-name">Safebooru</span>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
+          </button>
 
-        <!-- Theme Toggle -->
-        <button id="mobile-theme-btn" class="header-icon-btn" title="Toggle Theme">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"></circle></svg>
-        </button>
-      </div>
-    </header>
+          <!-- Theme Toggle -->
+          <button id="mobile-theme-btn" class="header-icon-btn" title="Toggle Theme">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"></circle></svg>
+          </button>
+        </div>
+      </header>
 
-    <!-- Mobile Search Bar (Sticky, for Grid & Saved views) -->
-    <div id="mobile-search-section" class="mobile-search-section" style="display: none;">
-      <div class="mobile-search-bar">
-        <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-          <circle cx="11" cy="11" r="8"></circle>
-          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-        </svg>
-        <input 
-          id="mobile-search-input" 
-          type="text" 
-          placeholder="Search tags (e.g. 1girl, -tag)..." 
-          autocomplete="off"
-          autocapitalize="none"
-          spellcheck="false"
-        >
-        <button id="mobile-clear-btn" class="clear-btn" style="display: none;">&times;</button>
-        <button id="mobile-search-btn" class="submit-btn" title="Search">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
-            <polyline points="9 18 15 12 9 6"></polyline>
+      <!-- Mobile Search Bar (Sticky, for Grid & Saved views) -->
+      <div id="mobile-search-section" class="mobile-search-section">
+        <div class="mobile-search-bar">
+          <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
           </svg>
-        </button>
+          <input 
+            id="mobile-search-input" 
+            type="text" 
+            placeholder="Search tags (e.g. 1girl, -tag)..." 
+            autocomplete="off" 
+            autocapitalize="none" 
+            spellcheck="false"
+          >
+          <button id="mobile-clear-btn" class="clear-btn" style="display: none;">&times;</button>
+          <button id="mobile-search-btn" class="submit-btn" title="Search">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+              <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+          </button>
+        </div>
+
+        <!-- Real-time Tag Autocomplete Sheet -->
+        <div id="mobile-autocomplete" class="mobile-autocomplete-dropdown"></div>
+
+        <!-- Horizontal Quick Filter Pills -->
+        <div id="mobile-filter-scroll" class="horizontal-filter-scroll">
+          <button class="filter-pill active" data-filter="all">All</button>
+          <button class="filter-pill" data-rating="s">Safe Only</button>
+          <button class="filter-pill" data-media="video">Videos / GIFs</button>
+          <button class="filter-pill" data-media="image">Images</button>
+          <button class="filter-pill" data-aspect="tall">Portrait</button>
+          <button class="filter-pill" data-aspect="wide">Landscape</button>
+          <button class="filter-pill" data-sort="score">★ Top Score</button>
+        </div>
       </div>
 
-      <!-- Real-time Tag Autocomplete Sheet -->
-      <div id="mobile-autocomplete" class="mobile-autocomplete-dropdown"></div>
+      <!-- Active 2-Column Grid Scroll Body -->
+      <main id="mobile-scroll-body" class="mobile-scroll-body">
+        <!-- Status Meta Bar -->
+        <div class="feed-status-bar">
+          <span id="feed-results-info">Ready to search</span>
+          <button id="feed-refresh-btn" class="text-action-btn">Refresh</button>
+        </div>
 
-      <!-- Horizontal Quick Filter Pills -->
-      <div id="mobile-filter-scroll" class="horizontal-filter-scroll">
-        <button class="filter-pill active" data-filter="all">All</button>
-        <button class="filter-pill" data-rating="s">Safe Only</button>
-        <button class="filter-pill" data-media="video">Videos / GIFs</button>
-        <button class="filter-pill" data-media="image">Images</button>
-        <button class="filter-pill" data-aspect="tall">Portrait</button>
-        <button class="filter-pill" data-aspect="wide">Landscape</button>
-        <button class="filter-pill" data-sort="score">★ Top Score</button>
-      </div>
+        <!-- 2-Column Mobile Masonry Grid -->
+        <div id="mobile-grid" class="mobile-gallery-grid"></div>
+
+        <!-- Mobile Pagination -->
+        <div id="mobile-pagination" class="mobile-pagination"></div>
+      </main>
     </div>
 
     <!-- ==========================================
@@ -121,9 +141,11 @@
           <button id="feed-clear-tag-btn" class="feed-glass-btn" title="Clear tag filter" style="display: none;">
             &times; Clear
           </button>
-          <button id="feed-source-chip" class="feed-glass-btn" title="Switch API Source">
+          <!-- Choose Feed API Source Chip -->
+          <button id="feed-source-chip" class="feed-glass-btn feed-api-pill" title="Choose Feed API Source">
             <span class="dot-online"></span>
             <span id="feed-active-source-name">Safebooru</span>
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
           </button>
         </div>
       </div>
@@ -142,6 +164,16 @@
           <button id="feed-tag-apply-btn" class="feed-drawer-btn primary">Apply</button>
           <button id="feed-tag-close-btn" class="feed-drawer-btn">&times;</button>
         </div>
+
+        <!-- Quick Feed API Source Selector -->
+        <div class="feed-drawer-api-section">
+          <div class="feed-drawer-section-title">
+            <span>Scroll on API:</span>
+            <button type="button" id="feed-drawer-manage-apis-btn" class="feed-drawer-manage-link">All APIs &rsaquo;</button>
+          </div>
+          <div id="feed-drawer-api-pills" class="feed-drawer-api-pills"></div>
+        </div>
+
         <div class="feed-drawer-quick-tags">
           <span class="quick-tag-label">Popular:</span>
           <button class="quick-tag-chip" data-tag="1girl">1girl</button>
@@ -160,21 +192,6 @@
         <div class="feed-spinner"></div>
       </div>
     </div>
-
-    <!-- Active 2-Column Grid Scroll Body (For Grid & Saved tabs) -->
-    <main id="mobile-scroll-body" class="mobile-scroll-body" style="display: none;">
-      <!-- Status Meta Bar -->
-      <div class="feed-status-bar">
-        <span id="feed-results-info">Ready to search</span>
-        <button id="feed-refresh-btn" class="text-action-btn">Refresh</button>
-      </div>
-
-      <!-- 2-Column Mobile Masonry Grid -->
-      <div id="mobile-grid" class="mobile-gallery-grid"></div>
-
-      <!-- Mobile Pagination -->
-      <div id="mobile-pagination" class="mobile-pagination"></div>
-    </main>
 
     <!-- Bottom Mobile Tab Bar -->
     <nav class="mobile-bottom-nav">

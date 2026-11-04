@@ -89,33 +89,55 @@ body {
   user-select: none;
 }
 
-/* App Container */
+/* App Container - Fixed viewport to eliminate jumping and layout shifts */
 .mobile-app-container {
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-  height: 100dvh;
-  position: relative;
-  background-color: var(--m-bg);
+  position: fixed;
+  inset: 0;
+  width: 100%;
   max-width: 480px; /* Constrains beautifully on PC when previewing */
   margin: 0 auto;
+  overflow: hidden;
+  background-color: var(--m-bg);
   box-shadow: 0 0 40px rgba(0, 0, 0, 0.5);
   border-left: 1px solid var(--m-border);
   border-right: 1px solid var(--m-border);
 }
 
+/* Grid & Saved View Container */
+.mobile-grid-view {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: calc(var(--nav-height) + env(safe-area-inset-bottom, 0px));
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--m-bg);
+  z-index: 10;
+}
+
 .install-banner {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 44px;
   background: linear-gradient(90deg, #1f6feb, #8a63d2);
   color: #fff;
-  padding: 10px 16px;
+  padding: 0 16px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   font-size: 13px;
   font-weight: 600;
-  flex-shrink: 0;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
-  z-index: 25;
+  z-index: 60;
+}
+
+body.with-install-banner .mobile-grid-view,
+body.with-install-banner .mobile-feed-view {
+  top: 44px;
 }
 
 .install-banner-btn {
@@ -428,17 +450,21 @@ body {
   color: var(--m-danger);
 }
 
-/* Bottom Navigation Bar */
+/* Bottom Navigation Bar - Physically locked at bottom: 0 to prevent jumping */
 .mobile-bottom-nav {
-  height: var(--nav-height);
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: calc(var(--nav-height) + env(safe-area-inset-bottom, 0px));
   background: var(--m-surface);
   border-top: 1px solid var(--m-border);
   display: flex;
   align-items: center;
   justify-content: space-around;
-  flex-shrink: 0;
-  padding-bottom: env(safe-area-inset-bottom);
-  z-index: 20;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  z-index: 50;
+  box-sizing: border-box;
 }
 
 .nav-tab {
@@ -961,7 +987,6 @@ body {
   left: 0;
   right: 0;
   bottom: calc(var(--nav-height) + env(safe-area-inset-bottom, 0px));
-  height: calc(100dvh - var(--nav-height) - env(safe-area-inset-bottom, 0px));
   background: #000;
   overflow: hidden;
   z-index: 10;
@@ -1261,6 +1286,90 @@ body {
 
 .feed-glass-btn:active {
   background: var(--m-surface-elevated);
+}
+
+.feed-api-pill {
+  border-color: rgba(56, 139, 253, 0.4);
+  background: rgba(22, 27, 34, 0.85);
+}
+
+.feed-api-pill:active {
+  background: rgba(56, 139, 253, 0.3);
+}
+
+.feed-drawer-api-section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.feed-drawer-section-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--m-text-sub);
+  font-weight: 600;
+}
+
+.feed-drawer-manage-link {
+  background: transparent;
+  border: none;
+  color: var(--m-accent);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+}
+
+.feed-drawer-api-pills {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+  scrollbar-width: none;
+}
+
+.feed-drawer-api-pills::-webkit-scrollbar {
+  display: none;
+}
+
+.feed-drawer-api-chip {
+  background: var(--m-surface-elevated);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: var(--m-text);
+  padding: 5px 11px;
+  border-radius: 14px;
+  font-size: 12px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.feed-drawer-api-chip.active {
+  background: var(--m-accent);
+  color: #fff;
+  border-color: var(--m-accent);
+  box-shadow: 0 2px 8px var(--m-accent-glow);
+}
+
+.feed-chip-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--m-text-sub);
+}
+
+.feed-chip-dot.active {
+  background: #fff;
 }
 
 /* Feed Tag Input Drawer */
@@ -1621,69 +1730,89 @@ body {
       <button id="install-btn" class="install-banner-btn">Install</button>
     </div>
 
-    <!-- Top Mobile App Header (Visible in Grid and Saved tabs) -->
-    <header id="mobile-header" class="mobile-header" style="display: none;">
-      <div class="header-brand">
-        <div class="brand-badge">O</div>
-        <span class="brand-name">OmniTag</span>
-      </div>
+    <!-- ==========================================
+         Grid & Saved View Pane (Consolidated to prevent layout jumping)
+         ========================================== -->
+    <div id="mobile-grid-view" class="mobile-grid-view" style="display: none;">
+      <!-- Top Mobile App Header -->
+      <header id="mobile-header" class="mobile-header">
+        <div class="header-brand">
+          <div class="brand-badge">O</div>
+          <span class="brand-name">OmniTag</span>
+        </div>
 
-      <div class="header-actions">
-        <!-- User Account Pill (Unique ID #1, #2, etc.) -->
-        <button id="header-account-btn" class="account-pill" title="My Account Profile">
-          <span id="header-account-avatar" class="account-avatar-emoji">&#128100;</span>
-          <span id="header-account-label">#1 User</span>
-        </button>
-        <!-- Active Source Pill (Tap opens bottom sheet) -->
-        <button id="mobile-source-chip" class="mobile-source-chip" title="Switch API">
-          <span class="dot-online"></span>
-          <span id="active-source-name">Safebooru</span>
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
-        </button>
+        <div class="header-actions">
+          <!-- User Account Pill (Unique ID #1, #2, etc.) -->
+          <button id="header-account-btn" class="account-pill" title="My Account Profile">
+            <span id="header-account-avatar" class="account-avatar-emoji">&#128100;</span>
+            <span id="header-account-label">#1 User</span>
+          </button>
+          <!-- Active Source Pill (Tap opens bottom sheet) -->
+          <button id="mobile-source-chip" class="mobile-source-chip" title="Switch API">
+            <span class="dot-online"></span>
+            <span id="active-source-name">Safebooru</span>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
+          </button>
 
-        <!-- Theme Toggle -->
-        <button id="mobile-theme-btn" class="header-icon-btn" title="Toggle Theme">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"></circle></svg>
-        </button>
-      </div>
-    </header>
+          <!-- Theme Toggle -->
+          <button id="mobile-theme-btn" class="header-icon-btn" title="Toggle Theme">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"></circle></svg>
+          </button>
+        </div>
+      </header>
 
-    <!-- Mobile Search Bar (Sticky, for Grid & Saved views) -->
-    <div id="mobile-search-section" class="mobile-search-section" style="display: none;">
-      <div class="mobile-search-bar">
-        <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-          <circle cx="11" cy="11" r="8"></circle>
-          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-        </svg>
-        <input 
-          id="mobile-search-input" 
-          type="text" 
-          placeholder="Search tags (e.g. 1girl, -tag)..." 
-          autocomplete="off"
-          autocapitalize="none"
-          spellcheck="false"
-        >
-        <button id="mobile-clear-btn" class="clear-btn" style="display: none;">&times;</button>
-        <button id="mobile-search-btn" class="submit-btn" title="Search">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
-            <polyline points="9 18 15 12 9 6"></polyline>
+      <!-- Mobile Search Bar (Sticky, for Grid & Saved views) -->
+      <div id="mobile-search-section" class="mobile-search-section">
+        <div class="mobile-search-bar">
+          <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
           </svg>
-        </button>
+          <input 
+            id="mobile-search-input" 
+            type="text" 
+            placeholder="Search tags (e.g. 1girl, -tag)..." 
+            autocomplete="off" 
+            autocapitalize="none" 
+            spellcheck="false"
+          >
+          <button id="mobile-clear-btn" class="clear-btn" style="display: none;">&times;</button>
+          <button id="mobile-search-btn" class="submit-btn" title="Search">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+              <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+          </button>
+        </div>
+
+        <!-- Real-time Tag Autocomplete Sheet -->
+        <div id="mobile-autocomplete" class="mobile-autocomplete-dropdown"></div>
+
+        <!-- Horizontal Quick Filter Pills -->
+        <div id="mobile-filter-scroll" class="horizontal-filter-scroll">
+          <button class="filter-pill active" data-filter="all">All</button>
+          <button class="filter-pill" data-rating="s">Safe Only</button>
+          <button class="filter-pill" data-media="video">Videos / GIFs</button>
+          <button class="filter-pill" data-media="image">Images</button>
+          <button class="filter-pill" data-aspect="tall">Portrait</button>
+          <button class="filter-pill" data-aspect="wide">Landscape</button>
+          <button class="filter-pill" data-sort="score">★ Top Score</button>
+        </div>
       </div>
 
-      <!-- Real-time Tag Autocomplete Sheet -->
-      <div id="mobile-autocomplete" class="mobile-autocomplete-dropdown"></div>
+      <!-- Active 2-Column Grid Scroll Body -->
+      <main id="mobile-scroll-body" class="mobile-scroll-body">
+        <!-- Status Meta Bar -->
+        <div class="feed-status-bar">
+          <span id="feed-results-info">Ready to search</span>
+          <button id="feed-refresh-btn" class="text-action-btn">Refresh</button>
+        </div>
 
-      <!-- Horizontal Quick Filter Pills -->
-      <div id="mobile-filter-scroll" class="horizontal-filter-scroll">
-        <button class="filter-pill active" data-filter="all">All</button>
-        <button class="filter-pill" data-rating="s">Safe Only</button>
-        <button class="filter-pill" data-media="video">Videos / GIFs</button>
-        <button class="filter-pill" data-media="image">Images</button>
-        <button class="filter-pill" data-aspect="tall">Portrait</button>
-        <button class="filter-pill" data-aspect="wide">Landscape</button>
-        <button class="filter-pill" data-sort="score">★ Top Score</button>
-      </div>
+        <!-- 2-Column Mobile Masonry Grid -->
+        <div id="mobile-grid" class="mobile-gallery-grid"></div>
+
+        <!-- Mobile Pagination -->
+        <div id="mobile-pagination" class="mobile-pagination"></div>
+      </main>
     </div>
 
     <!-- ==========================================
@@ -1709,9 +1838,11 @@ body {
           <button id="feed-clear-tag-btn" class="feed-glass-btn" title="Clear tag filter" style="display: none;">
             &times; Clear
           </button>
-          <button id="feed-source-chip" class="feed-glass-btn" title="Switch API Source">
+          <!-- Choose Feed API Source Chip -->
+          <button id="feed-source-chip" class="feed-glass-btn feed-api-pill" title="Choose Feed API Source">
             <span class="dot-online"></span>
             <span id="feed-active-source-name">Safebooru</span>
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
           </button>
         </div>
       </div>
@@ -1730,6 +1861,16 @@ body {
           <button id="feed-tag-apply-btn" class="feed-drawer-btn primary">Apply</button>
           <button id="feed-tag-close-btn" class="feed-drawer-btn">&times;</button>
         </div>
+
+        <!-- Quick Feed API Source Selector -->
+        <div class="feed-drawer-api-section">
+          <div class="feed-drawer-section-title">
+            <span>Scroll on API:</span>
+            <button type="button" id="feed-drawer-manage-apis-btn" class="feed-drawer-manage-link">All APIs &rsaquo;</button>
+          </div>
+          <div id="feed-drawer-api-pills" class="feed-drawer-api-pills"></div>
+        </div>
+
         <div class="feed-drawer-quick-tags">
           <span class="quick-tag-label">Popular:</span>
           <button class="quick-tag-chip" data-tag="1girl">1girl</button>
@@ -1748,21 +1889,6 @@ body {
         <div class="feed-spinner"></div>
       </div>
     </div>
-
-    <!-- Active 2-Column Grid Scroll Body (For Grid & Saved tabs) -->
-    <main id="mobile-scroll-body" class="mobile-scroll-body" style="display: none;">
-      <!-- Status Meta Bar -->
-      <div class="feed-status-bar">
-        <span id="feed-results-info">Ready to search</span>
-        <button id="feed-refresh-btn" class="text-action-btn">Refresh</button>
-      </div>
-
-      <!-- 2-Column Mobile Masonry Grid -->
-      <div id="mobile-grid" class="mobile-gallery-grid"></div>
-
-      <!-- Mobile Pagination -->
-      <div id="mobile-pagination" class="mobile-pagination"></div>
-    </main>
 
     <!-- Bottom Mobile Tab Bar -->
     <nav class="mobile-bottom-nav">
@@ -3024,6 +3150,7 @@ class OmniTagMobileApp {
   initElements() {
     // Navigation / Containers
     this.feedView = document.getElementById("mobile-feed-view");
+    this.gridView = document.getElementById("mobile-grid-view");
     this.feedContainer = document.getElementById("mobile-feed-container");
     this.mobileHeader = document.getElementById("mobile-header");
     this.mobileSearchSection = document.getElementById("mobile-search-section");
@@ -3040,6 +3167,8 @@ class OmniTagMobileApp {
     this.feedTagApplyBtn = document.getElementById("feed-tag-apply-btn");
     this.feedTagCloseBtn = document.getElementById("feed-tag-close-btn");
     this.feedLoadingSpinner = document.getElementById("feed-loading-spinner");
+    this.feedDrawerApiPills = document.getElementById("feed-drawer-api-pills");
+    this.feedDrawerManageApisBtn = document.getElementById("feed-drawer-manage-apis-btn");
 
     // Search & Grid Elements
     this.searchInput = document.getElementById("mobile-search-input");
@@ -3266,6 +3395,7 @@ class OmniTagMobileApp {
       if (this.activeSourceName) this.activeSourceName.textContent = active.name;
       if (this.feedActiveSourceName) this.feedActiveSourceName.textContent = active.name;
     }
+    this.renderFeedDrawerApiPills();
   }
 
   bindEvents() {
@@ -3361,7 +3491,17 @@ class OmniTagMobileApp {
       this.feedClearTagBtn.addEventListener("click", () => this.clearFeedTag());
     }
     if (this.feedSourceChip) {
-      this.feedSourceChip.addEventListener("click", () => this.openSourcesSheet());
+      this.feedSourceChip.addEventListener("click", () => {
+        this.previousTab = "feed";
+        this.openSourcesSheet();
+      });
+    }
+    if (this.feedDrawerManageApisBtn) {
+      this.feedDrawerManageApisBtn.addEventListener("click", () => {
+        this.toggleFeedTagDrawer(false);
+        this.previousTab = "feed";
+        this.openSourcesSheet();
+      });
     }
     document.querySelectorAll(".quick-tag-chip").forEach(chip => {
       chip.addEventListener("click", () => {
@@ -3483,24 +3623,30 @@ class OmniTagMobileApp {
   // ==========================================
 
   switchTab(tab) {
+    if (tab === "sources") {
+      this.previousTab = (this.activeTab !== "sources" ? this.activeTab : (this.previousTab || "feed"));
+      document.querySelectorAll(".nav-tab").forEach(t => {
+        t.classList.toggle("active", t.dataset.tab === "sources");
+      });
+      this.openSourcesSheet();
+      return;
+    }
+
     this.activeTab = tab;
+    this.previousTab = tab;
     document.querySelectorAll(".nav-tab").forEach(t => {
       t.classList.toggle("active", t.dataset.tab === tab);
     });
 
     if (tab === "feed") {
       if (this.feedView) this.feedView.style.display = "block";
-      if (this.mobileHeader) this.mobileHeader.style.display = "none";
-      if (this.mobileSearchSection) this.mobileSearchSection.style.display = "none";
-      if (this.mobileScrollBody) this.mobileScrollBody.style.display = "none";
+      if (this.gridView) this.gridView.style.display = "none";
       if (this.feedPosts.length === 0) {
         this.loadFeedPosts(true);
       }
     } else if (tab === "search") {
       if (this.feedView) this.feedView.style.display = "none";
-      if (this.mobileHeader) this.mobileHeader.style.display = "flex";
-      if (this.mobileSearchSection) this.mobileSearchSection.style.display = "block";
-      if (this.mobileScrollBody) this.mobileScrollBody.style.display = "block";
+      if (this.gridView) this.gridView.style.display = "flex";
       this.searchInput.placeholder = "Search tags (e.g. 1girl, -tag)...";
       if (this.posts.length === 0) {
         this.executeSearch(this.currentQuery, 0);
@@ -3509,15 +3655,11 @@ class OmniTagMobileApp {
       }
     } else if (tab === "saved") {
       if (this.feedView) this.feedView.style.display = "none";
-      if (this.mobileHeader) this.mobileHeader.style.display = "flex";
-      if (this.mobileSearchSection) this.mobileSearchSection.style.display = "block";
-      if (this.mobileScrollBody) this.mobileScrollBody.style.display = "block";
+      if (this.gridView) this.gridView.style.display = "flex";
       this.searchInput.value = "";
       this.clearBtn.style.display = "none";
       this.searchInput.placeholder = "Search within your saved posts...";
       this.renderSavedPosts("");
-    } else if (tab === "sources") {
-      this.openSourcesSheet();
     }
   }
 
@@ -3817,10 +3959,39 @@ class OmniTagMobileApp {
     if (!this.feedTagDrawer) return;
     const shouldShow = force !== null ? force : this.feedTagDrawer.classList.contains("hidden");
     this.feedTagDrawer.classList.toggle("hidden", !shouldShow);
-    if (shouldShow && this.feedTagInput) {
-      this.feedTagInput.value = this.feedQuery;
-      this.feedTagInput.focus();
+    if (shouldShow) {
+      this.renderFeedDrawerApiPills();
+      if (this.feedTagInput) {
+        this.feedTagInput.value = this.feedQuery;
+        this.feedTagInput.focus();
+      }
     }
+  }
+
+  renderFeedDrawerApiPills() {
+    if (!this.feedDrawerApiPills) return;
+    const sources = this.sourceManager.getAllSources();
+    const active = this.sourceManager.getActiveSource();
+    this.feedDrawerApiPills.innerHTML = "";
+
+    sources.forEach(src => {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      const isActive = active && active.id === src.id;
+      btn.className = `feed-drawer-api-chip ${isActive ? "active" : ""}`;
+      btn.innerHTML = `
+        <span class="feed-chip-dot ${isActive ? "active" : ""}"></span>
+        <span>${this.escapeHtml(src.name)}</span>
+      `;
+      btn.addEventListener("click", () => {
+        if (active && active.id === src.id) return;
+        this.sourceManager.setActiveSource(src.id);
+        this.updateSourceBadge();
+        this.showToast(`Feed API: ${src.name}`);
+        this.loadFeedPosts(true);
+      });
+      this.feedDrawerApiPills.appendChild(btn);
+    });
   }
 
   applyFeedTagInput() {
@@ -4328,6 +4499,13 @@ class OmniTagMobileApp {
     });
   }
 
+  escapeHtml(str) {
+    if (!str) return "";
+    const div = document.createElement("div");
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
   decodeHtmlEntities(str) {
     if (!str) return "";
     let s = String(str);
@@ -4416,12 +4594,20 @@ class OmniTagMobileApp {
   // ==========================================
 
   openSourcesSheet() {
+    if (this.activeTab !== "sources") {
+      this.previousTab = this.activeTab;
+    }
     this.renderSourcesList();
     this.sourcesSheet.classList.add("open");
   }
 
   closeSourcesSheet() {
     this.sourcesSheet.classList.remove("open");
+    const tabToRestore = (this.previousTab && this.previousTab !== "sources") ? this.previousTab : (this.feedView && this.feedView.style.display !== "none" ? "feed" : "search");
+    document.querySelectorAll(".nav-tab").forEach(t => {
+      t.classList.toggle("active", t.dataset.tab === tabToRestore);
+    });
+    this.activeTab = tabToRestore;
   }
 
   renderSourcesList() {
@@ -4430,39 +4616,56 @@ class OmniTagMobileApp {
     this.sourcesList.innerHTML = "";
 
     sources.forEach(src => {
-      const item = document.createElement("div");
-      item.className = "sheet-source-item";
+      const isCurrentActive = active && active.id === src.id;
+      const card = document.createElement("div");
+      card.className = `sheet-source-card ${isCurrentActive ? "active" : ""}`;
+      
+      const hasKey = !!(src.apiKey && src.apiKey.trim());
+      const displayUrl = (src.baseUrl || "").replace(/^https?:\/\//, "");
 
-      const isActive = active && active.id === src.id;
-      item.innerHTML = `
-        <div style="flex: 1; display: flex; align-items: center; gap: 10px;">
-          <input type="radio" name="source-radio" ${isActive ? "checked" : ""} style="cursor: pointer;">
-          <div>
-            <div style="font-weight: 700; font-size: 14px; color: var(--m-text);">${src.name}</div>
-            <div style="font-size: 11px; color: var(--m-text-sub);"> &bull; </div>
+      card.innerHTML = `
+        <div class="sheet-source-info">
+          <div class="sheet-source-name-row">
+            <span class="sheet-source-title">${this.escapeHtml(src.name)}</span>
+            <span class="sheet-source-badge">${this.escapeHtml(src.type || "gelbooru")}</span>
+            ${hasKey ? '<span class="sheet-source-key-badge">&#10003; Key Set</span>' : ''}
           </div>
+          <div class="sheet-source-url">${this.escapeHtml(displayUrl)} &bull; ${this.escapeHtml(src.description || "Booru API")}</div>
         </div>
-        <button class="sheet-action-btn edit-src-btn" style="padding: 6px 10px; font-size: 11px;">Edit</button>
+        <div class="sheet-source-actions">
+          ${isCurrentActive ? '<span class="sheet-source-active-pill">&#10003; Selected</span>' : ''}
+          <button class="sheet-source-edit-btn" type="button" title="Edit Source Settings">Edit</button>
+        </div>
       `;
 
-      item.querySelector("input").addEventListener("change", () => {
+      card.addEventListener("click", () => {
         this.sourceManager.setActiveSource(src.id);
         this.updateSourceBadge();
         this.closeSourcesSheet();
-        this.showToast(`Switched source to ${src.name}`);
-        if (this.activeTab === "feed") {
+        this.showToast(`Switched to ${src.name}`);
+
+        const returnTab = (this.previousTab && this.previousTab !== "sources") ? this.previousTab : (this.activeTab === "feed" ? "feed" : "search");
+        
+        if (returnTab === "feed") {
+          this.switchTab("feed");
           this.loadFeedPosts(true);
+        } else if (returnTab === "saved") {
+          this.switchTab("saved");
         } else {
+          this.switchTab("search");
           this.executeSearch(this.currentQuery, 0);
         }
       });
 
-      item.querySelector(".edit-src-btn").addEventListener("click", (e) => {
-        e.stopPropagation();
-        this.openEditSourceSheet(src.id);
-      });
+      const editBtn = card.querySelector(".sheet-source-edit-btn");
+      if (editBtn) {
+        editBtn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          this.openEditSourceSheet(src.id);
+        });
+      }
 
-      this.sourcesList.appendChild(item);
+      this.sourcesList.appendChild(card);
     });
   }
 

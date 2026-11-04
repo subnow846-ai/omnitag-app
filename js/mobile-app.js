@@ -53,6 +53,7 @@ class OmniTagMobileApp {
   initElements() {
     // Navigation / Containers
     this.feedView = document.getElementById("mobile-feed-view");
+    this.gridView = document.getElementById("mobile-grid-view");
     this.feedContainer = document.getElementById("mobile-feed-container");
     this.mobileHeader = document.getElementById("mobile-header");
     this.mobileSearchSection = document.getElementById("mobile-search-section");
@@ -69,6 +70,8 @@ class OmniTagMobileApp {
     this.feedTagApplyBtn = document.getElementById("feed-tag-apply-btn");
     this.feedTagCloseBtn = document.getElementById("feed-tag-close-btn");
     this.feedLoadingSpinner = document.getElementById("feed-loading-spinner");
+    this.feedDrawerApiPills = document.getElementById("feed-drawer-api-pills");
+    this.feedDrawerManageApisBtn = document.getElementById("feed-drawer-manage-apis-btn");
 
     // Search & Grid Elements
     this.searchInput = document.getElementById("mobile-search-input");
@@ -295,6 +298,7 @@ class OmniTagMobileApp {
       if (this.activeSourceName) this.activeSourceName.textContent = active.name;
       if (this.feedActiveSourceName) this.feedActiveSourceName.textContent = active.name;
     }
+    this.renderFeedDrawerApiPills();
   }
 
   bindEvents() {
@@ -390,7 +394,17 @@ class OmniTagMobileApp {
       this.feedClearTagBtn.addEventListener("click", () => this.clearFeedTag());
     }
     if (this.feedSourceChip) {
-      this.feedSourceChip.addEventListener("click", () => this.openSourcesSheet());
+      this.feedSourceChip.addEventListener("click", () => {
+        this.previousTab = "feed";
+        this.openSourcesSheet();
+      });
+    }
+    if (this.feedDrawerManageApisBtn) {
+      this.feedDrawerManageApisBtn.addEventListener("click", () => {
+        this.toggleFeedTagDrawer(false);
+        this.previousTab = "feed";
+        this.openSourcesSheet();
+      });
     }
     document.querySelectorAll(".quick-tag-chip").forEach(chip => {
       chip.addEventListener("click", () => {
@@ -512,24 +526,30 @@ class OmniTagMobileApp {
   // ==========================================
 
   switchTab(tab) {
+    if (tab === "sources") {
+      this.previousTab = (this.activeTab !== "sources" ? this.activeTab : (this.previousTab || "feed"));
+      document.querySelectorAll(".nav-tab").forEach(t => {
+        t.classList.toggle("active", t.dataset.tab === "sources");
+      });
+      this.openSourcesSheet();
+      return;
+    }
+
     this.activeTab = tab;
+    this.previousTab = tab;
     document.querySelectorAll(".nav-tab").forEach(t => {
       t.classList.toggle("active", t.dataset.tab === tab);
     });
 
     if (tab === "feed") {
       if (this.feedView) this.feedView.style.display = "block";
-      if (this.mobileHeader) this.mobileHeader.style.display = "none";
-      if (this.mobileSearchSection) this.mobileSearchSection.style.display = "none";
-      if (this.mobileScrollBody) this.mobileScrollBody.style.display = "none";
+      if (this.gridView) this.gridView.style.display = "none";
       if (this.feedPosts.length === 0) {
         this.loadFeedPosts(true);
       }
     } else if (tab === "search") {
       if (this.feedView) this.feedView.style.display = "none";
-      if (this.mobileHeader) this.mobileHeader.style.display = "flex";
-      if (this.mobileSearchSection) this.mobileSearchSection.style.display = "block";
-      if (this.mobileScrollBody) this.mobileScrollBody.style.display = "block";
+      if (this.gridView) this.gridView.style.display = "flex";
       this.searchInput.placeholder = "Search tags (e.g. 1girl, -tag)...";
       if (this.posts.length === 0) {
         this.executeSearch(this.currentQuery, 0);
@@ -538,15 +558,11 @@ class OmniTagMobileApp {
       }
     } else if (tab === "saved") {
       if (this.feedView) this.feedView.style.display = "none";
-      if (this.mobileHeader) this.mobileHeader.style.display = "flex";
-      if (this.mobileSearchSection) this.mobileSearchSection.style.display = "block";
-      if (this.mobileScrollBody) this.mobileScrollBody.style.display = "block";
+      if (this.gridView) this.gridView.style.display = "flex";
       this.searchInput.value = "";
       this.clearBtn.style.display = "none";
       this.searchInput.placeholder = "Search within your saved posts...";
       this.renderSavedPosts("");
-    } else if (tab === "sources") {
-      this.openSourcesSheet();
     }
   }
 
@@ -846,10 +862,39 @@ class OmniTagMobileApp {
     if (!this.feedTagDrawer) return;
     const shouldShow = force !== null ? force : this.feedTagDrawer.classList.contains("hidden");
     this.feedTagDrawer.classList.toggle("hidden", !shouldShow);
-    if (shouldShow && this.feedTagInput) {
-      this.feedTagInput.value = this.feedQuery;
-      this.feedTagInput.focus();
+    if (shouldShow) {
+      this.renderFeedDrawerApiPills();
+      if (this.feedTagInput) {
+        this.feedTagInput.value = this.feedQuery;
+        this.feedTagInput.focus();
+      }
     }
+  }
+
+  renderFeedDrawerApiPills() {
+    if (!this.feedDrawerApiPills) return;
+    const sources = this.sourceManager.getAllSources();
+    const active = this.sourceManager.getActiveSource();
+    this.feedDrawerApiPills.innerHTML = "";
+
+    sources.forEach(src => {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      const isActive = active && active.id === src.id;
+      btn.className = `feed-drawer-api-chip ${isActive ? "active" : ""}`;
+      btn.innerHTML = `
+        <span class="feed-chip-dot ${isActive ? "active" : ""}"></span>
+        <span>${this.escapeHtml(src.name)}</span>
+      `;
+      btn.addEventListener("click", () => {
+        if (active && active.id === src.id) return;
+        this.sourceManager.setActiveSource(src.id);
+        this.updateSourceBadge();
+        this.showToast(`Feed API: ${src.name}`);
+        this.loadFeedPosts(true);
+      });
+      this.feedDrawerApiPills.appendChild(btn);
+    });
   }
 
   applyFeedTagInput() {
@@ -1357,6 +1402,13 @@ class OmniTagMobileApp {
     });
   }
 
+  escapeHtml(str) {
+    if (!str) return "";
+    const div = document.createElement("div");
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
   decodeHtmlEntities(str) {
     if (!str) return "";
     let s = String(str);
@@ -1445,12 +1497,20 @@ class OmniTagMobileApp {
   // ==========================================
 
   openSourcesSheet() {
+    if (this.activeTab !== "sources") {
+      this.previousTab = this.activeTab;
+    }
     this.renderSourcesList();
     this.sourcesSheet.classList.add("open");
   }
 
   closeSourcesSheet() {
     this.sourcesSheet.classList.remove("open");
+    const tabToRestore = (this.previousTab && this.previousTab !== "sources") ? this.previousTab : (this.feedView && this.feedView.style.display !== "none" ? "feed" : "search");
+    document.querySelectorAll(".nav-tab").forEach(t => {
+      t.classList.toggle("active", t.dataset.tab === tabToRestore);
+    });
+    this.activeTab = tabToRestore;
   }
 
   renderSourcesList() {
@@ -1459,39 +1519,56 @@ class OmniTagMobileApp {
     this.sourcesList.innerHTML = "";
 
     sources.forEach(src => {
-      const item = document.createElement("div");
-      item.className = "sheet-source-item";
+      const isCurrentActive = active && active.id === src.id;
+      const card = document.createElement("div");
+      card.className = `sheet-source-card ${isCurrentActive ? "active" : ""}`;
+      
+      const hasKey = !!(src.apiKey && src.apiKey.trim());
+      const displayUrl = (src.baseUrl || "").replace(/^https?:\/\//, "");
 
-      const isActive = active && active.id === src.id;
-      item.innerHTML = `
-        <div style="flex: 1; display: flex; align-items: center; gap: 10px;">
-          <input type="radio" name="source-radio" ${isActive ? "checked" : ""} style="cursor: pointer;">
-          <div>
-            <div style="font-weight: 700; font-size: 14px; color: var(--m-text);">${src.name}</div>
-            <div style="font-size: 11px; color: var(--m-text-sub);"> &bull; </div>
+      card.innerHTML = `
+        <div class="sheet-source-info">
+          <div class="sheet-source-name-row">
+            <span class="sheet-source-title">${this.escapeHtml(src.name)}</span>
+            <span class="sheet-source-badge">${this.escapeHtml(src.type || "gelbooru")}</span>
+            ${hasKey ? '<span class="sheet-source-key-badge">&#10003; Key Set</span>' : ''}
           </div>
+          <div class="sheet-source-url">${this.escapeHtml(displayUrl)} &bull; ${this.escapeHtml(src.description || "Booru API")}</div>
         </div>
-        <button class="sheet-action-btn edit-src-btn" style="padding: 6px 10px; font-size: 11px;">Edit</button>
+        <div class="sheet-source-actions">
+          ${isCurrentActive ? '<span class="sheet-source-active-pill">&#10003; Selected</span>' : ''}
+          <button class="sheet-source-edit-btn" type="button" title="Edit Source Settings">Edit</button>
+        </div>
       `;
 
-      item.querySelector("input").addEventListener("change", () => {
+      card.addEventListener("click", () => {
         this.sourceManager.setActiveSource(src.id);
         this.updateSourceBadge();
         this.closeSourcesSheet();
-        this.showToast(`Switched source to ${src.name}`);
-        if (this.activeTab === "feed") {
+        this.showToast(`Switched to ${src.name}`);
+
+        const returnTab = (this.previousTab && this.previousTab !== "sources") ? this.previousTab : (this.activeTab === "feed" ? "feed" : "search");
+        
+        if (returnTab === "feed") {
+          this.switchTab("feed");
           this.loadFeedPosts(true);
+        } else if (returnTab === "saved") {
+          this.switchTab("saved");
         } else {
+          this.switchTab("search");
           this.executeSearch(this.currentQuery, 0);
         }
       });
 
-      item.querySelector(".edit-src-btn").addEventListener("click", (e) => {
-        e.stopPropagation();
-        this.openEditSourceSheet(src.id);
-      });
+      const editBtn = card.querySelector(".sheet-source-edit-btn");
+      if (editBtn) {
+        editBtn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          this.openEditSourceSheet(src.id);
+        });
+      }
 
-      this.sourcesList.appendChild(item);
+      this.sourcesList.appendChild(card);
     });
   }
 
