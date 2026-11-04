@@ -10,7 +10,7 @@
   
   <script>
     // Immediately suppress install banners when running inside Android APK or standalone PWA
-    if (location.protocol === "file:" || navigator.userAgent.includes("OmniTagApp") || window.matchMedia("(display-mode: standalone)").matches) {
+    if (location.protocol === "file:" || navigator.userAgent.includes("OmniTagApp") || window.AndroidBridge || window.matchMedia("(display-mode: standalone)").matches) {
       document.documentElement.classList.add("is-apk");
     }
   </script>
@@ -300,17 +300,23 @@
         Tags & Details
       </button>
 
+      <!-- Backdrop overlay for bottom sheet (tapping dismisses sheet) -->
+      <div id="viewer-sheet-backdrop" class="viewer-sheet-backdrop"></div>
+
       <!-- Expandable Bottom Sheet for Info & Tags -->
       <div id="viewer-info-sheet" class="viewer-info-sheet collapsed">
-        <div id="viewer-sheet-drag-header" class="sheet-drag-header" title="Pull down or tap Hide to close">
-          <div class="sheet-drag-bar"></div>
+        <div id="viewer-sheet-drag-header" class="sheet-drag-header" title="Pull down or tap Close to hide details">
+          <div class="sheet-drag-handle-zone">
+            <div class="sheet-drag-bar"></div>
+          </div>
           <div class="sheet-header-title-row">
             <span class="sheet-header-title">Post Details &amp; Tags</span>
-            <button type="button" id="viewer-collapse-btn" class="sheet-collapse-btn" title="Hide Details">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                <polyline points="6 9 12 15 18 9"></polyline>
+            <button type="button" id="viewer-collapse-btn" class="sheet-collapse-btn" title="Close Details">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
               </svg>
-              Hide
+              Close
             </button>
           </div>
         </div>

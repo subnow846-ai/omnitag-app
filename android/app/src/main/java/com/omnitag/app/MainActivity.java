@@ -48,6 +48,11 @@ public class MainActivity extends Activity {
         webView.setOverScrollMode(View.OVER_SCROLL_NEVER);
         setContentView(webView);
 
+        // Enable modern webview debugging for inspection
+        try {
+            WebView.setWebContentsDebuggingEnabled(true);
+        } catch (Exception ignored) {}
+
         WebSettings settings = webView.getSettings();
         settings.setJavaScriptEnabled(true);
         settings.setDomStorageEnabled(true);
@@ -57,11 +62,10 @@ public class MainActivity extends Activity {
         settings.setAllowFileAccessFromFileURLs(true);
         settings.setAllowUniversalAccessFromFileURLs(true);
         settings.setMediaPlaybackRequiresUserGesture(false);
-        // Prevent stale cache issues
-        settings.setCacheMode(WebSettings.LOAD_NO_CACHE);
-        webView.clearCache(true);
+        // Fast, smooth caching for mobile image feeds
+        settings.setCacheMode(WebSettings.LOAD_DEFAULT);
         settings.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
-        settings.setUserAgentString(settings.getUserAgentString() + " OmniTagApp/1.2");
+        settings.setUserAgentString(settings.getUserAgentString() + " OmniTagApp/1.2.3");
 
         CookieManager.getInstance().setAcceptCookie(true);
         CookieManager.getInstance().setAcceptThirdPartyCookies(webView, true);
@@ -162,10 +166,11 @@ public class MainActivity extends Activity {
                 URL url = new URL(urlString);
                 conn = (HttpURLConnection) url.openConnection();
                 conn.setRequestMethod("GET");
-                conn.setRequestProperty("User-Agent", "OmniTagApp/1.2 (Android)");
+                conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Linux; Android 14; Mobile) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Mobile Safari/537.36 OmniTagApp/1.2.3");
                 conn.setRequestProperty("Accept", "application/json, text/plain, */*");
-                conn.setConnectTimeout(15000);
-                conn.setReadTimeout(15000);
+                conn.setConnectTimeout(10000);
+                conn.setReadTimeout(10000);
+                conn.setInstanceFollowRedirects(true);
 
                 int code = conn.getResponseCode();
                 InputStream in = (code >= 200 && code < 300) ? conn.getInputStream() : conn.getErrorStream();

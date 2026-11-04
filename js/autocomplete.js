@@ -205,3 +205,4 @@ class TagAutocomplete {
 }
 
 window.TagAutocomplete = TagAutocomplete;
+window.MobileAutocomplete = TagAutocomplete;

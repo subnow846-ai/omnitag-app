@@ -138,6 +138,7 @@ class OmniTagMobileApp {
     this.viewerToggleInfoBtn = document.getElementById("viewer-toggle-info-btn");
     this.viewerInfoPillBtn = document.getElementById("viewer-info-pill-btn");
     this.viewerInfoSheet = document.getElementById("viewer-info-sheet");
+    this.viewerSheetBackdrop = document.getElementById("viewer-sheet-backdrop");
     this.viewerSheetDragHeader = document.getElementById("viewer-sheet-drag-header");
     this.viewerCollapseBtn = document.getElementById("viewer-collapse-btn");
 
@@ -168,6 +169,7 @@ class OmniTagMobileApp {
     const isApkOrStandalone = 
       location.protocol === "file:" ||
       navigator.userAgent.includes("OmniTagApp") ||
+      !!window.AndroidBridge ||
       window.matchMedia("(display-mode: standalone)").matches ||
       window.navigator.standalone === true;
 
@@ -266,19 +268,25 @@ class OmniTagMobileApp {
   }
 
   initAutocomplete() {
-    if (!this.searchInput || !this.autocompleteEl) return;
-    this.autocomplete = new MobileAutocomplete(
-      this.searchInput,
-      this.autocompleteEl,
-      (query) => this.sourceManager.getTagSuggestions(query),
-      (item) => {
-        if (this.activeTab === "saved") {
-          this.renderSavedPosts(this.searchInput.value);
-        } else {
-          this.executeSearch(this.searchInput.value, 0);
-        }
+    try {
+      if (!this.searchInput || !this.autocompleteEl) return;
+      const AutoClass = window.MobileAutocomplete || window.TagAutocomplete;
+      if (typeof AutoClass === "function") {
+        this.autocomplete = new AutoClass(
+          this.searchInput,
+          this.autocompleteEl,
+          (item) => {
+            if (this.activeTab === "saved") {
+              this.renderSavedPosts(this.searchInput.value);
+            } else {
+              this.executeSearch(this.searchInput.value, 0);
+            }
+          }
+        );
       }
-    );
+    } catch (autoErr) {
+      console.warn("Autocomplete init error:", autoErr);
+    }
   }
 
   updateSourceBadge() {
@@ -594,6 +602,14 @@ class OmniTagMobileApp {
       }
     } catch (err) {
       console.error("Feed load error:", err);
+      // Auto-fallback to Danbooru if primary source failed on first load
+      if (this.feedPosts.length === 0 && reset && this.sourceManager && this.sourceManager.activeId !== "danbooru") {
+        console.warn("Primary source failed on initial feed load, attempting Danbooru auto-fallback...");
+        this.sourceManager.setActiveSource("danbooru");
+        this.updateSourceBadge();
+        this.feedLoading = false;
+        return this.loadFeedPosts(true);
+      }
       this.showToast("Feed error: " + err.message);
       if (this.feedPosts.length === 0 && this.feedContainer) {
         this.feedContainer.innerHTML = `
@@ -869,7 +885,21 @@ class OmniTagMobileApp {
   }
 
   applyFiltersAndRender() {
-    let list = [...this.posts];
+    let list;
+    if (this.activeTab === "saved") {
+      const q = (this.searchInput?.value || "").trim().toLowerCase();
+      list = [...this.favorites];
+      if (q) {
+        list = list.filter(p => {
+          const idMatch = String(p.id).includes(q);
+          const tagMatch = (p.tags || []).some(t => t.toLowerCase().includes(q));
+          const srcMatch = (p.source || p.sourceSite || "").toLowerCase().includes(q);
+          return idMatch || tagMatch || srcMatch;
+        });
+      }
+    } else {
+      list = [...this.posts];
+    }
 
     if (this.activeRating !== "all") {
       list = list.filter(p => (p.rating || "").toLowerCase() === this.activeRating.toLowerCase());
@@ -892,7 +922,11 @@ class OmniTagMobileApp {
     }
 
     this.filteredPosts = list;
-    this.resultsInfoEl.textContent = `Showing ${list.length} posts (Page ${this.currentPage + 1})`;
+    if (this.activeTab === "saved") {
+      this.resultsInfoEl.textContent = `Showing ${list.length} saved bookmarks`;
+    } else {
+      this.resultsInfoEl.textContent = `Showing ${list.length} posts (Page ${this.currentPage + 1})`;
+    }
     this.renderGrid();
   }
 
@@ -1085,6 +1119,7 @@ class OmniTagMobileApp {
     this.viewerInfoSheet.classList.remove("collapsed");
     this.viewerInfoSheet.style.transform = "";
     if (this.viewerInfoPillBtn) this.viewerInfoPillBtn.classList.add("hidden");
+    if (this.viewerSheetBackdrop) this.viewerSheetBackdrop.classList.add("active");
   }
 
   closeViewerSheet() {
@@ -1092,6 +1127,7 @@ class OmniTagMobileApp {
     this.viewerInfoSheet.classList.add("collapsed");
     this.viewerInfoSheet.style.transform = "";
     if (this.viewerInfoPillBtn) this.viewerInfoPillBtn.classList.remove("hidden");
+    if (this.viewerSheetBackdrop) this.viewerSheetBackdrop.classList.remove("active");
   }
 
   toggleViewerSheet() {
@@ -1136,12 +1172,25 @@ class OmniTagMobileApp {
   initViewerGestures() {
     if (!this.viewerInfoSheet) return;
 
-    // 1. Tapping header or dragging down on header
-    if (this.viewerSheetDragHeader) {
-      this.viewerSheetDragHeader.addEventListener("click", () => {
+    // 0. Dedicated Backdrop Tap to Close Sheet
+    if (this.viewerSheetBackdrop) {
+      this.viewerSheetBackdrop.addEventListener("click", () => this.closeViewerSheet());
+      this.viewerSheetBackdrop.addEventListener("touchstart", (e) => {
+        if (e.cancelable) e.preventDefault();
+        this.closeViewerSheet();
+      }, { passive: false });
+    }
+
+    // 0b. Explicit Collapse / Close button in sheet header
+    if (this.viewerCollapseBtn) {
+      this.viewerCollapseBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
         this.closeViewerSheet();
       });
+    }
 
+    // 1. Drag Header pull-down touch gesture
+    if (this.viewerSheetDragHeader) {
       let startY = 0;
       let currentY = 0;
       let isDragging = false;
@@ -1152,33 +1201,42 @@ class OmniTagMobileApp {
         currentY = startY;
         isDragging = true;
         this.viewerInfoSheet.classList.add("dragging");
-      }, { passive: true });
+      }, { passive: false });
 
       this.viewerSheetDragHeader.addEventListener("touchmove", (e) => {
         if (!isDragging || e.touches.length !== 1) return;
         currentY = e.touches[0].clientY;
         const deltaY = currentY - startY;
         if (deltaY > 0) {
+          if (e.cancelable) e.preventDefault();
           this.viewerInfoSheet.style.transform = `translateY(${deltaY}px)`;
         }
-      }, { passive: true });
+      }, { passive: false });
 
       const endHeaderDrag = () => {
         if (!isDragging) return;
         isDragging = false;
         this.viewerInfoSheet.classList.remove("dragging");
-        this.viewerInfoSheet.style.transform = "";
         const deltaY = currentY - startY;
-        if (deltaY > 25) {
+        this.viewerInfoSheet.style.transform = "";
+        if (deltaY > 30) {
           this.closeViewerSheet();
         }
       };
 
       this.viewerSheetDragHeader.addEventListener("touchend", endHeaderDrag, { passive: true });
       this.viewerSheetDragHeader.addEventListener("touchcancel", endHeaderDrag, { passive: true });
+
+      // Tap header to collapse
+      this.viewerSheetDragHeader.addEventListener("click", (e) => {
+        if (e.target.closest("#viewer-collapse-btn")) return;
+        if (Math.abs(currentY - startY) < 10) {
+          this.closeViewerSheet();
+        }
+      });
     }
 
-    // 2. Dragging down on the sheet body when at the top
+    // 2. Dragging down on the sheet body when at the top (scrollTop <= 0)
     let bodyStartY = 0;
     let bodyCurrentY = 0;
     let isBodyDragging = false;
@@ -1191,17 +1249,18 @@ class OmniTagMobileApp {
       } else {
         isBodyDragging = false;
       }
-    }, { passive: true });
+    }, { passive: false });
 
     this.viewerInfoSheet.addEventListener("touchmove", (e) => {
       if (!isBodyDragging || e.touches.length !== 1) return;
       bodyCurrentY = e.touches[0].clientY;
       const deltaY = bodyCurrentY - bodyStartY;
       if (deltaY > 0 && this.viewerInfoSheet.scrollTop <= 0) {
+        if (e.cancelable) e.preventDefault();
         this.viewerInfoSheet.classList.add("dragging");
         this.viewerInfoSheet.style.transform = `translateY(${deltaY}px)`;
       }
-    }, { passive: true });
+    }, { passive: false });
 
     const endBodyDrag = () => {
       if (!isBodyDragging) return;
@@ -1217,58 +1276,77 @@ class OmniTagMobileApp {
     this.viewerInfoSheet.addEventListener("touchend", endBodyDrag, { passive: true });
     this.viewerInfoSheet.addEventListener("touchcancel", endBodyDrag, { passive: true });
 
-    // 3. Stage swipe gestures (Vertical swipe to next/prev post or exit)
+    // 3. Stage swipe gestures on media (Pull DOWN to close viewer, swipe UP/side to navigate)
     let stageStartY = 0;
     let stageCurrentY = 0;
     let stageStartX = 0;
+    let stageCurrentX = 0;
 
     this.viewerStage.addEventListener("touchstart", (e) => {
       if (e.touches.length === 1) {
         stageStartY = e.touches[0].clientY;
         stageCurrentY = stageStartY;
         stageStartX = e.touches[0].clientX;
+        stageCurrentX = stageStartX;
       }
     }, { passive: true });
 
     this.viewerStage.addEventListener("touchmove", (e) => {
       if (e.touches.length === 1) {
         stageCurrentY = e.touches[0].clientY;
+        stageCurrentX = e.touches[0].clientX;
       }
     }, { passive: true });
 
     this.viewerStage.addEventListener("touchend", (e) => {
       const deltaY = stageCurrentY - stageStartY;
-      const clientX = e.changedTouches?.[0]?.clientX || stageStartX;
-      const deltaX = Math.abs(clientX - stageStartX);
+      const deltaX = stageCurrentX - stageStartX;
+      const absY = Math.abs(deltaY);
+      const absX = Math.abs(deltaX);
 
-      // Swipe UP -> Next post (TikTok swipe)
-      if (deltaY < -70 && deltaX < 70) {
-        if (this.viewerIndex < this.filteredPosts.length - 1) {
-          this.openViewer(this.viewerIndex + 1);
-          return;
-        }
+      // If bottom sheet is open, any tap or gesture on stage dismisses sheet first
+      if (this.viewerInfoSheet && !this.viewerInfoSheet.classList.contains("collapsed")) {
+        this.closeViewerSheet();
+        return;
       }
 
-      if (deltaY > 80 && deltaX < 70) {
-        if (this.viewerIndex > 0) {
-          this.openViewer(this.viewerIndex - 1);
-        } else {
-          this.closeViewer();
+      // Swipe DOWN -> Dismiss / Close post viewer (mobile standard)
+      if (deltaY > 65 && absY > absX) {
+        this.closeViewer();
+        return;
+      }
+
+      // Swipe UP -> Next post (TikTok style)
+      if (deltaY < -65 && absY > absX) {
+        if (this.viewerIndex < this.filteredPosts.length - 1) {
+          this.openViewer(this.viewerIndex + 1);
         }
         return;
       }
 
-      // Tap on image
-      if (Math.abs(deltaY) < 12 && deltaX < 12) {
-        if (this.viewerInfoSheet && !this.viewerInfoSheet.classList.contains("collapsed")) {
-          this.closeViewerSheet();
-        } else {
-          const isHidden = this.viewerTopBar?.classList.contains("hidden");
-          this.viewerTopBar?.classList.toggle("hidden", !isHidden);
-          this.viewerInfoPillBtn?.classList.toggle("hidden", !isHidden);
-          const sidebar = document.querySelector(".viewer-sidebar");
-          if (sidebar) sidebar.classList.toggle("hidden", !isHidden);
+      // Swipe LEFT -> Next post
+      if (deltaX < -70 && absX > absY) {
+        if (this.viewerIndex < this.filteredPosts.length - 1) {
+          this.openViewer(this.viewerIndex + 1);
         }
+        return;
+      }
+
+      // Swipe RIGHT -> Previous post
+      if (deltaX > 70 && absX > absY) {
+        if (this.viewerIndex > 0) {
+          this.openViewer(this.viewerIndex - 1);
+        }
+        return;
+      }
+
+      // Quick Tap on image: Toggle top bar & sidebar controls
+      if (absY < 12 && absX < 12) {
+        const isHidden = this.viewerTopBar?.classList.contains("hidden");
+        this.viewerTopBar?.classList.toggle("hidden", !isHidden);
+        this.viewerInfoPillBtn?.classList.toggle("hidden", !isHidden);
+        const sidebar = document.querySelector(".viewer-sidebar");
+        if (sidebar) sidebar.classList.toggle("hidden", !isHidden);
       }
     });
 
@@ -1281,9 +1359,23 @@ class OmniTagMobileApp {
 
   decodeHtmlEntities(str) {
     if (!str) return "";
-    const txt = document.createElement("textarea");
-    txt.innerHTML = str;
-    return txt.value;
+    let s = String(str);
+    s = s.replace(/&#0*39;/g, "'")
+         .replace(/&#x27;/gi, "'")
+         .replace(/&apos;/g, "'")
+         .replace(/&quot;/g, '"')
+         .replace(/&#0*34;/g, '"')
+         .replace(/&amp;/g, '&')
+         .replace(/&lt;/g, '<')
+         .replace(/&gt;/g, '>');
+    if (s.includes("&") || s.includes("&#")) {
+      try {
+        const txt = document.createElement("textarea");
+        txt.innerHTML = s;
+        s = txt.value;
+      } catch (_) {}
+    }
+    return s;
   }
 
   toggleViewerFavorite() {

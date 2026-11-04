@@ -548,6 +548,27 @@ body {
   pointer-events: none;
 }
 
+/* Viewer Sheet Backdrop Overlay */
+.viewer-sheet-backdrop {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 24;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.viewer-sheet-backdrop.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
 /* Expandable Info Bottom Sheet in Viewer */
 .viewer-info-sheet {
   position: absolute;
@@ -555,12 +576,12 @@ body {
   left: 0;
   right: 0;
   background: var(--m-surface);
-  border-top-left-radius: 20px;
-  border-top-right-radius: 20px;
-  padding: 8px 18px 24px 18px;
+  border-top-left-radius: 22px;
+  border-top-right-radius: 22px;
+  padding: 4px 18px 28px 18px;
   border-top: 1px solid var(--m-border);
-  box-shadow: 0 -10px 36px rgba(0, 0, 0, 0.85);
-  max-height: 65vh;
+  box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.9);
+  max-height: 70vh;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
@@ -577,22 +598,33 @@ body {
   transition: none !important;
 }
 
-/* Drag Header with Hide button */
+/* Drag Header with Handle Zone & Close button */
 .sheet-drag-header {
-  padding: 6px 0 10px;
+  padding: 8px 0 12px;
   cursor: pointer;
   touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   margin-bottom: 12px;
 }
 
+.sheet-drag-handle-zone {
+  padding: 4px 0 8px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
 .sheet-drag-bar {
-  width: 44px;
-  height: 5px;
-  background: var(--m-text-sub);
-  opacity: 0.6;
-  border-radius: 3px;
-  margin: 0 auto 8px auto;
+  width: 48px;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.45);
+  border-radius: 4px;
+}
+
+.sheet-drag-header:active .sheet-drag-bar {
+  background: var(--m-accent);
 }
 
 .sheet-header-title-row {
@@ -602,27 +634,33 @@ body {
 }
 
 .sheet-header-title {
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 700;
   color: var(--m-text);
+  letter-spacing: -0.2px;
 }
 
 .sheet-collapse-btn {
   background: var(--m-surface-elevated);
   border: 1px solid var(--m-border);
   color: var(--m-text);
-  padding: 5px 12px;
-  border-radius: 14px;
+  padding: 6px 14px;
+  border-radius: 16px;
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 700;
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 5px;
   cursor: pointer;
+  transition: transform 0.15s ease, background 0.15s ease;
 }
 
 .sheet-collapse-btn:active {
-  background: var(--m-accent);
+  background: #f85149;
+  color: #fff;
+  border-color: #f85149;
+  transform: scale(0.96);
+}
   color: #fff;
 }
 
