@@ -99,7 +99,7 @@ jobs:
 
           gh release upload v1.0.0 output/OmniTag.apk output/OmniTag-apk.zip --clobber || \
           gh release create v1.0.0 output/OmniTag.apk output/OmniTag-apk.zip \
-            --title "OmniTag Mobile v1.2.9 (Production Release APK)" \
+            --title "OmniTag Mobile v1.3.0 (Production Release APK)" \
             --notes-file release-notes.md
 
       - name: Commit updated APK binaries to repository

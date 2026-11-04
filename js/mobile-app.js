@@ -26,6 +26,8 @@ class OmniTagMobileApp {
     this.feedQuery = "";
     this.feedLoading = false;
     this.feedHasMore = true;
+    this.feedSourceId = this.sourceManager?.activeId || "";
+    this.gridSourceId = this.sourceManager?.activeId || "";
 
     this.initElements();
     this.initTheme();
@@ -557,6 +559,48 @@ class OmniTagMobileApp {
   // TAB NAVIGATION
   // ==========================================
 
+  // Switch API Source globally across Feed, Grid, and UI
+  switchSource(sourceId) {
+    if (!sourceId) return;
+    const ok = this.sourceManager.setActiveSource(sourceId);
+    if (!ok) return;
+
+    const active = this.sourceManager.getActiveSource();
+    this.feedSourceId = active.id;
+    this.gridSourceId = active.id;
+
+    this.updateSourceBadge();
+    this.closeSourcesSheet();
+    this.toggleFeedTagDrawer(false);
+    this.showToast(`Switched API: ${active.name}`);
+
+    // If Danbooru selected on web browser, alert about cloudflare preview restriction
+    if (!window.AndroidBridge && active.id === "danbooru") {
+      this.showToast("Note: Danbooru restricts web image previews. All images load in the APK or try Safebooru/TBIB.");
+    }
+
+    // Invalidate & reset Feed state
+    this.feedPosts = [];
+    this.feedPage = 0;
+    this.feedHasMore = true;
+
+    // Invalidate & reset Grid state
+    this.posts = [];
+    this.currentPage = 0;
+
+    const returnTab = (this.previousTab && this.previousTab !== "sources" && this.previousTab !== "apis") ? this.previousTab : (this.activeTab === "feed" ? "feed" : "search");
+
+    if (returnTab === "feed") {
+      this.switchTab("feed");
+      this.loadFeedPosts(true);
+    } else if (returnTab === "saved") {
+      this.switchTab("saved");
+    } else {
+      this.switchTab("search");
+      this.executeSearch(this.currentQuery, 0);
+    }
+  }
+
   switchTab(tab) {
     if (tab === "sources" || tab === "apis") {
       this.previousTab = (this.activeTab !== "sources" && this.activeTab !== "apis") ? this.activeTab : (this.previousTab || "feed");
@@ -576,14 +620,14 @@ class OmniTagMobileApp {
     if (tab === "feed") {
       if (this.feedView) this.feedView.style.display = "block";
       if (this.gridView) this.gridView.style.display = "none";
-      if (this.feedPosts.length === 0) {
+      if (this.feedPosts.length === 0 || this.feedSourceId !== this.sourceManager?.activeId) {
         this.loadFeedPosts(true);
       }
     } else if (tab === "search") {
       if (this.feedView) this.feedView.style.display = "none";
       if (this.gridView) this.gridView.style.display = "flex";
       this.searchInput.placeholder = "Search tags (e.g. 1girl, -tag)...";
-      if (this.posts.length === 0) {
+      if (this.posts.length === 0 || this.gridSourceId !== this.sourceManager?.activeId) {
         this.executeSearch(this.currentQuery, 0);
       } else {
         this.renderGrid();
@@ -603,6 +647,7 @@ class OmniTagMobileApp {
   // ==========================================
 
   async loadFeedPosts(reset = false) {
+    this.feedSourceId = this.sourceManager?.activeId || "";
     if (reset) {
       this.feedPage = 0;
       this.feedPosts = [];
@@ -748,9 +793,19 @@ class OmniTagMobileApp {
               autoplay
               preload="auto"
               poster="${post.previewUrl || ''}" 
-              referrerpolicy="no-referrer">
+              referrerpolicy="no-referrer"
+              onerror="if (this.parentElement) this.parentElement.style.display='none'; if (this.parentElement && this.parentElement.nextElementSibling) this.parentElement.nextElementSibling.style.display='flex';">
             </video>
             <div class="tiktok-video-badge">▶ VIDEO</div>
+          </div>
+          <div class="tiktok-fallback-box" style="display: none;">
+            <div class="tiktok-fallback-icon">🎬</div>
+            <div class="tiktok-fallback-title">Video Unavailable on Web</div>
+            <div class="tiktok-fallback-desc">Web hotlinking is restricted by ${this.escapeHtml(sourceDisplayName)}. Works directly in the OmniTag APK.</div>
+            <div class="tiktok-fallback-actions">
+              <a href="${post.postPageUrl || post.fileUrl || post.videoUrl}" target="_blank" rel="noopener noreferrer" class="sheet-action-btn primary" style="text-decoration:none; display:inline-block; padding: 10px 18px; font-size:13px;">Open on ${this.escapeHtml(sourceDisplayName)} ↗</a>
+              <button type="button" class="sheet-action-btn fallback-switch-safebooru-btn" style="padding: 10px 18px; font-size:13px;">Switch to Safebooru / TBIB</button>
+            </div>
           </div>
         ` : `
           <img 
@@ -760,16 +815,24 @@ class OmniTagMobileApp {
             loading="lazy" 
             referrerpolicy="no-referrer"
             onerror="
-              if (!this.dataset.step) {
+              if (!this.dataset.step && '${fallbackSrc}' && this.src !== '${fallbackSrc}') {
                 this.dataset.step = '1';
-                if ('${fallbackSrc}' && this.src !== '${fallbackSrc}') {
-                  this.src = '${fallbackSrc}';
-                  return;
-                }
+                this.src = '${fallbackSrc}';
+                return;
               }
-              this.style.opacity = '0.6';
+              this.style.display = 'none';
+              if (this.nextElementSibling) this.nextElementSibling.style.display = 'flex';
             "
           >
+          <div class="tiktok-fallback-box" style="display: none;">
+            <div class="tiktok-fallback-icon">🖼️</div>
+            <div class="tiktok-fallback-title">Preview Restricted on Web</div>
+            <div class="tiktok-fallback-desc">${this.escapeHtml(sourceDisplayName)} restricts direct web image hotlinking via Cloudflare. In the OmniTag APK, all images load seamlessly.</div>
+            <div class="tiktok-fallback-actions">
+              <a href="${post.postPageUrl || post.fileUrl || post.sampleUrl}" target="_blank" rel="noopener noreferrer" class="sheet-action-btn primary" style="text-decoration:none; display:inline-block; padding: 10px 18px; font-size:13px;">Open on ${this.escapeHtml(sourceDisplayName)} ↗</a>
+              <button type="button" class="sheet-action-btn fallback-switch-safebooru-btn" style="padding: 10px 18px; font-size:13px;">Switch to Safebooru / TBIB</button>
+            </div>
+          </div>
         `}
       </div>
 
@@ -878,6 +941,14 @@ class OmniTagMobileApp {
       e.stopPropagation();
       this.openViewerInfoSheetForPost(post);
     });
+
+    const fallbackSwitchBtn = slide.querySelector(".fallback-switch-safebooru-btn");
+    if (fallbackSwitchBtn) {
+      fallbackSwitchBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        this.switchSource("safebooru");
+      });
+    }
 
     slide.querySelectorAll(".tiktok-tag-pill").forEach(chip => {
       chip.addEventListener("click", (e) => {
@@ -998,11 +1069,7 @@ class OmniTagMobileApp {
           this.toggleFeedTagDrawer(false);
           return;
         }
-        this.sourceManager.setActiveSource(src.id);
-        this.updateSourceBadge();
-        this.toggleFeedTagDrawer(false);
-        this.showToast(`Feed API: ${src.name}`);
-        this.loadFeedPosts(true);
+        this.switchSource(src.id);
       });
       this.feedDrawerApiPills.appendChild(btn);
     });
@@ -1019,6 +1086,7 @@ class OmniTagMobileApp {
   // ==========================================
 
   async executeSearch(query = "", page = 0) {
+    this.gridSourceId = this.sourceManager?.activeId || "";
     this.currentQuery = query;
     this.currentPage = page;
     this.resultsInfoEl.textContent = "Loading posts...";
@@ -1120,11 +1188,10 @@ class OmniTagMobileApp {
             class="card-thumb" 
             loading="lazy" 
             referrerpolicy="no-referrer"
-            onerror="if (!this.dataset.tried && '${fallbackUrl}') { this.dataset.tried = '1'; this.src = '${fallbackUrl}'; } else { this.style.display = 'none'; if (this.nextElementSibling) this.nextElementSibling.style.display = 'flex'; }"
           >
-          <div class="card-thumb-fallback" style="display: none; height: 160px; background: var(--m-surface-elevated); align-items: center; justify-content: center; flex-direction: column; color: var(--m-text-sub); font-size: 11px; gap: 6px; padding: 12px; text-align: center;">
+          <div class="card-thumb-fallback" style="display: none;">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-            <span>Preview unavailable</span>
+            <span>Preview restricted</span>
             <span style="font-size: 10px; opacity: 0.7;">Tap to view in ${this.escapeHtml(post.source || 'viewer')}</span>
           </div>
           ${post.isVideo ? '<span class="card-badge video">VIDEO</span>' : ""}
@@ -1142,6 +1209,21 @@ class OmniTagMobileApp {
           <div class="card-dim">${post.width}&times;${post.height}</div>
         </div>
       `;
+
+      const img = card.querySelector(".card-thumb");
+      const fallbackBox = card.querySelector(".card-thumb-fallback");
+      if (img) {
+        img.onerror = () => {
+          if (!img.dataset.tried && fallbackUrl && img.src !== fallbackUrl) {
+            img.dataset.tried = "1";
+            img.src = fallbackUrl;
+            return;
+          }
+          img.classList.add("broken");
+          img.style.display = "none";
+          if (fallbackBox) fallbackBox.style.display = "flex";
+        };
+      }
 
       card.addEventListener("click", (e) => {
         if (e.target.closest(".card-fav-btn")) {
@@ -1708,22 +1790,7 @@ class OmniTagMobileApp {
       `;
 
       card.addEventListener("click", () => {
-        this.sourceManager.setActiveSource(src.id);
-        this.updateSourceBadge();
-        this.closeSourcesSheet();
-        this.showToast(`Switched to ${src.name}`);
-
-        const returnTab = (this.previousTab && this.previousTab !== "sources" && this.previousTab !== "apis") ? this.previousTab : (this.activeTab === "feed" ? "feed" : "search");
-        
-        if (returnTab === "feed") {
-          this.switchTab("feed");
-          this.loadFeedPosts(true);
-        } else if (returnTab === "saved") {
-          this.switchTab("saved");
-        } else {
-          this.switchTab("search");
-          this.executeSearch(this.currentQuery, 0);
-        }
+        this.switchSource(src.id);
       });
 
       const editBtn = card.querySelector(".sheet-source-edit-btn");
@@ -1816,20 +1883,12 @@ class OmniTagMobileApp {
 
     if (id) {
       this.sourceManager.updateSource(id, data);
-      this.showToast(`Updated source "${name}"`);
+      this.closeEditSourceSheet();
+      this.switchSource(id);
     } else {
       const newSrc = this.sourceManager.addSource(data);
-      this.sourceManager.setActiveSource(newSrc.id);
-      this.showToast(`Added source "${name}"`);
-    }
-
-    this.updateSourceBadge();
-    this.closeEditSourceSheet();
-    this.renderSourcesList();
-    if (this.activeTab === "feed") {
-      this.loadFeedPosts(true);
-    } else {
-      this.executeSearch(this.currentQuery, 0);
+      this.closeEditSourceSheet();
+      this.switchSource(newSrc.id);
     }
   }
 
@@ -1838,15 +1897,8 @@ class OmniTagMobileApp {
     if (!id) return;
     if (confirm("Delete this API source?")) {
       this.sourceManager.deleteSource(id);
-      this.showToast("Source deleted");
       this.closeEditSourceSheet();
-      this.renderSourcesList();
-      this.updateSourceBadge();
-      if (this.activeTab === "feed") {
-        this.loadFeedPosts(true);
-      } else {
-        this.executeSearch(this.currentQuery, 0);
-      }
+      this.switchSource(this.sourceManager.activeId);
     }
   }
 
@@ -1886,14 +1938,8 @@ class OmniTagMobileApp {
   resetSources() {
     if (confirm("Reset all sources to default? Any custom endpoints will be cleared.")) {
       this.sourceManager.resetToDefaults();
-      this.renderSourcesList();
-      this.updateSourceBadge();
+      this.switchSource("safebooru");
       this.showToast("Reset sources to default");
-      if (this.activeTab === "feed") {
-        this.loadFeedPosts(true);
-      } else {
-        this.executeSearch(this.currentQuery, 0);
-      }
     }
   }
 

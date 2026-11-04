@@ -19,6 +19,7 @@ import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
 import android.webkit.WebResourceError;
 import android.webkit.WebResourceRequest;
+import android.webkit.WebResourceResponse;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -30,6 +31,8 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.Map;
 
 public class MainActivity extends Activity {
     private static final String TAG = "OmniTagApp";
@@ -94,6 +97,41 @@ public class MainActivity extends Activity {
             public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
                 Log.e(TAG, "WebView error: " + error.getDescription() + " for " + request.getUrl());
                 super.onReceivedError(view, request, error);
+            }
+
+            @Override
+            public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
+                Uri uri = request.getUrl();
+                if (uri != null && uri.getScheme() != null && uri.getScheme().startsWith("http")) {
+                    String host = uri.getHost();
+                    if (host != null && (host.contains("donmai.us") || host.contains("rule34.xxx") || host.contains("safebooru.org") || host.contains("tbib.org") || host.contains("yande.re") || host.contains("konachan.net"))) {
+                        try {
+                            URL url = new URL(uri.toString());
+                            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                            conn.setRequestMethod("GET");
+                            conn.setRequestProperty("User-Agent", "OmniTagApp/1.3.0");
+                            if (host.contains("donmai.us")) {
+                                conn.setRequestProperty("Referer", "https://danbooru.donmai.us/");
+                            } else if (host.contains("rule34.xxx")) {
+                                conn.setRequestProperty("Referer", "https://rule34.xxx/");
+                            }
+                            conn.setConnectTimeout(8000);
+                            conn.setReadTimeout(12000);
+                            int code = conn.getResponseCode();
+                            if (code >= 200 && code < 300) {
+                                String rawType = conn.getContentType();
+                                String mimeType = (rawType != null && rawType.contains("/")) ? rawType.split(";")[0].trim() : "image/jpeg";
+                                String encoding = conn.getContentEncoding();
+                                Map<String, String> headers = new HashMap<>();
+                                headers.put("Access-Control-Allow-Origin", "*");
+                                return new WebResourceResponse(mimeType, encoding, code, "OK", headers, conn.getInputStream());
+                            }
+                        } catch (Exception e) {
+                            Log.w(TAG, "Native request intercept error for " + uri + ": " + e.getMessage());
+                        }
+                    }
+                }
+                return super.shouldInterceptRequest(view, request);
             }
         });
 

@@ -20,6 +20,21 @@ const DEFAULT_SOURCES = [
     description: "Anime & manga art (Safe for work)"
   },
   {
+    id: "tbib",
+    name: "TBIB (Safe / Anime)",
+    type: "gelbooru_dapi",
+    baseUrl: "https://tbib.org",
+    postsUrl: "https://tbib.org/index.php?page=dapi&s=post&q=index&json=1&limit={limit}&pid={page}&tags={tags}",
+    tagsUrl: "https://tbib.org/autocomplete.php?q={query}",
+    thumbTemplate: "https://tbib.org/thumbnails/{directory}/thumbnail_{image}",
+    sampleTemplate: "https://tbib.org/samples/{directory}/sample_{image}",
+    fileTemplate: "https://tbib.org/images/{directory}/{image}",
+    proxyMode: "auto",
+    customProxyUrl: "",
+    isPreset: true,
+    description: "28M+ anime, manga & idol artworks (100% web & mobile compatible)"
+  },
+  {
     id: "yande",
     name: "Yande.re (Safe)",
     type: "moebooru",
@@ -82,13 +97,13 @@ const DEFAULT_SOURCES = [
     proxyMode: "auto",
     customProxyUrl: "",
     isPreset: true,
-    description: "Danbooru Safe (Note: direct image hotlinking restricted by Cloudflare)"
+    description: "Danbooru Safe (Best in Android APK; web previews restricted by Cloudflare)"
   }
 ];
 
 // Bump this whenever new presets are added to DEFAULT_SOURCES so that
 // existing installs (which already have a saved list) receive them once.
-const PRESET_VERSION = 7;
+const PRESET_VERSION = 8;
 
 class ApiSourceManager {
   constructor() {
@@ -99,13 +114,6 @@ class ApiSourceManager {
     
     const defaultId = "safebooru";
     this.activeId = localStorage.getItem(this.activeKey) || defaultId;
-    
-    // Auto-migrate users stuck on Danbooru to Safebooru (where images load cleanly)
-    if (this.activeId === "danbooru" && !localStorage.getItem("omnitag_user_explicit_danbooru")) {
-      this.activeId = defaultId;
-      localStorage.setItem(this.activeKey, defaultId);
-      localStorage.setItem("omnitag_active_source", defaultId);
-    }
     
     // Ensure active source exists
     if (!this.getSource(this.activeId)) {
@@ -152,10 +160,14 @@ class ApiSourceManager {
       const existing = list.find(s => s.id === def.id);
       if (!existing) {
         list.push(JSON.parse(JSON.stringify(def)));
-      } else if (def.apiKey && def.userId && !existing.apiKey && !existing.userId) {
-        // Already saved but with blank credentials: fill them in (never overwrites a key you typed)
-        existing.apiKey = def.apiKey;
-        existing.userId = def.userId;
+      } else {
+        if (def.description && (!existing.description || existing.description.includes("hotlinking restricted"))) {
+          existing.description = def.description;
+        }
+        if (def.apiKey && def.userId && !existing.apiKey && !existing.userId) {
+          existing.apiKey = def.apiKey;
+          existing.userId = def.userId;
+        }
       }
     }
     localStorage.setItem(this.storageKey, JSON.stringify(list));
@@ -678,7 +690,9 @@ class ApiSourceManager {
         source: source.name,
         sourceSite: source.name,
         sourceId: source.id,
-        postPageUrl: `${source.baseUrl}/index.php?page=post&s=view&id=${id}`,
+        postPageUrl: source.type === "danbooru_v2" 
+          ? `${source.baseUrl}/posts/${id}`
+          : (source.type === "moebooru" ? `${source.baseUrl}/post/show/${id}` : `${source.baseUrl}/index.php?page=post&s=view&id=${id}`),
         createdAt: item.change || item.created_at || ""
       });
     }
