@@ -62,7 +62,7 @@ const DEFAULT_SOURCES = [
     proxyMode: "auto",
     customProxyUrl: "",
     requiresAuth: true,
-    apiKey: "",
+    apiKey: "228d680b137cc47a33c0b6a37c26fbb24a6e539c13cdb1b7542bcdf6e96a0fd6fab70b588ff5ac095c05e217c7842146f3276e851382b89a71f73ac39b321531",
     userId: "7003718",
     authHelp: "Find your API key and user ID in your rule34.xxx account options.",
     excludeTags: ["loli", "shota", "child", "young", "underage"],
