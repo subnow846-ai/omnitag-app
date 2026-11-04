@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en" data-theme="dark">
 <head>
   <meta charset="UTF-8">
@@ -151,8 +151,11 @@
       <div id="viewer-media-stage" class="viewer-stage"></div>
 
       <!-- Draggable / Expandable Bottom Sheet for Info & Tags -->
-      <div id="viewer-info-sheet" class="viewer-info-sheet">
-        <div class="sheet-drag-handle"></div>
+      <div id="viewer-info-sheet" class="viewer-info-sheet collapsed">
+        <div id="viewer-sheet-handle-area" class="sheet-drag-handle-area" title="Tap or drag to toggle details">
+          <div class="sheet-drag-handle"></div>
+          <span id="viewer-sheet-handle-text" class="sheet-drag-label">â–˛ Details & Tags</span>
+        </div>
         <div class="sheet-actions">
           <button id="viewer-download-btn" class="sheet-action-btn primary">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">

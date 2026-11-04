@@ -1,4 +1,4 @@
-/**
+﻿/**
  * OmniTag Mobile - Mobile Edition Controller
  * Powers the dedicated smartphone UI while reusing the core API sources engine
  */
@@ -70,6 +70,10 @@ class OmniTagMobileApp {
     this.viewerSourceBtn = document.getElementById("viewer-source-btn");
     this.viewerMetaRow = document.getElementById("viewer-meta-row");
     this.viewerTagsWrap = document.getElementById("viewer-tags-chips");
+    this.viewerTopBar = document.querySelector(".viewer-top-bar");
+    this.viewerInfoSheet = document.getElementById("viewer-info-sheet");
+    this.viewerSheetHandle = document.getElementById("viewer-sheet-handle-area");
+    this.viewerSheetLabel = document.getElementById("viewer-sheet-handle-text");
 
     // Toast
     this.toastEl = document.getElementById("mobile-toast");
@@ -294,6 +298,7 @@ class OmniTagMobileApp {
     this.viewerFavBtn.addEventListener("click", () => this.toggleViewerFavorite());
     this.viewerCopyBtn.addEventListener("click", () => this.copyViewerMediaUrl());
     this.viewerDownloadBtn.addEventListener("click", () => this.downloadViewerMedia());
+    this.initViewerGestures();
   }
 
   switchTab(tab) {
@@ -465,6 +470,10 @@ class OmniTagMobileApp {
     this.viewerModal.style.display = "flex";
     this.viewerStage.innerHTML = '<div style="color: #fff;">Loading...</div>';
 
+    // Start with sheet in collapsed peek mode so the full image is immediately visible!
+    this.toggleViewerSheet(false);
+    if (this.viewerTopBar) this.viewerTopBar.classList.remove("hidden");
+
     if (post.isVideo) {
       const vid = document.createElement("video");
       vid.src = post.fileUrl || post.sampleUrl;
@@ -489,22 +498,23 @@ class OmniTagMobileApp {
 
     this.viewerMetaRow.innerHTML = `
       <span>#${post.id}</span>
-      <span>${post.width}×${post.height}</span>
-      <span>★ ${post.score}</span>
+      <span>${post.width}Ă—${post.height}</span>
+      <span>â… ${post.score}</span>
       <span>${post.ext.toUpperCase()}</span>
     `;
 
     this.viewerSourceBtn.href = post.postPageUrl || post.fileUrl;
 
-    // Render tags
+    // Render tags with entity decoding (e.g. lay&#039;s -> lay's)
     this.viewerTagsWrap.innerHTML = "";
-    (post.tags || []).slice(0, 30).forEach(tag => {
+    (post.tags || []).slice(0, 40).forEach(rawTag => {
+      const decodedTag = this.decodeHtmlEntities(rawTag).replace(/_/g, " ");
       const chip = document.createElement("button");
       chip.className = "mobile-tag-chip";
-      chip.textContent = tag.replace(/_/g, " ");
+      chip.textContent = decodedTag;
       chip.addEventListener("click", () => {
         this.closeViewer();
-        this.executeSearch(tag, 0);
+        this.executeSearch(rawTag, 0);
       });
       this.viewerTagsWrap.appendChild(chip);
     });
@@ -517,6 +527,150 @@ class OmniTagMobileApp {
     this.viewerModal.style.display = "none";
     this.viewerStage.innerHTML = "";
     this.viewerIndex = -1;
+    if (this.viewerTopBar) this.viewerTopBar.classList.remove("hidden");
+    if (this.viewerInfoSheet) {
+      this.viewerInfoSheet.classList.remove("hidden-full");
+      this.viewerInfoSheet.style.transform = "";
+    }
+  }
+
+  initViewerGestures() {
+    if (!this.viewerInfoSheet || !this.viewerSheetHandle) return;
+
+    // 1. Click on handle area toggles collapse / expand
+    this.viewerSheetHandle.addEventListener("click", (e) => {
+      e.stopPropagation();
+      this.toggleViewerSheet();
+    });
+
+    // 2. Drag gestures on the bottom sheet handle
+    let startY = 0;
+    let currentY = 0;
+    let isDragging = false;
+
+    const onTouchStart = (e) => {
+      if (e.touches.length !== 1) return;
+      startY = e.touches[0].clientY;
+      currentY = startY;
+      isDragging = true;
+      this.viewerInfoSheet.classList.add("dragging");
+    };
+
+    const onTouchMove = (e) => {
+      if (!isDragging || e.touches.length !== 1) return;
+      currentY = e.touches[0].clientY;
+      const deltaY = currentY - startY;
+      const isCollapsed = this.viewerInfoSheet.classList.contains("collapsed");
+
+      // When dragging down from expanded
+      if (!isCollapsed && deltaY > 0) {
+        this.viewerInfoSheet.style.transform = `translateY(${Math.max(0, deltaY)}px)`;
+      }
+      // When dragging up from collapsed
+      else if (isCollapsed && deltaY < 0) {
+        const sheetH = this.viewerInfoSheet.offsetHeight || 300;
+        const baseOffset = sheetH - 44;
+        const newOffset = Math.max(0, baseOffset + deltaY);
+        this.viewerInfoSheet.style.transform = `translateY(${newOffset}px)`;
+      }
+    };
+
+    const onTouchEnd = () => {
+      if (!isDragging) return;
+      isDragging = false;
+      this.viewerInfoSheet.classList.remove("dragging");
+      this.viewerInfoSheet.style.transform = "";
+
+      const deltaY = currentY - startY;
+      const isCollapsed = this.viewerInfoSheet.classList.contains("collapsed");
+
+      if (isCollapsed) {
+        // Dragged up > 35px -> expand
+        if (deltaY < -35) {
+          this.toggleViewerSheet(true);
+        }
+      } else {
+        // Dragged down > 35px -> collapse
+        if (deltaY > 35) {
+          this.toggleViewerSheet(false);
+        }
+      }
+    };
+
+    this.viewerSheetHandle.addEventListener("touchstart", onTouchStart, { passive: true });
+    this.viewerSheetHandle.addEventListener("touchmove", onTouchMove, { passive: true });
+    this.viewerSheetHandle.addEventListener("touchend", onTouchEnd, { passive: true });
+
+    // 3. Stage tap and pull-down to close
+    let stageStartY = 0;
+    let stageCurrentY = 0;
+    let stageStartX = 0;
+
+    this.viewerStage.addEventListener("touchstart", (e) => {
+      if (e.touches.length === 1) {
+        stageStartY = e.touches[0].clientY;
+        stageCurrentY = stageStartY;
+        stageStartX = e.touches[0].clientX;
+      }
+    }, { passive: true });
+
+    this.viewerStage.addEventListener("touchmove", (e) => {
+      if (e.touches.length === 1) {
+        stageCurrentY = e.touches[0].clientY;
+      }
+    }, { passive: true });
+
+    this.viewerStage.addEventListener("touchend", (e) => {
+      const deltaY = stageCurrentY - stageStartY;
+      const clientX = e.changedTouches?.[0]?.clientX || stageStartX;
+      const deltaX = Math.abs(clientX - stageStartX);
+
+      // Swipe down on image to close viewer
+      if (deltaY > 90 && deltaX < 80) {
+        this.closeViewer();
+        return;
+      }
+
+      // Tap on image
+      if (Math.abs(deltaY) < 12 && deltaX < 12) {
+        if (!this.viewerInfoSheet.classList.contains("collapsed")) {
+          // If sheet is expanded, tap collapses it so you see the image
+          this.toggleViewerSheet(false);
+        } else {
+          // If already collapsed, toggle top bar and handle for completely clean full screen
+          const isHidden = this.viewerTopBar?.classList.contains("hidden");
+          this.viewerTopBar?.classList.toggle("hidden", !isHidden);
+          this.viewerInfoSheet.classList.toggle("hidden-full", !isHidden);
+        }
+      }
+    });
+
+    this.viewerStage.addEventListener("click", () => {
+      if (!this.viewerInfoSheet.classList.contains("collapsed")) {
+        this.toggleViewerSheet(false);
+      }
+    });
+  }
+
+  toggleViewerSheet(expand = null) {
+    if (!this.viewerInfoSheet) return;
+    const isCurrentlyCollapsed = this.viewerInfoSheet.classList.contains("collapsed");
+    const shouldExpand = (expand !== null) ? expand : isCurrentlyCollapsed;
+
+    this.viewerInfoSheet.classList.toggle("collapsed", !shouldExpand);
+    this.viewerInfoSheet.classList.remove("hidden-full");
+    if (this.viewerTopBar) this.viewerTopBar.classList.remove("hidden");
+
+    if (this.viewerSheetLabel) {
+      this.viewerSheetLabel.textContent = shouldExpand ? "â–Ľ Pull down to hide" : "â–˛ Details & Tags";
+    }
+  }
+
+  decodeHtmlEntities(str) {
+    if (!str) return "";
+    const txt = document.createElement("textarea");
+    txt.innerHTML = str;
+    return txt.value;
   }
 
   toggleViewerFavorite() {

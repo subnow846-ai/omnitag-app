@@ -480,18 +480,34 @@ body {
   color: #fff;
 }
 
+.viewer-top-bar {
+  transition: transform 0.25s ease, opacity 0.25s ease;
+}
+
+.viewer-top-bar.hidden {
+  transform: translateY(-100%);
+  opacity: 0;
+  pointer-events: none;
+}
+
 .viewer-stage {
   flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding-bottom: 90px;
+  padding-bottom: 46px;
+  position: relative;
+  overflow: hidden;
+  user-select: none;
+  touch-action: pan-x pan-y;
 }
 
 .viewer-stage img, .viewer-stage video {
   max-width: 100%;
   max-height: 100%;
   object-fit: contain;
+  pointer-events: auto;
+  transition: transform 0.2s ease, opacity 0.2s ease;
 }
 
 /* Expandable Info Bottom Sheet in Viewer */
@@ -503,20 +519,67 @@ body {
   background: var(--m-surface);
   border-top-left-radius: 20px;
   border-top-right-radius: 20px;
-  padding: 12px 18px 24px 18px;
+  padding: 8px 18px 24px 18px;
   border-top: 1px solid var(--m-border);
-  box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.5);
-  max-height: 60vh;
+  box-shadow: 0 -8px 28px rgba(0, 0, 0, 0.75);
+  max-height: 65vh;
   overflow-y: auto;
-  transition: transform 0.3s ease;
+  -webkit-overflow-scrolling: touch;
+  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform;
+  z-index: 10;
+}
+
+.viewer-info-sheet.collapsed {
+  transform: translateY(calc(100% - 44px));
+}
+
+.viewer-info-sheet.hidden-full {
+  transform: translateY(100%) !important;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.viewer-info-sheet.dragging {
+  transition: none !important;
+}
+
+.sheet-drag-handle-area {
+  padding: 6px 0 10px;
+  margin: -8px -18px 8px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  touch-action: none;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .sheet-drag-handle {
-  width: 36px;
-  height: 4px;
-  background: var(--m-border);
-  border-radius: 2px;
-  margin: 0 auto 12px auto;
+  width: 42px;
+  height: 5px;
+  background: var(--m-text-sub);
+  opacity: 0.7;
+  border-radius: 3px;
+  transition: opacity 0.2s, background-color 0.2s, transform 0.2s;
+}
+
+.sheet-drag-handle-area:active .sheet-drag-handle {
+  opacity: 1;
+  background: var(--m-accent);
+  transform: scaleX(1.15);
+}
+
+.sheet-drag-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--m-text-sub);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  letter-spacing: 0.3px;
 }
 
 .sheet-actions {
@@ -928,8 +991,11 @@ body {
       <div id="viewer-media-stage" class="viewer-stage"></div>
 
       <!-- Draggable / Expandable Bottom Sheet for Info & Tags -->
-      <div id="viewer-info-sheet" class="viewer-info-sheet">
-        <div class="sheet-drag-handle"></div>
+      <div id="viewer-info-sheet" class="viewer-info-sheet collapsed">
+        <div id="viewer-sheet-handle-area" class="sheet-drag-handle-area" title="Tap or drag to toggle details">
+          <div class="sheet-drag-handle"></div>
+          <span id="viewer-sheet-handle-text" class="sheet-drag-label">â–˛ Details & Tags</span>
+        </div>
         <div class="sheet-actions">
           <button id="viewer-download-btn" class="sheet-action-btn primary">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -1146,12 +1212,32 @@ const DEFAULT_SOURCES = [
     customProxyUrl: "",
     isPreset: true,
     description: "Anime wallpapers & illustrations"
+  },
+  {
+    id: "rule34",
+    name: "Rule34 (18+)",
+    type: "gelbooru_dapi",
+    baseUrl: "https://rule34.xxx",
+    postsUrl: "https://api.rule34.xxx/index.php?page=dapi&s=post&q=index&json=1&limit={limit}&pid={page}&tags={tags}&api_key={api_key}&user_id={user_id}",
+    tagsUrl: "https://api.rule34.xxx/autocomplete.php?q={query}",
+    thumbTemplate: "",
+    sampleTemplate: "",
+    fileTemplate: "",
+    proxyMode: "auto",
+    customProxyUrl: "",
+    requiresAuth: true,
+    apiKey: "", // paste your key via "Manage / Add APIs" in the app (stays in your browser)
+    userId: "7003718",
+    authHelp: "Find your API key and user ID in your rule34.xxx account options.",
+    excludeTags: ["loli", "shota", "child", "young", "underage"],
+    isPreset: true,
+    description: "Adult (explicit) content. Requires an API key."
   }
 ];
 
 // Bump this whenever new presets are added to DEFAULT_SOURCES so that
 // existing installs (which already have a saved list) receive them once.
-const PRESET_VERSION = 4;
+const PRESET_VERSION = 5;
 
 class ApiSourceManager {
   constructor() {
@@ -1435,6 +1521,12 @@ class ApiSourceManager {
     let finalTags = cleanTags;
     if (source.id === "danbooru" || source.type === "danbooru_v2") {
       finalTags = cleanTags ? `rating:g ${cleanTags}` : "rating:g";
+    }
+
+    // Per-source tags that are always excluded
+    if (Array.isArray(source.excludeTags) && source.excludeTags.length) {
+      const negs = source.excludeTags.map(t => `-${t}`).join(" ");
+      finalTags = finalTags ? `${finalTags} ${negs}` : negs;
     }
 
     url = url
@@ -1899,6 +1991,10 @@ class OmniTagMobileApp {
     this.viewerSourceBtn = document.getElementById("viewer-source-btn");
     this.viewerMetaRow = document.getElementById("viewer-meta-row");
     this.viewerTagsWrap = document.getElementById("viewer-tags-chips");
+    this.viewerTopBar = document.querySelector(".viewer-top-bar");
+    this.viewerInfoSheet = document.getElementById("viewer-info-sheet");
+    this.viewerSheetHandle = document.getElementById("viewer-sheet-handle-area");
+    this.viewerSheetLabel = document.getElementById("viewer-sheet-handle-text");
 
     // Toast
     this.toastEl = document.getElementById("mobile-toast");
@@ -2123,6 +2219,7 @@ class OmniTagMobileApp {
     this.viewerFavBtn.addEventListener("click", () => this.toggleViewerFavorite());
     this.viewerCopyBtn.addEventListener("click", () => this.copyViewerMediaUrl());
     this.viewerDownloadBtn.addEventListener("click", () => this.downloadViewerMedia());
+    this.initViewerGestures();
   }
 
   switchTab(tab) {
@@ -2294,6 +2391,10 @@ class OmniTagMobileApp {
     this.viewerModal.style.display = "flex";
     this.viewerStage.innerHTML = '<div style="color: #fff;">Loading...</div>';
 
+    // Start with sheet in collapsed peek mode so the full image is immediately visible!
+    this.toggleViewerSheet(false);
+    if (this.viewerTopBar) this.viewerTopBar.classList.remove("hidden");
+
     if (post.isVideo) {
       const vid = document.createElement("video");
       vid.src = post.fileUrl || post.sampleUrl;
@@ -2318,22 +2419,23 @@ class OmniTagMobileApp {
 
     this.viewerMetaRow.innerHTML = `
       <span>#${post.id}</span>
-      <span>${post.width}×${post.height}</span>
-      <span>★ ${post.score}</span>
+      <span>${post.width}Ă—${post.height}</span>
+      <span>â… ${post.score}</span>
       <span>${post.ext.toUpperCase()}</span>
     `;
 
     this.viewerSourceBtn.href = post.postPageUrl || post.fileUrl;
 
-    // Render tags
+    // Render tags with entity decoding (e.g. lay&#039;s -> lay's)
     this.viewerTagsWrap.innerHTML = "";
-    (post.tags || []).slice(0, 30).forEach(tag => {
+    (post.tags || []).slice(0, 40).forEach(rawTag => {
+      const decodedTag = this.decodeHtmlEntities(rawTag).replace(/_/g, " ");
       const chip = document.createElement("button");
       chip.className = "mobile-tag-chip";
-      chip.textContent = tag.replace(/_/g, " ");
+      chip.textContent = decodedTag;
       chip.addEventListener("click", () => {
         this.closeViewer();
-        this.executeSearch(tag, 0);
+        this.executeSearch(rawTag, 0);
       });
       this.viewerTagsWrap.appendChild(chip);
     });
@@ -2346,6 +2448,150 @@ class OmniTagMobileApp {
     this.viewerModal.style.display = "none";
     this.viewerStage.innerHTML = "";
     this.viewerIndex = -1;
+    if (this.viewerTopBar) this.viewerTopBar.classList.remove("hidden");
+    if (this.viewerInfoSheet) {
+      this.viewerInfoSheet.classList.remove("hidden-full");
+      this.viewerInfoSheet.style.transform = "";
+    }
+  }
+
+  initViewerGestures() {
+    if (!this.viewerInfoSheet || !this.viewerSheetHandle) return;
+
+    // 1. Click on handle area toggles collapse / expand
+    this.viewerSheetHandle.addEventListener("click", (e) => {
+      e.stopPropagation();
+      this.toggleViewerSheet();
+    });
+
+    // 2. Drag gestures on the bottom sheet handle
+    let startY = 0;
+    let currentY = 0;
+    let isDragging = false;
+
+    const onTouchStart = (e) => {
+      if (e.touches.length !== 1) return;
+      startY = e.touches[0].clientY;
+      currentY = startY;
+      isDragging = true;
+      this.viewerInfoSheet.classList.add("dragging");
+    };
+
+    const onTouchMove = (e) => {
+      if (!isDragging || e.touches.length !== 1) return;
+      currentY = e.touches[0].clientY;
+      const deltaY = currentY - startY;
+      const isCollapsed = this.viewerInfoSheet.classList.contains("collapsed");
+
+      // When dragging down from expanded
+      if (!isCollapsed && deltaY > 0) {
+        this.viewerInfoSheet.style.transform = `translateY(${Math.max(0, deltaY)}px)`;
+      }
+      // When dragging up from collapsed
+      else if (isCollapsed && deltaY < 0) {
+        const sheetH = this.viewerInfoSheet.offsetHeight || 300;
+        const baseOffset = sheetH - 44;
+        const newOffset = Math.max(0, baseOffset + deltaY);
+        this.viewerInfoSheet.style.transform = `translateY(${newOffset}px)`;
+      }
+    };
+
+    const onTouchEnd = () => {
+      if (!isDragging) return;
+      isDragging = false;
+      this.viewerInfoSheet.classList.remove("dragging");
+      this.viewerInfoSheet.style.transform = "";
+
+      const deltaY = currentY - startY;
+      const isCollapsed = this.viewerInfoSheet.classList.contains("collapsed");
+
+      if (isCollapsed) {
+        // Dragged up > 35px -> expand
+        if (deltaY < -35) {
+          this.toggleViewerSheet(true);
+        }
+      } else {
+        // Dragged down > 35px -> collapse
+        if (deltaY > 35) {
+          this.toggleViewerSheet(false);
+        }
+      }
+    };
+
+    this.viewerSheetHandle.addEventListener("touchstart", onTouchStart, { passive: true });
+    this.viewerSheetHandle.addEventListener("touchmove", onTouchMove, { passive: true });
+    this.viewerSheetHandle.addEventListener("touchend", onTouchEnd, { passive: true });
+
+    // 3. Stage tap and pull-down to close
+    let stageStartY = 0;
+    let stageCurrentY = 0;
+    let stageStartX = 0;
+
+    this.viewerStage.addEventListener("touchstart", (e) => {
+      if (e.touches.length === 1) {
+        stageStartY = e.touches[0].clientY;
+        stageCurrentY = stageStartY;
+        stageStartX = e.touches[0].clientX;
+      }
+    }, { passive: true });
+
+    this.viewerStage.addEventListener("touchmove", (e) => {
+      if (e.touches.length === 1) {
+        stageCurrentY = e.touches[0].clientY;
+      }
+    }, { passive: true });
+
+    this.viewerStage.addEventListener("touchend", (e) => {
+      const deltaY = stageCurrentY - stageStartY;
+      const clientX = e.changedTouches?.[0]?.clientX || stageStartX;
+      const deltaX = Math.abs(clientX - stageStartX);
+
+      // Swipe down on image to close viewer
+      if (deltaY > 90 && deltaX < 80) {
+        this.closeViewer();
+        return;
+      }
+
+      // Tap on image
+      if (Math.abs(deltaY) < 12 && deltaX < 12) {
+        if (!this.viewerInfoSheet.classList.contains("collapsed")) {
+          // If sheet is expanded, tap collapses it so you see the image
+          this.toggleViewerSheet(false);
+        } else {
+          // If already collapsed, toggle top bar and handle for completely clean full screen
+          const isHidden = this.viewerTopBar?.classList.contains("hidden");
+          this.viewerTopBar?.classList.toggle("hidden", !isHidden);
+          this.viewerInfoSheet.classList.toggle("hidden-full", !isHidden);
+        }
+      }
+    });
+
+    this.viewerStage.addEventListener("click", () => {
+      if (!this.viewerInfoSheet.classList.contains("collapsed")) {
+        this.toggleViewerSheet(false);
+      }
+    });
+  }
+
+  toggleViewerSheet(expand = null) {
+    if (!this.viewerInfoSheet) return;
+    const isCurrentlyCollapsed = this.viewerInfoSheet.classList.contains("collapsed");
+    const shouldExpand = (expand !== null) ? expand : isCurrentlyCollapsed;
+
+    this.viewerInfoSheet.classList.toggle("collapsed", !shouldExpand);
+    this.viewerInfoSheet.classList.remove("hidden-full");
+    if (this.viewerTopBar) this.viewerTopBar.classList.remove("hidden");
+
+    if (this.viewerSheetLabel) {
+      this.viewerSheetLabel.textContent = shouldExpand ? "â–Ľ Pull down to hide" : "â–˛ Details & Tags";
+    }
+  }
+
+  decodeHtmlEntities(str) {
+    if (!str) return "";
+    const txt = document.createElement("textarea");
+    txt.innerHTML = str;
+    return txt.value;
   }
 
   toggleViewerFavorite() {

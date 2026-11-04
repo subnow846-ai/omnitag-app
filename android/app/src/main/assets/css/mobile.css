@@ -1,4 +1,4 @@
-/* ==========================================================================
+﻿/* ==========================================================================
    OmniTag Mobile - Native App UI Stylesheet
    Designed for smartphone viewport, touch gestures, and bottom navigation
    ========================================================================== */
@@ -468,18 +468,34 @@ body {
   color: #fff;
 }
 
+.viewer-top-bar {
+  transition: transform 0.25s ease, opacity 0.25s ease;
+}
+
+.viewer-top-bar.hidden {
+  transform: translateY(-100%);
+  opacity: 0;
+  pointer-events: none;
+}
+
 .viewer-stage {
   flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding-bottom: 90px;
+  padding-bottom: 46px;
+  position: relative;
+  overflow: hidden;
+  user-select: none;
+  touch-action: pan-x pan-y;
 }
 
 .viewer-stage img, .viewer-stage video {
   max-width: 100%;
   max-height: 100%;
   object-fit: contain;
+  pointer-events: auto;
+  transition: transform 0.2s ease, opacity 0.2s ease;
 }
 
 /* Expandable Info Bottom Sheet in Viewer */
@@ -491,20 +507,67 @@ body {
   background: var(--m-surface);
   border-top-left-radius: 20px;
   border-top-right-radius: 20px;
-  padding: 12px 18px 24px 18px;
+  padding: 8px 18px 24px 18px;
   border-top: 1px solid var(--m-border);
-  box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.5);
-  max-height: 60vh;
+  box-shadow: 0 -8px 28px rgba(0, 0, 0, 0.75);
+  max-height: 65vh;
   overflow-y: auto;
-  transition: transform 0.3s ease;
+  -webkit-overflow-scrolling: touch;
+  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform;
+  z-index: 10;
+}
+
+.viewer-info-sheet.collapsed {
+  transform: translateY(calc(100% - 44px));
+}
+
+.viewer-info-sheet.hidden-full {
+  transform: translateY(100%) !important;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.viewer-info-sheet.dragging {
+  transition: none !important;
+}
+
+.sheet-drag-handle-area {
+  padding: 6px 0 10px;
+  margin: -8px -18px 8px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  touch-action: none;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .sheet-drag-handle {
-  width: 36px;
-  height: 4px;
-  background: var(--m-border);
-  border-radius: 2px;
-  margin: 0 auto 12px auto;
+  width: 42px;
+  height: 5px;
+  background: var(--m-text-sub);
+  opacity: 0.7;
+  border-radius: 3px;
+  transition: opacity 0.2s, background-color 0.2s, transform 0.2s;
+}
+
+.sheet-drag-handle-area:active .sheet-drag-handle {
+  opacity: 1;
+  background: var(--m-accent);
+  transform: scaleX(1.15);
+}
+
+.sheet-drag-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--m-text-sub);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  letter-spacing: 0.3px;
 }
 
 .sheet-actions {
