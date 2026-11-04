@@ -767,7 +767,7 @@ body.with-install-banner .mobile-feed-view {
 .bottom-sheet-modal {
   position: fixed;
   inset: 0;
-  z-index: 120;
+  z-index: 1000 !important;
   display: none;
   align-items: flex-end;
   justify-content: center;
@@ -780,7 +780,9 @@ body.with-install-banner .mobile-feed-view {
 .sheet-overlay {
   position: absolute;
   inset: 0;
-  background: rgba(0, 0, 0, 0.65);
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
   z-index: 1;
 }
 
@@ -1759,6 +1761,8 @@ body.with-install-banner .mobile-feed-view {
 
   .bottom-sheet-modal {
     position: absolute;
+    inset: 0;
+    z-index: 1000 !important;
     border-radius: 35px;
     overflow: hidden;
   }

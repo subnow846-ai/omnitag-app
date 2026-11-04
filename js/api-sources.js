@@ -14,25 +14,10 @@ const DEFAULT_SOURCES = [
     thumbTemplate: "https://safebooru.org/thumbnails/{directory}/thumbnail_{image}",
     sampleTemplate: "https://safebooru.org/samples/{directory}/sample_{image}",
     fileTemplate: "https://safebooru.org/images/{directory}/{image}",
-    proxyMode: "auto", // 'auto', 'direct', 'corsproxy', 'allorigins', 'local', 'custom'
-    customProxyUrl: "",
-    isPreset: true,
-    description: "Anime & manga art (Safe for work)"
-  },
-  {
-    id: "danbooru",
-    name: "Danbooru (Safe)",
-    type: "danbooru_v2",
-    baseUrl: "https://danbooru.donmai.us",
-    postsUrl: "https://danbooru.donmai.us/posts.json?limit={limit}&page={page}&tags={tags}",
-    tagsUrl: "https://danbooru.donmai.us/autocomplete.json?search[query]={query}&search[type]=tag_query&version=1&limit=12",
-    thumbTemplate: "",
-    sampleTemplate: "",
-    fileTemplate: "",
     proxyMode: "auto",
     customProxyUrl: "",
     isPreset: true,
-    description: "Danbooru General / Safe posts"
+    description: "Anime & manga art (Safe for work)"
   },
   {
     id: "yande",
@@ -77,18 +62,33 @@ const DEFAULT_SOURCES = [
     proxyMode: "auto",
     customProxyUrl: "",
     requiresAuth: true,
-    apiKey: "", // paste your key via "Manage / Add APIs" in the app (stays in your browser)
+    apiKey: "",
     userId: "7003718",
     authHelp: "Find your API key and user ID in your rule34.xxx account options.",
     excludeTags: ["loli", "shota", "child", "young", "underage"],
     isPreset: true,
     description: "Adult (explicit) content. Requires an API key."
+  },
+  {
+    id: "danbooru",
+    name: "Danbooru (Safe)",
+    type: "danbooru_v2",
+    baseUrl: "https://danbooru.donmai.us",
+    postsUrl: "https://danbooru.donmai.us/posts.json?limit={limit}&page={page}&tags={tags}",
+    tagsUrl: "https://danbooru.donmai.us/autocomplete.json?search[query]={query}&search[type]=tag_query&version=1&limit=12",
+    thumbTemplate: "",
+    sampleTemplate: "",
+    fileTemplate: "",
+    proxyMode: "auto",
+    customProxyUrl: "",
+    isPreset: true,
+    description: "Danbooru Safe (Note: direct image hotlinking restricted by Cloudflare)"
   }
 ];
 
 // Bump this whenever new presets are added to DEFAULT_SOURCES so that
 // existing installs (which already have a saved list) receive them once.
-const PRESET_VERSION = 5;
+const PRESET_VERSION = 6;
 
 class ApiSourceManager {
   constructor() {
@@ -100,9 +100,18 @@ class ApiSourceManager {
     const defaultId = "safebooru";
     this.activeId = localStorage.getItem(this.activeKey) || defaultId;
     
+    // Auto-migrate users stuck on Danbooru to Safebooru (where images load cleanly)
+    if (this.activeId === "danbooru" && !localStorage.getItem("omnitag_user_explicit_danbooru")) {
+      this.activeId = defaultId;
+      localStorage.setItem(this.activeKey, defaultId);
+      localStorage.setItem("omnitag_active_source", defaultId);
+    }
+    
     // Ensure active source exists
     if (!this.getSource(this.activeId)) {
       this.activeId = defaultId;
+      localStorage.setItem(this.activeKey, defaultId);
+      localStorage.setItem("omnitag_active_source", defaultId);
     }
   }
 
@@ -180,10 +189,9 @@ class ApiSourceManager {
     if (this.getSource(id)) {
       this.activeId = id;
       localStorage.setItem(this.activeKey, id);
-      if (id === "safebooru") {
-        localStorage.setItem("omnitag_user_explicit_safebooru", "1");
-      } else {
-        localStorage.removeItem("omnitag_user_explicit_safebooru");
+      localStorage.setItem("omnitag_active_source", id);
+      if (id === "danbooru") {
+        localStorage.setItem("omnitag_user_explicit_danbooru", "1");
       }
       return true;
     }
@@ -448,9 +456,8 @@ class ApiSourceManager {
     } catch (netErr) {
       // In web browsers/GitHub Pages, direct fetch can fail with CORS. Try reliable proxy fallback chain
       const proxyFallbacks = [
-        `https://corsproxy.org/?url=${encodeURIComponent(url)}`,
-        `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`,
-        `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`
+        `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+        `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`
       ];
 
       let lastError = netErr;
@@ -460,9 +467,13 @@ class ApiSourceManager {
             headers: { Accept: "application/json, text/plain, */*" }
           });
           if (pResp && pResp.ok) {
-            resp = pResp;
-            lastError = null;
-            break;
+            const cType = (pResp.headers.get("content-type") || "").toLowerCase();
+            // Discard HTML challenge/advertisement landing pages
+            if (!cType.includes("text/html")) {
+              resp = pResp;
+              lastError = null;
+              break;
+            }
           }
         } catch (e) {
           lastError = e;

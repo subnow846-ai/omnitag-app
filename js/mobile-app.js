@@ -650,14 +650,6 @@ class OmniTagMobileApp {
       }
     } catch (err) {
       console.error("Feed load error:", err);
-      // Auto-fallback to Danbooru if primary source failed on first load
-      if (this.feedPosts.length === 0 && reset && this.sourceManager && this.sourceManager.activeId !== "danbooru") {
-        console.warn("Primary source failed on initial feed load, attempting Danbooru auto-fallback...");
-        this.sourceManager.setActiveSource("danbooru");
-        this.updateSourceBadge();
-        this.feedLoading = false;
-        return this.loadFeedPosts(true);
-      }
       this.showToast("Feed error: " + err.message);
       if (this.feedPosts.length === 0 && this.feedContainer) {
         // Fallback to high-quality trending feed on web so user never sees a black screen
@@ -775,16 +767,7 @@ class OmniTagMobileApp {
                   return;
                 }
               }
-              if (this.dataset.step === '1') {
-                this.dataset.step = '2';
-                this.src = 'https://corsproxy.org/?url=' + encodeURIComponent('${mediaSrc}');
-                return;
-              }
-              if (this.dataset.step === '2' && '${fallbackSrc}') {
-                this.dataset.step = '3';
-                this.src = 'https://corsproxy.org/?url=' + encodeURIComponent('${fallbackSrc}');
-                return;
-              }
+              this.style.opacity = '0.6';
             "
           >
         `}
@@ -1047,18 +1030,17 @@ class OmniTagMobileApp {
       this.applyFiltersAndRender();
       this.renderPagination();
     } catch (err) {
-      if (!window.AndroidBridge && this.sourceManager && this.sourceManager.activeId !== "danbooru") {
-        console.warn("Search failed on primary booru in browser, trying Danbooru fallback...");
-        this.sourceManager.setActiveSource("danbooru");
-        this.updateSourceBadge();
-        return this.executeSearch(query, page);
-      }
+      console.error("Search error:", err);
+      const activeSrc = this.sourceManager?.getActiveSource()?.name || "API Source";
       this.grid.innerHTML = `
         <div style="grid-column: 1 / -1; text-align: center; padding: 40px 16px; color: var(--m-danger);">
-          <p style="font-weight: 700; margin-bottom: 6px;">Error fetching posts</p>
-          <p style="font-size: 13px; color: var(--m-text-sub);">${err.message}</p>
+          <p style="font-weight: 700; font-size: 15px; margin-bottom: 6px;">Failed to load posts from ${this.escapeHtml(activeSrc)}</p>
+          <p style="font-size: 13px; color: var(--m-text-sub); margin-bottom: 16px;">${this.escapeHtml(err.message)}</p>
+          <button id="error-open-apis-btn" class="sheet-action-btn primary" style="display: inline-block; padding: 10px 20px; font-size: 13px;">Choose Another API</button>
         </div>
       `;
+      const btn = document.getElementById("error-open-apis-btn");
+      if (btn) btn.addEventListener("click", () => this.openSourcesSheet());
       this.resultsInfoEl.textContent = "Search failed";
     }
   }
@@ -1128,6 +1110,7 @@ class OmniTagMobileApp {
 
       const isFav = this.isFavorite(post.id);
       const thumbUrl = post.previewUrl || post.sampleUrl || post.fileUrl;
+      const fallbackUrl = (post.sampleUrl && post.sampleUrl !== thumbUrl) ? post.sampleUrl : ((post.fileUrl && post.fileUrl !== thumbUrl) ? post.fileUrl : "");
 
       card.innerHTML = `
         <div class="card-thumb-wrap">
@@ -1137,8 +1120,13 @@ class OmniTagMobileApp {
             class="card-thumb" 
             loading="lazy" 
             referrerpolicy="no-referrer"
-            onerror="if (!this.dataset.p) { this.dataset.p = '1'; this.src = 'https://corsproxy.org/?url=' + encodeURIComponent('${thumbUrl}'); }"
+            onerror="if (!this.dataset.tried && '${fallbackUrl}') { this.dataset.tried = '1'; this.src = '${fallbackUrl}'; } else { this.style.display = 'none'; if (this.nextElementSibling) this.nextElementSibling.style.display = 'flex'; }"
           >
+          <div class="card-thumb-fallback" style="display: none; height: 160px; background: var(--m-surface-elevated); align-items: center; justify-content: center; flex-direction: column; color: var(--m-text-sub); font-size: 11px; gap: 6px; padding: 12px; text-align: center;">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+            <span>Preview unavailable</span>
+            <span style="font-size: 10px; opacity: 0.7;">Tap to view in ${this.escapeHtml(post.source || 'viewer')}</span>
+          </div>
           ${post.isVideo ? '<span class="card-badge video">VIDEO</span>' : ""}
           <button class="card-fav-btn ${isFav ? "active" : ""}" data-id="${post.id}">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="${isFav ? "#f85149" : "none"}" stroke="currentColor" stroke-width="2">
